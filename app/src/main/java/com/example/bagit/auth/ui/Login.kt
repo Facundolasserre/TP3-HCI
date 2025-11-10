@@ -2,6 +2,7 @@ package com.example.bagit.auth.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -21,7 +22,10 @@ import com.example.bagit.R
 import com.example.bagit.ui.theme.*
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(
+    onLoginSuccess: () -> Unit,
+    onCreateAccount: () -> Unit
+) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -47,9 +51,9 @@ fun LoginScreen() {
                     modifier = Modifier.padding(24.dp)
                 ) {
                     Image(
-                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                        contentDescription = "BagIt Mascot",
-                        modifier = Modifier.size(100.dp)
+                        painter = painterResource(id = R.drawable.logo_hci),
+                        contentDescription = "Logo BagIt",
+                        modifier = Modifier.size(120.dp)
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -114,7 +118,7 @@ fun LoginScreen() {
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Button(
-                        onClick = { /* TODO: Handle login */ },
+                        onClick = onLoginSuccess,
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = White),
                         modifier = Modifier.fillMaxWidth()
@@ -139,7 +143,8 @@ fun LoginScreen() {
                 Text(
                     text = "Sign Up",
                     color = AccentPurple,
-                    textDecoration = TextDecoration.Underline
+                    textDecoration = TextDecoration.Underline,
+                    modifier = Modifier.clickable(onClick = onCreateAccount)
                 )
             }
         }
@@ -149,5 +154,5 @@ fun LoginScreen() {
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-    LoginScreen()
+    LoginScreen({}, {})
 }
