@@ -2,35 +2,15 @@ package com.example.bagit.auth.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,63 +25,56 @@ import androidx.compose.ui.unit.sp
 import com.example.bagit.R
 import com.example.bagit.ui.theme.BagItTheme
 import com.example.bagit.ui.theme.DarkNavyBlue
+import com.example.bagit.ui.theme.Gray
+import com.example.bagit.ui.theme.White
 import com.example.bagit.ui.theme.LightPurple
 
 @Composable
 fun NewUserScreen(
     onRegisterSuccess: () -> Unit,
-    onBack: () -> Unit // reservado por si agregás top bar con back
+    onBack: () -> Unit
 ) {
     var email by rememberSaveable { mutableStateOf("") }
     var rewriteEmail by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
-    // Colores para los TextFields (API Material3 actual)
     val tfColors = TextFieldDefaults.colors(
-        focusedTextColor = Color.White,
-        unfocusedTextColor = Color.White,
-        disabledTextColor = Color.White.copy(alpha = 0.4f),
-
         focusedContainerColor = Color.Transparent,
         unfocusedContainerColor = Color.Transparent,
         disabledContainerColor = Color.Transparent,
-
-        cursorColor = Color.White,
-
-        focusedIndicatorColor = Color.White,
-        unfocusedIndicatorColor = Color.LightGray,
-        disabledIndicatorColor = Color.LightGray.copy(alpha = 0.5f),
-        errorIndicatorColor = Color(0xFFFF6B6B),
-
-        focusedPlaceholderColor = Color.LightGray,
-        unfocusedPlaceholderColor = Color.LightGray,
-        focusedLabelColor = Color.LightGray,
-        unfocusedLabelColor = Color.LightGray
+        focusedIndicatorColor = Gray,
+        unfocusedIndicatorColor = Gray.copy(alpha = 0.7f),
+        disabledIndicatorColor = Gray.copy(alpha = 0.4f),
+        focusedTextColor = White,
+        unfocusedTextColor = White,
+        cursorColor = White,
+        focusedPlaceholderColor = Gray,
+        unfocusedPlaceholderColor = Gray
     )
 
-    Scaffold { paddingValues ->
-        Column(
+    Scaffold { inner ->
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(DarkNavyBlue) // fondo oscuro como el mock
-                .padding(paddingValues),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .background(DarkNavyBlue)
+                .padding(inner),
+            contentAlignment = Alignment.Center
         ) {
             Card(
-                modifier = Modifier.fillMaxWidth(0.9f),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = LightPurple)
+                colors = CardDefaults.cardColors(containerColor = LightPurple),
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier
+                    .fillMaxWidth(0.85f)
+                    .wrapContentHeight()
+                    .padding(vertical = 16.dp)
             ) {
                 Column(
                     modifier = Modifier
-                        .padding(24.dp)
-                        .fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Logo dentro de círculo blanco
                     Image(
                         painter = painterResource(id = R.drawable.logo_hci),
                         contentDescription = "BagIt Logo",
@@ -111,43 +84,45 @@ fun NewUserScreen(
                             .background(Color.White)
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(Modifier.height(20.dp))
 
                     Text(
-                        text = "Welcome to boca",
+                        text = "Welcome to BagIt",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = White
                     )
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(Modifier.height(20.dp))
 
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
-                        label = { Text("Email") },
+                        placeholder = { Text("Email") },
                         singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = tfColors
+                        shape = RoundedCornerShape(8.dp),
+                        colors = tfColors,
+                        modifier = Modifier.fillMaxWidth()
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(Modifier.height(16.dp))
 
                     OutlinedTextField(
                         value = rewriteEmail,
                         onValueChange = { rewriteEmail = it },
-                        label = { Text("Rewrite email") },
+                        placeholder = { Text("Rewrite email") },
                         singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = tfColors
+                        shape = RoundedCornerShape(8.dp),
+                        colors = tfColors,
+                        modifier = Modifier.fillMaxWidth()
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(Modifier.height(16.dp))
 
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
-                        label = { Text("Password") },
+                        placeholder = { Text("Password") },
                         singleLine = true,
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
@@ -155,15 +130,16 @@ fun NewUserScreen(
                                 Icon(
                                     imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
                                     contentDescription = if (passwordVisible) "Hide password" else "Show password",
-                                    tint = Color.White
+                                    tint = Gray
                                 )
                             }
                         },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = tfColors
+                        shape = RoundedCornerShape(8.dp),
+                        colors = tfColors,
+                        modifier = Modifier.fillMaxWidth()
                     )
 
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(Modifier.height(24.dp))
 
                     Button(
                         onClick = onRegisterSuccess,
@@ -172,7 +148,7 @@ fun NewUserScreen(
                             .height(56.dp),
                         shape = RoundedCornerShape(24.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White,
+                            containerColor = White,
                             contentColor = Color.Black
                         )
                     ) {
@@ -184,18 +160,10 @@ fun NewUserScreen(
     }
 }
 
-@Preview(showBackground = true, name = "New User Screen Dark")
+@Preview(showBackground = true)
 @Composable
-fun NewUserScreenPreviewDark() {
-    BagItTheme(darkTheme = true) {
-        NewUserScreen({}, {})
-    }
-}
-
-@Preview(showBackground = true, name = "New User Screen Light")
-@Composable
-fun NewUserScreenPreviewLight() {
-    BagItTheme(darkTheme = false) {
+fun NewUserScreenPreview() {
+    BagItTheme {
         NewUserScreen({}, {})
     }
 }

@@ -24,7 +24,8 @@ import com.example.bagit.ui.theme.*
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
-    onCreateAccount: () -> Unit
+    onCreateAccount: () -> Unit,
+    onForgotPassword: () -> Unit
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -113,6 +114,7 @@ fun LoginScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(end = 8.dp)
+                            .clickable(onClick = onForgotPassword)
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
@@ -154,5 +156,5 @@ fun LoginScreen(
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-    LoginScreen({}, {})
+    LoginScreen({}, {}, {})
 }

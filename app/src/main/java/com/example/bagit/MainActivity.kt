@@ -11,8 +11,11 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+
+// ========= AUTH UI ========
 import com.example.bagit.auth.ui.LoginScreen
 import com.example.bagit.auth.ui.NewUserScreen
+import com.example.bagit.auth.ui.ResetPasswordScreen
 import com.example.bagit.ui.theme.BagItTheme
 
 class MainActivity : ComponentActivity() {
@@ -28,6 +31,7 @@ class MainActivity : ComponentActivity() {
                         startDestination = "login",
                         modifier = Modifier.padding(innerPadding)
                     ) {
+                        // ---------- LOGIN ----------
                         composable("login") {
                             LoginScreen(
                                 onLoginSuccess = {
@@ -37,9 +41,14 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onCreateAccount = {
                                     navController.navigate("new_user")
+                                },
+                                onForgotPassword = {
+                                    navController.navigate("reset_password")
                                 }
                             )
                         }
+
+                        // ---------- REGISTER ----------
                         composable("new_user") {
                             NewUserScreen(
                                 onRegisterSuccess = {
@@ -52,8 +61,42 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
+
+                        // ---------- RESET PASSWORD ----------
+                        composable("reset_password") {
+                            ResetPasswordScreen(
+                                onPasswordReset = {
+                                    navController.navigate("login") {
+                                        popUpTo("reset_password") { inclusive = true }
+                                    }
+                                },
+                                onBack = {
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
+
+                        // ---------- HOME ----------
                         composable("home") {
-                            // TODO: Create a Home Screen
+                            /*
+                            HomeScreen(
+                                onMenuClick = { /* TODO: abrir drawer lateral */ },
+                                onSearchClick = { /* TODO: ir a pantalla de búsqueda */ },
+                                onItemClick = { list ->
+                                    // TODO: navegar a detalle de lista
+                                    // navController.navigate("list_detail/${list.id}") -> Crear ruta
+                                },
+                                onToggleFavorite = { list ->
+                                    // TODO: actualizar favorito en ViewModel o estado global
+                                },
+                                onFabClick = {
+                                    // TODO: crear nueva lista
+                                },
+                                onBottomNavSelected = { dest ->
+                                    // TODO: manejar navegación inferior (por ejemplo, a perfil)
+                                    // navController.navigate(dest)
+                                }
+                            )*/
                         }
                     }
                 }
