@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,18 +24,84 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.bagit.R
+import com.example.bagit.data.repository.Result
 import com.example.bagit.ui.theme.*
+import com.example.bagit.ui.viewmodel.AuthViewModel
 
 @Composable
 fun VerifyAccountScreen(
+    email: String,
+    password: String, // Necesitamos la contraseña para hacer login automático
+    onVerifySuccess: () -> Unit,
+    onBackToLogin: () -> Unit,
     modifier: Modifier = Modifier,
-    onVerify: (String) -> Unit = {},
-    onResend: () -> Unit = {},
-    onBackToLogin: () -> Unit = {},
-    emailMasked: String? = null // ej: "usuario•••@bagit.com"
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
-    var code by remember { mutableStateOf("") }
+    var code by rememberSaveable { mutableStateOf("") }
+    var errorMessage by rememberSaveable { mutableStateOf("") }
+    var successMessage by rememberSaveable { mutableStateOf("") }
+    var isVerified by rememberSaveable { mutableStateOf(false) }
+
+    val verifyState by viewModel.userState
+    val loginState by viewModel.loginState
+
+    // Observar el estado de verificación
+    LaunchedEffect(verifyState) {
+        when (verifyState) {
+            is Result.Success -> {
+                if (!isVerified) {
+                    isVerified = true
+                    successMessage = "¡Cuenta verificada! Iniciando sesión..."
+                    kotlinx.coroutines.delay(800)
+                    // Hacer login automáticamente después de verificar
+                    viewModel.login(email, password)
+                }
+            }
+            is Result.Error -> {
+                errorMessage = (verifyState as Result.Error).message ?: "Código incorrecto. Verifica el código enviado a tu email."
+                isVerified = false
+            }
+            else -> {}
+        }
+    }
+
+    // Observar el estado de login después de verificar
+    LaunchedEffect(loginState) {
+        if (isVerified) {
+            when (loginState) {
+                is Result.Success -> {
+                    // Login exitoso después de verificar, navegar a Home
+                    kotlinx.coroutines.delay(500)
+                    onVerifySuccess()
+                }
+                is Result.Error -> {
+                    errorMessage = "Cuenta verificada pero error al iniciar sesión. Por favor inicia sesión manualmente."
+                    kotlinx.coroutines.delay(2000)
+                    onBackToLogin()
+                }
+                else -> {}
+            }
+        }
+    }
+
+    // Máscara del email
+    val emailMasked = remember(email) {
+        val parts = email.split("@")
+        if (parts.size == 2) {
+            val username = parts[0]
+            val domain = parts[1]
+            val maskedUsername = if (username.length > 3) {
+                username.take(3) + "•••"
+            } else {
+                username
+            }
+            "$maskedUsername@$domain"
+        } else {
+            email
+        }
+    }
 
     // Normalizamos a MAYÚSCULAS y limitamos a 16 alfanuméricos
     fun normalize(input: String): String {
@@ -91,16 +158,14 @@ fun VerifyAccountScreen(
                     textAlign = TextAlign.Center
                 )
 
-                if (emailMasked != null) {
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        text = "Ingresa el código de verificación enviado a $emailMasked",
-                        color = White.copy(alpha = 0.8f),
-                        fontSize = 12.sp,
-                        lineHeight = 16.sp,
-                        textAlign = TextAlign.Center
-                    )
-                }
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = "Ingresa el código de verificación enviado a $emailMasked",
+                    color = White.copy(alpha = 0.8f),
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp,
+                    textAlign = TextAlign.Center
+                )
 
                 Spacer(Modifier.height(18.dp))
 
@@ -115,7 +180,13 @@ fun VerifyAccountScreen(
                         imeAction = ImeAction.Done
                     ),
                     keyboardActions = KeyboardActions(
-                        onDone = { if (isReady) onVerify(code) }
+                        onDone = {
+                            if (isReady) {
+                                errorMessage = ""
+                                successMessage = ""
+                                viewModel.verifyAccount(code)
+                            }
+                        }
                     ),
                     supportingText = {
                         Text(
@@ -141,10 +212,40 @@ fun VerifyAccountScreen(
 
                 Spacer(Modifier.height(20.dp))
 
+                // Mostrar mensaje de error
+                if (errorMessage.isNotEmpty()) {
+                    Text(
+                        text = errorMessage,
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(8.dp))
+                }
+
+                // Mostrar mensaje de éxito
+                if (successMessage.isNotEmpty()) {
+                    Text(
+                        text = successMessage,
+                        color = Color.Green,
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(8.dp))
+                }
+
                 // Botón "Verificar"
                 Button(
-                    onClick = { if (isReady) onVerify(code) },
-                    enabled = isReady,
+                    onClick = {
+                        if (isReady) {
+                            errorMessage = ""
+                            successMessage = ""
+                            viewModel.verifyAccount(code)
+                        }
+                    },
+                    enabled = isReady && verifyState !is Result.Loading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
@@ -157,7 +258,14 @@ fun VerifyAccountScreen(
                     ),
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
                 ) {
-                    Text("Verificar", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    if (verifyState is Result.Loading) {
+                        CircularProgressIndicator(
+                            color = Color.Black,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    } else {
+                        Text("Verificar", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
 
                 Spacer(Modifier.height(14.dp))
@@ -167,9 +275,15 @@ fun VerifyAccountScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    TextButton(onClick = onResend) {
+                    TextButton(
+                        onClick = {
+                            errorMessage = ""
+                            successMessage = "Código reenviado"
+                            // Enviar código de nuevo (puedes implementar esto en el ViewModel si la API lo soporta)
+                        }
+                    ) {
                         Text(
-                            "Resend code",
+                            "Reenviar código",
                             color = White,
                             fontSize = 12.sp,
                             textDecoration = TextDecoration.Underline
@@ -177,7 +291,7 @@ fun VerifyAccountScreen(
                     }
                     TextButton(onClick = onBackToLogin) {
                         Text(
-                            "Back to login",
+                            "Volver al login",
                             color = White,
                             fontSize = 12.sp,
                             textDecoration = TextDecoration.Underline
@@ -193,6 +307,11 @@ fun VerifyAccountScreen(
 @Composable
 private fun VerifyAccountPreview() {
     BagItTheme {
-        VerifyAccountScreen(emailMasked = "usuario•••@bagit.com")
+        VerifyAccountScreen(
+            email = "usuario@bagit.com",
+            password = "123456",
+            onVerifySuccess = {},
+            onBackToLogin = {}
+        )
     }
 }

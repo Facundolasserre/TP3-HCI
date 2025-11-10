@@ -16,8 +16,12 @@ import androidx.navigation.compose.rememberNavController
 import com.example.bagit.auth.ui.LoginScreen
 import com.example.bagit.auth.ui.NewUserScreen
 import com.example.bagit.auth.ui.ResetPasswordScreen
+import com.example.bagit.auth.ui.VerifyAccountScreen
+import com.example.bagit.ui.screens.HomeScreen
 import com.example.bagit.ui.theme.BagItTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,13 +55,35 @@ class MainActivity : ComponentActivity() {
                         // ---------- REGISTER ----------
                         composable("new_user") {
                             NewUserScreen(
-                                onRegisterSuccess = {
-                                    navController.navigate("home") {
-                                        popUpTo("login") { inclusive = true }
+                                onRegisterSuccess = { email, password ->
+                                    // Navegar a verificación de cuenta con email y password
+                                    navController.navigate("verify_account/$email/$password") {
+                                        popUpTo("new_user") { inclusive = true }
                                     }
                                 },
                                 onBack = {
                                     navController.popBackStack()
+                                }
+                            )
+                        }
+
+                        // ---------- VERIFY ACCOUNT ----------
+                        composable("verify_account/{email}/{password}") { backStackEntry ->
+                            val email = backStackEntry.arguments?.getString("email") ?: ""
+                            val password = backStackEntry.arguments?.getString("password") ?: ""
+                            VerifyAccountScreen(
+                                email = email,
+                                password = password,
+                                onVerifySuccess = {
+                                    // Después de verificar e iniciar sesión, ir a Home
+                                    navController.navigate("home") {
+                                        popUpTo("verify_account/{email}/{password}") { inclusive = true }
+                                    }
+                                },
+                                onBackToLogin = {
+                                    navController.navigate("login") {
+                                        popUpTo("verify_account/{email}/{password}") { inclusive = true }
+                                    }
                                 }
                             )
                         }
@@ -78,25 +104,13 @@ class MainActivity : ComponentActivity() {
 
                         // ---------- HOME ----------
                         composable("home") {
-                            /*
                             HomeScreen(
-                                onMenuClick = { /* TODO: abrir drawer lateral */ },
-                                onSearchClick = { /* TODO: ir a pantalla de búsqueda */ },
-                                onItemClick = { list ->
-                                    // TODO: navegar a detalle de lista
-                                    // navController.navigate("list_detail/${list.id}") -> Crear ruta
-                                },
-                                onToggleFavorite = { list ->
-                                    // TODO: actualizar favorito en ViewModel o estado global
-                                },
-                                onFabClick = {
-                                    // TODO: crear nueva lista
-                                },
-                                onBottomNavSelected = { dest ->
-                                    // TODO: manejar navegación inferior (por ejemplo, a perfil)
-                                    // navController.navigate(dest)
+                                onLogout = {
+                                    navController.navigate("login") {
+                                        popUpTo("home") { inclusive = true }
+                                    }
                                 }
-                            )*/
+                            )
                         }
                     }
                 }

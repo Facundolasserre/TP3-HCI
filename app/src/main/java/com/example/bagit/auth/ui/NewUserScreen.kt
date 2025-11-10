@@ -22,22 +22,65 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.bagit.R
+import com.example.bagit.data.repository.Result
 import com.example.bagit.ui.theme.BagItTheme
 import com.example.bagit.ui.theme.DarkNavyBlue
 import com.example.bagit.ui.theme.Gray
 import com.example.bagit.ui.theme.White
 import com.example.bagit.ui.theme.LightPurple
+import com.example.bagit.ui.viewmodel.AuthViewModel
 
 @Composable
 fun NewUserScreen(
-    onRegisterSuccess: () -> Unit,
-    onBack: () -> Unit
+    onRegisterSuccess: (String, String) -> Unit, // Ahora recibe email Y password
+    onBack: () -> Unit,
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
+    var name by rememberSaveable { mutableStateOf("") }
+    var surname by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
     var rewriteEmail by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
+    var errorMessage by rememberSaveable { mutableStateOf("") }
+
+    val registerState by viewModel.registerState
+
+    // Observar el estado de registro
+    LaunchedEffect(registerState) {
+        when (registerState) {
+            is Result.Success -> {
+                // Registro exitoso, navegar a verificación pasando email Y password
+                onRegisterSuccess(email, password)
+            }
+            is Result.Error -> {
+                val error = registerState as Result.Error
+                // Mejorar el mensaje de error según el tipo
+                errorMessage = when {
+                    error.message?.contains("Failed to connect") == true ||
+                    error.message?.contains("Unable to resolve host") == true ||
+                    error.message?.contains("timeout") == true ->
+                        "No se puede conectar al servidor. Verifica que la API esté corriendo."
+
+                    error.message?.contains("already exists") == true ||
+                    error.message?.contains("duplicate") == true ||
+                    error.message?.contains("409") == true ->
+                        "Este email ya está registrado. Intenta con otro email."
+
+                    error.message?.contains("400") == true ->
+                        "Datos inválidos. Verifica que todos los campos sean correctos."
+
+                    error.message?.contains("500") == true ->
+                        "Error en el servidor. Intenta de nuevo más tarde."
+
+                    else -> "Error al registrar: ${error.message ?: "Desconocido"}"
+                }
+            }
+            else -> {}
+        }
+    }
 
     val tfColors = TextFieldDefaults.colors(
         focusedContainerColor = Color.Transparent,
@@ -96,13 +139,38 @@ fun NewUserScreen(
                     Spacer(Modifier.height(20.dp))
 
                     OutlinedTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        placeholder = { Text("Nombre") },
+                        singleLine = true,
+                        shape = RoundedCornerShape(8.dp),
+                        colors = tfColors,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = surname,
+                        onValueChange = { surname = it },
+                        placeholder = { Text("Apellido") },
+                        singleLine = true,
+                        shape = RoundedCornerShape(8.dp),
+                        colors = tfColors,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(Modifier.height(16.dp))
+
+                    OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
                         placeholder = { Text("Email") },
                         singleLine = true,
                         shape = RoundedCornerShape(8.dp),
                         colors = tfColors,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = email.isNotEmpty() && !email.contains("@")
                     )
 
                     Spacer(Modifier.height(16.dp))
@@ -110,11 +178,12 @@ fun NewUserScreen(
                     OutlinedTextField(
                         value = rewriteEmail,
                         onValueChange = { rewriteEmail = it },
-                        placeholder = { Text("Rewrite email") },
+                        placeholder = { Text("Confirmar email") },
                         singleLine = true,
                         shape = RoundedCornerShape(8.dp),
                         colors = tfColors,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = rewriteEmail.isNotEmpty() && rewriteEmail != email
                     )
 
                     Spacer(Modifier.height(16.dp))
@@ -122,7 +191,7 @@ fun NewUserScreen(
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
-                        placeholder = { Text("Password") },
+                        placeholder = { Text("Contraseña") },
                         singleLine = true,
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
@@ -136,13 +205,39 @@ fun NewUserScreen(
                         },
                         shape = RoundedCornerShape(8.dp),
                         colors = tfColors,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = password.isNotEmpty() && password.length < 6
                     )
+
+                    // Mostrar mensaje de error si existe
+                    if (errorMessage.isNotEmpty()) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = errorMessage,
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 12.sp,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
 
                     Spacer(Modifier.height(24.dp))
 
                     Button(
-                        onClick = onRegisterSuccess,
+                        onClick = {
+                            errorMessage = ""
+                            when {
+                                name.isBlank() -> errorMessage = "El nombre es requerido"
+                                surname.isBlank() -> errorMessage = "El apellido es requerido"
+                                !email.contains("@") -> errorMessage = "Email inválido"
+                                email != rewriteEmail -> errorMessage = "Los emails no coinciden"
+                                password.length < 6 -> errorMessage = "La contraseña debe tener al menos 6 caracteres"
+                                else -> {
+                                    // Registrar usuario
+                                    viewModel.register(name, surname, email, password)
+                                }
+                            }
+                        },
+                        enabled = registerState !is Result.Loading,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
@@ -152,7 +247,14 @@ fun NewUserScreen(
                             contentColor = Color.Black
                         )
                     ) {
-                        Text(text = "Register", fontWeight = FontWeight.Bold)
+                        if (registerState is Result.Loading) {
+                            CircularProgressIndicator(
+                                color = Color.Black,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        } else {
+                            Text(text = "Registrarse", fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }
@@ -164,6 +266,9 @@ fun NewUserScreen(
 @Composable
 fun NewUserScreenPreview() {
     BagItTheme {
-        NewUserScreen({}, {})
+        NewUserScreen(
+            onRegisterSuccess = { _, _ -> }, // Recibe email y password
+            onBack = {}
+        )
     }
 }
