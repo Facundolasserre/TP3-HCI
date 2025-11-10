@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.bagit.R
@@ -39,49 +40,68 @@ fun LoginScreen() {
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = LightPurple),
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.padding(24.dp)
                 ) {
                     Image(
-                        painter = painterResource(id = R.drawable.ic_launcher_foreground), // Replace with your mascot
+                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
                         contentDescription = "BagIt Mascot",
                         modifier = Modifier.size(100.dp)
                     )
+
                     Spacer(modifier = Modifier.height(16.dp))
+
                     Text(
                         text = "BagIt",
                         color = White,
                         fontSize = 32.sp,
                         fontWeight = FontWeight.Bold
                     )
+
                     Spacer(modifier = Modifier.height(24.dp))
+
+                    // ===== USERNAME =====
                     OutlinedTextField(
                         value = username,
                         onValueChange = { username = it },
-                        label = { Text("Username", color = Gray) },
-                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                        label = { Text("Username") },
+                        colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = AccentPurple,
-                            unfocusedBorderColor = Gray
+                            unfocusedBorderColor = Gray,
+                            cursorColor = AccentPurple,
+                            focusedLabelColor = AccentPurple,
+                            unfocusedLabelColor = Gray,
+                            focusedTextColor = White,
+                            unfocusedTextColor = White
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
+
                     Spacer(modifier = Modifier.height(16.dp))
+
+                    // ===== PASSWORD =====
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
-                        label = { Text("Password", color = Gray) },
+                        label = { Text("Password") },
                         visualTransformation = PasswordVisualTransformation(),
-                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                        colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = AccentPurple,
-                            unfocusedBorderColor = Gray
+                            unfocusedBorderColor = Gray,
+                            cursorColor = AccentPurple,
+                            focusedLabelColor = AccentPurple,
+                            unfocusedLabelColor = Gray,
+                            focusedTextColor = White,
+                            unfocusedTextColor = White
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
+
                     Spacer(modifier = Modifier.height(8.dp))
+
                     Text(
                         text = "Forgot Password?",
                         color = Gray,
@@ -90,7 +110,9 @@ fun LoginScreen() {
                             .fillMaxWidth()
                             .padding(end = 8.dp)
                     )
+
                     Spacer(modifier = Modifier.height(24.dp))
+
                     Button(
                         onClick = { /* TODO: Handle login */ },
                         shape = RoundedCornerShape(8.dp),
@@ -106,7 +128,9 @@ fun LoginScreen() {
                     }
                 }
             }
+
             Spacer(modifier = Modifier.height(24.dp))
+
             Row {
                 Text(
                     text = "Don't have an account? ",
@@ -120,4 +144,10 @@ fun LoginScreen() {
             }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LoginScreenPreview() {
+    LoginScreen()
 }
