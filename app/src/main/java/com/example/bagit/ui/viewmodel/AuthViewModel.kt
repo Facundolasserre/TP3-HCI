@@ -78,7 +78,7 @@ class AuthViewModel @Inject constructor(
      */
     fun login(email: String, password: String) {
         viewModelScope.launch {
-            authRepository.login(email, password).collect { result ->
+            authRepository.login(email.lowercase(), password).collect { result ->
                 _loginState.value = result
                 if (result is Result.Success) {
                     _isLoggedIn.value = true
@@ -204,7 +204,7 @@ class AuthViewModel @Inject constructor(
     fun resendVerificationCode(email: String) {
         Log.d(TAG, "resendVerificationCode() - Llamada iniciada para email=$email")
         viewModelScope.launch {
-            userRepository.resendVerificationCode(email).collect { result ->
+            userRepository.resendVerificationCode(email.lowercase()).collect { result ->
                 _resendCodeState.value = result
                 when (result) {
                     is Result.Success -> Log.d(TAG, "resendVerificationCode() - Éxito: código reenviado")
@@ -222,7 +222,7 @@ class AuthViewModel @Inject constructor(
      */
     fun forgotPassword(email: String) {
         viewModelScope.launch {
-            userRepository.forgotPassword(email).collect { /* handle result */ }
+            userRepository.forgotPassword(email.lowercase()).collect { /* handle result */ }
         }
     }
 

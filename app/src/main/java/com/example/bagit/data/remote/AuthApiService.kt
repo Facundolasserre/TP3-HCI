@@ -17,7 +17,7 @@ interface AuthApiService {
      * @param request Objeto con email y password
      * @return LoginResponse con el token JWT
      */
-    @POST("auth/login")
+    @POST("api/users/login")
     suspend fun login(@Body request: LoginRequest): LoginResponse
 }
 

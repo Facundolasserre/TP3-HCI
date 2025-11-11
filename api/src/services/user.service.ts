@@ -195,28 +195,30 @@ export async function sendPasswordRecoveryEmail(email: string, mailer: Mailer): 
 
   try {
     const user: User | null = await queryRunner.manager.findOne(User, {
-      where: { email },
-      relations: ["passwordRecoveryToken"]
+      where: { email }
     });
 
     if (!user) throw new NotFoundError(ERROR_MESSAGES.NOT_FOUND.USER);
 
-    const oldToken = user.passwordRecoveryToken;
-    if (oldToken) await queryRunner.manager.remove(oldToken);
+    // Generate a temporary password (8 random characters)
+    const tempPassword = generateUserToken().substring(0, 8);
+    console.log(`[DEBUG] Generated temporary password for ${email}: ${tempPassword}`);
 
-    const newToken: UserPasswordRecoveryToken = new UserPasswordRecoveryToken();
-    newToken.user = user;
-    newToken.token = generateUserToken();
-    newToken.expirationDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    user.password = getHashedPassword(tempPassword);
 
-    await queryRunner.manager.save(newToken);
+    await queryRunner.manager.save(user);
     await queryRunner.commitTransaction();
 
-    await mailer.sendEmail(EmailType.RESET_PASSWORD, newToken.token, newToken.expirationDate);
+    // Send the temporary password via email
+    console.log(`[DEBUG] Sending reset password email to ${email} with password: ${tempPassword}`);
+    await mailer.sendEmail(EmailType.RESET_PASSWORD, tempPassword);
+    console.log(`[DEBUG] Reset password email sent successfully`);
 
     return true;
   } catch (err: unknown) {
-    await queryRunner.rollbackTransaction();
+    if (queryRunner.isTransactionActive) {
+      await queryRunner.rollbackTransaction();
+    }
     throw err;
   } finally {
     await queryRunner.release();
@@ -302,7 +304,7 @@ export async function sendVerificationCode(email: string, mailer: Mailer): Promi
 
     await queryRunner.commitTransaction();
 
-    mailer.sendEmail(EmailType.REGISTRATION, user.name, verificationToken.token);
+    await mailer.sendEmail(EmailType.REGISTRATION, user.name, verificationToken.token);
 
     return { code: verificationToken.token }
   } catch (err) {

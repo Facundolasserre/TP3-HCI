@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -19,6 +20,7 @@ import com.example.bagit.auth.ui.ResetPasswordScreen
 import com.example.bagit.auth.ui.VerifyAccountScreen
 import com.example.bagit.ui.AppShell
 import com.example.bagit.ui.theme.BagItTheme
+import com.example.bagit.ui.viewmodel.AuthViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -90,8 +92,10 @@ class MainActivity : ComponentActivity() {
 
                         // ---------- RESET PASSWORD ----------
                         composable("reset_password") {
+                            val viewModel: AuthViewModel = hiltViewModel()
                             ResetPasswordScreen(
-                                onPasswordReset = {
+                                onPasswordReset = { email ->
+                                    viewModel.forgotPassword(email)
                                     navController.navigate("login") {
                                         popUpTo("reset_password") { inclusive = true }
                                     }

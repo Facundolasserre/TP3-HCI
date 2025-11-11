@@ -29,7 +29,7 @@ import com.example.bagit.ui.theme.*
 @Composable
 fun ResetPasswordScreen(
     modifier: Modifier = Modifier,
-    onPasswordReset: () -> Unit = {},
+    onPasswordReset: (email: String) -> Unit = {},
     onBack: () -> Unit = {},
 ) {
     var email by remember { mutableStateOf("") }
@@ -103,7 +103,7 @@ fun ResetPasswordScreen(
                         imeAction = ImeAction.Done
                     ),
                     keyboardActions = KeyboardActions(
-                        onDone = { if (isValid) onPasswordReset() }
+                        onDone = { if (isValid) onPasswordReset(email.lowercase()) }
                     ),
                     modifier = Modifier.fillMaxWidth(),
                     colors = TextFieldDefaults.colors(
@@ -124,7 +124,7 @@ fun ResetPasswordScreen(
 
                 // Botón blanco redondeado “Reset”
                 Button(
-                    onClick = { if (isValid) onPasswordReset() },
+                    onClick = { if (isValid) onPasswordReset(email.lowercase()) },
                     enabled = isValid,
                     modifier = Modifier
                         .fillMaxWidth()
