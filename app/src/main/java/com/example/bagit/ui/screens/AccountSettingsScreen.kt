@@ -18,12 +18,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.bagit.ui.theme.BagItTheme
 import com.example.bagit.ui.theme.Cream
 import com.example.bagit.ui.theme.DarkNavy
 import com.example.bagit.ui.theme.OnDark
+import com.example.bagit.ui.utils.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,6 +33,11 @@ fun AccountSettingsScreen(
     onBack: () -> Unit = {},
     onSignOut: () -> Unit = {}
 ) {
+    val screenSize = getScreenSize()
+    val isTablet = isTablet()
+    val contentPadding = getContentPadding()
+    val maxContentWidth = getMaxContentWidth()
+    
     Scaffold(
         topBar = {
             TopAppBar(
@@ -54,19 +61,33 @@ fun AccountSettingsScreen(
                     containerColor = DarkNavy,
                     titleContentColor = OnDark,
                     navigationIconContentColor = OnDark
-                )
+                ),
+                modifier = Modifier.statusBarsPadding()
             )
         },
         containerColor = DarkNavy
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(DarkNavy)
                 .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 16.dp)
+                .navigationBarsPadding(),
+            contentAlignment = Alignment.Center
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .then(
+                        if (maxContentWidth != Dp.Unspecified) {
+                            Modifier.widthIn(max = maxContentWidth)
+                        } else {
+                            Modifier
+                        }
+                    )
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = contentPadding, vertical = contentPadding)
+            ) {
             // Profile Card
             ProfileCard()
 
@@ -98,7 +119,7 @@ fun AccountSettingsScreen(
                 onClick = onSignOut,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(getResponsiveButtonHeight()),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = OnDark
@@ -119,12 +140,15 @@ fun AccountSettingsScreen(
             }
 
             Spacer(modifier = Modifier.height(24.dp))
+            }
         }
     }
 }
 
 @Composable
 private fun ProfileCard() {
+    val isTablet = isTablet()
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -140,7 +164,7 @@ private fun ProfileCard() {
         ) {
             // Avatar
             Surface(
-                modifier = Modifier.size(80.dp),
+                modifier = Modifier.size(if (isTablet) 100.dp else 80.dp),
                 shape = CircleShape,
                 color = Cream
             ) {
@@ -150,7 +174,7 @@ private fun ProfileCard() {
                 ) {
                     Text(
                         text = "J",
-                        fontSize = 32.sp,
+                        fontSize = if (isTablet) 40.sp else 32.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF2E2A3A)
                     )
@@ -161,7 +185,7 @@ private fun ProfileCard() {
 
             Text(
                 text = "John Doe",
-                fontSize = 22.sp,
+                fontSize = if (isTablet) 26.sp else 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF2E2A3A)
             )
@@ -170,7 +194,7 @@ private fun ProfileCard() {
 
             Text(
                 text = "@john",
-                fontSize = 14.sp,
+                fontSize = if (isTablet) 16.sp else 14.sp,
                 color = Color(0xFF2E2A3A).copy(alpha = 0.7f)
             )
 
@@ -178,7 +202,7 @@ private fun ProfileCard() {
 
             Text(
                 text = "john@bagit.com",
-                fontSize = 14.sp,
+                fontSize = if (isTablet) 16.sp else 14.sp,
                 color = Color(0xFF2E2A3A).copy(alpha = 0.7f)
             )
 
@@ -188,7 +212,7 @@ private fun ProfileCard() {
                 onClick = { /* TODO: Edit profile */ },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp),
+                    .height(getResponsiveButtonHeight()),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF5249B6),
@@ -203,7 +227,8 @@ private fun ProfileCard() {
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Edit Profile",
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
+                    fontSize = if (isTablet) 16.sp else 14.sp
                 )
             }
         }

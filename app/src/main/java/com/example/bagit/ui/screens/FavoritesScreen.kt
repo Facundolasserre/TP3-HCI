@@ -13,13 +13,23 @@ import androidx.compose.ui.unit.sp
 import com.example.bagit.ui.theme.BagItTheme
 import com.example.bagit.ui.theme.DarkNavy
 import com.example.bagit.ui.theme.OnDark
+import com.example.bagit.ui.utils.*
 
 @Composable
 fun FavoritesScreen() {
+    val isTablet = isTablet()
+    val contentPadding = getContentPadding()
+    
+    // Responsive sizes
+    val emojiSize = if (isTablet) 80.sp else 64.sp
+    val titleSize = if (isTablet) 36.sp else 28.sp
+    val subtitleSize = if (isTablet) 18.sp else 16.sp
+    
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(DarkNavy),
+            .background(DarkNavy)
+            .padding(contentPadding),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -28,19 +38,19 @@ fun FavoritesScreen() {
         ) {
             Text(
                 text = "⭐",
-                fontSize = 64.sp
+                fontSize = emojiSize
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "Favorites",
-                fontSize = 28.sp,
+                fontSize = titleSize,
                 fontWeight = FontWeight.Bold,
                 color = OnDark
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "TODO: Implement favorites",
-                fontSize = 16.sp,
+                fontSize = subtitleSize,
                 color = OnDark.copy(alpha = 0.7f)
             )
         }

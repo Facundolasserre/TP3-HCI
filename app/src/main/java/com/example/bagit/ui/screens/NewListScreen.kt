@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -25,6 +26,7 @@ import com.example.bagit.ui.components.*
 import com.example.bagit.ui.theme.BagItTheme
 import com.example.bagit.ui.theme.DarkNavy
 import com.example.bagit.ui.theme.OnDark
+import com.example.bagit.ui.utils.*
 import com.example.bagit.ui.viewmodel.NewListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,6 +47,11 @@ fun NewListScreen(
             )
         }
     }
+    
+    val screenSize = getScreenSize()
+    val isTablet = isTablet()
+    val contentPadding = getContentPadding()
+    val maxContentWidth = getMaxContentWidth()
 
     Scaffold(
         topBar = {
@@ -69,7 +76,8 @@ fun NewListScreen(
                     containerColor = DarkNavy,
                     titleContentColor = OnDark,
                     navigationIconContentColor = OnDark
-                )
+                ),
+                modifier = Modifier.statusBarsPadding()
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -85,14 +93,26 @@ fun NewListScreen(
             )
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(DarkNavy)
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 16.dp)
+                .padding(paddingValues),
+            contentAlignment = Alignment.Center
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .then(
+                        if (maxContentWidth != Dp.Unspecified) {
+                            Modifier.widthIn(max = maxContentWidth)
+                        } else {
+                            Modifier
+                        }
+                    )
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = contentPadding, vertical = contentPadding)
+            ) {
             // Preview Card
             PreviewCard(
                 name = uiState.name.ifBlank { "My List" },
@@ -233,6 +253,7 @@ fun NewListScreen(
             )
 
             Spacer(modifier = Modifier.height(100.dp))
+            }
         }
     }
 }
