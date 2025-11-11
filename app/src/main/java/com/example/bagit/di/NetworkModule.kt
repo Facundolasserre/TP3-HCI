@@ -102,6 +102,12 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    fun provideAuthApiService(retrofit: Retrofit): AuthApiService {
+        return retrofit.create(AuthApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
     fun provideCategoryApiService(retrofit: Retrofit): CategoryApiService {
         return retrofit.create(CategoryApiService::class.java)
     }

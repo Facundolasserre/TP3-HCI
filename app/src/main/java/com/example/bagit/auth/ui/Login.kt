@@ -11,7 +11,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -21,20 +20,44 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.bagit.R
+import com.example.bagit.data.repository.Result
 import com.example.bagit.ui.theme.*
 import com.example.bagit.ui.utils.*
+import com.example.bagit.ui.viewmodel.AuthViewModel
 
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onCreateAccount: () -> Unit,
-    onForgotPassword: () -> Unit
+    onForgotPassword: () -> Unit,
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    
-    val screenSize = getScreenSize()
+    var errorMessage by remember { mutableStateOf("") }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Observar el estado del login desde el ViewModel
+    val loginState by viewModel.loginState
+
+    // Manejar cambios en el estado de login
+    LaunchedEffect(loginState) {
+        when (loginState) {
+            is Result.Success -> {
+                onLoginSuccess()
+            }
+            is Result.Error -> {
+                errorMessage = (loginState as Result.Error).message ?: "Error desconocido"
+                snackbarHostState.showSnackbar(errorMessage)
+            }
+            is Result.Loading, null -> {
+                // No hacer nada
+            }
+        }
+    }
+
     val isLandscape = isLandscape()
     val isTablet = isTablet()
     val contentPadding = getContentPadding()
@@ -115,11 +138,11 @@ fun LoginScreen(
                         password = password,
                         onUsernameChange = { username = it },
                         onPasswordChange = { password = it },
-                        onLoginSuccess = onLoginSuccess,
+                        onLoginClick = { viewModel.login(username, password) },
                         onForgotPassword = onForgotPassword,
                         onCreateAccount = onCreateAccount,
                         cardPadding = cardPadding,
-                        verticalSpacing = verticalSpacing
+                        isLoading = loginState is Result.Loading
                     )
                 }
             }
@@ -178,13 +201,23 @@ fun LoginScreen(
                         Spacer(modifier = Modifier.height(verticalSpacing))
 
                         Button(
-                            onClick = onLoginSuccess,
+                            onClick = { viewModel.login(username, password) },
                             shape = RoundedCornerShape(8.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = White),
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = loginState !is Result.Loading
                         ) {
+                            if (loginState is Result.Loading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier
+                                        .size(20.dp)
+                                        .padding(end = 8.dp),
+                                    strokeWidth = 2.dp,
+                                    color = Black
+                                )
+                            }
                             Text(
-                                text = "Login",
+                                text = if (loginState is Result.Loading) "Iniciando sesión..." else "Login",
                                 color = Black,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = if (isTablet) 20.sp else 18.sp
@@ -211,6 +244,12 @@ fun LoginScreen(
                 }
             }
         }
+
+        // Snackbar para mostrar errores
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 
@@ -220,12 +259,21 @@ private fun LoginFormContent(
     password: String,
     onUsernameChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
-    onLoginSuccess: () -> Unit,
+    onLoginClick: () -> Unit,
     onForgotPassword: () -> Unit,
     onCreateAccount: () -> Unit,
     cardPadding: Dp,
-    verticalSpacing: Dp
+    isLoading: Boolean = false
 ) {
+    val isTablet = isTablet()
+    val isLandscape = isLandscape()
+
+    // Responsive spacing
+    val verticalSpacing = when {
+        isTablet && isLandscape -> 16.dp
+        else -> 24.dp
+    }
+
     Column(
         modifier = Modifier.padding(cardPadding),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -251,13 +299,23 @@ private fun LoginFormContent(
         Spacer(modifier = Modifier.height(verticalSpacing))
 
         Button(
-            onClick = onLoginSuccess,
+            onClick = onLoginClick,
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(containerColor = White),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isLoading
         ) {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .padding(end = 8.dp),
+                    strokeWidth = 2.dp,
+                    color = Black
+                )
+            }
             Text(
-                text = "Login",
+                text = if (isLoading) "Iniciando sesión..." else "Login",
                 color = Black,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
