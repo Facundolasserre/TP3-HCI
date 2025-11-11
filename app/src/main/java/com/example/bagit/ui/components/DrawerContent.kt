@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,6 +27,7 @@ import com.example.bagit.ui.theme.OnDrawer
 @Composable
 fun DrawerContent(
     onSignOut: () -> Unit,
+    onNavigateToProducts: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -84,6 +86,14 @@ fun DrawerContent(
                 Column(
                     modifier = Modifier.padding(16.dp)
                 ) {
+                    DrawerMenuItem(
+                        icon = Icons.Default.ShoppingCart,
+                        text = "Productos",
+                        onClick = onNavigateToProducts
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     DrawerMenuItem(
                         icon = Icons.Default.Edit,
                         text = "Edit Lists",

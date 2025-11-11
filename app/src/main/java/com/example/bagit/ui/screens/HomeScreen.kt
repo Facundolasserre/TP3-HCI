@@ -32,7 +32,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     onLogout: () -> Unit = {},
-    onNavigateToNewList: () -> Unit = {}
+    onNavigateToNewList: () -> Unit = {},
+    onNavigateToProducts: () -> Unit = {}
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -67,6 +68,12 @@ fun HomeScreen(
                             drawerState.close()
                         }
                         onLogout()
+                    },
+                    onNavigateToProducts = {
+                        scope.launch {
+                            drawerState.close()
+                        }
+                        onNavigateToProducts()
                     }
                 )
             }

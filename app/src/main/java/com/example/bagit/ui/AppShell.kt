@@ -14,6 +14,7 @@ import com.example.bagit.ui.screens.AccountSettingsScreen
 import com.example.bagit.ui.screens.FavoritesScreen
 import com.example.bagit.ui.screens.HomeScreen
 import com.example.bagit.ui.screens.NewListScreen
+import com.example.bagit.ui.products.ProductsRoute
 
 @Composable
 fun AppShell(
@@ -74,6 +75,9 @@ fun AppShell(
                     onLogout = onLogout,
                     onNavigateToNewList = {
                         navController.navigate("new_list")
+                    },
+                    onNavigateToProducts = {
+                        navController.navigate("products")
                     }
                 )
             }
@@ -108,6 +112,15 @@ fun AppShell(
                             }
                             launchSingleTop = true
                         }
+                    }
+                )
+            }
+
+            composable("products") {
+                ProductsRoute(
+                    onLogout = onLogout,
+                    onNavigateToProducts = {
+                        // Already on products screen
                     }
                 )
             }
