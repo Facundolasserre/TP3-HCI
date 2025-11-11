@@ -17,7 +17,6 @@ data class Pagination(
 )
 
 data class ApiError(
-    @SerializedName("code") val code: Int,
     @SerializedName("message") val message: String
 )
 

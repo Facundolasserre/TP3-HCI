@@ -1,24 +1,47 @@
 package com.example.bagit.data.repository
 
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.example.bagit.data.model.*
 import com.example.bagit.data.remote.UserApiService
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import retrofit2.HttpException
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
+
+private const val TAG = "UserRepository"
 
 @Singleton
 class UserRepository @Inject constructor(
     private val userApiService: UserApiService,
-    private val dataStore: DataStore<Preferences>
+    private val dataStore: DataStore<Preferences>,
+    private val gson: Gson
 ) {
     companion object {
         private val AUTH_TOKEN_KEY = stringPreferencesKey("auth_token")
+    }
+    
+    /**
+     * Extrae el mensaje de error del cuerpo de respuesta HTTP
+     */
+    private fun extractErrorMessage(errorBody: String?): String {
+        if (errorBody.isNullOrBlank()) {
+            return "Error desconocido"
+        }
+        return try {
+            val apiError = gson.fromJson(errorBody, ApiError::class.java)
+            apiError.message ?: errorBody
+        } catch (e: Exception) {
+            Log.w(TAG, "No se pudo parsear el error como JSON: $errorBody", e)
+            errorBody
+        }
     }
 
     suspend fun register(request: RegisterRequest): Flow<Result<RegisterResponse>> = flow {
@@ -79,9 +102,38 @@ class UserRepository @Inject constructor(
     suspend fun verifyAccount(request: VerifyAccountRequest): Flow<Result<User>> = flow {
         emit(Result.Loading)
         try {
-            val user = userApiService.verifyAccount(request)
+            // Validar que el código no esté vacío
+            val trimmedCode = request.code.trim()
+            if (trimmedCode.isEmpty()) {
+                val errorMsg = "El código de verificación no puede estar vacío"
+                Log.e(TAG, "verifyAccount() - Error de validación: $errorMsg")
+                emit(Result.Error(IllegalArgumentException(errorMsg), errorMsg))
+                return@flow
+            }
+            
+            // Crear request con código validado
+            val validatedRequest = VerifyAccountRequest(trimmedCode)
+            
+            Log.d(TAG, "verifyAccount() - Enviando código (longitud: ${trimmedCode.length}): ${trimmedCode.take(4)}...")
+            Log.d(TAG, "verifyAccount() - Request JSON: ${gson.toJson(validatedRequest)}")
+            
+            val user = userApiService.verifyAccount(validatedRequest)
+            Log.d(TAG, "verifyAccount() - Éxito: usuario verificado ${user.email}")
             emit(Result.Success(user))
+        } catch (e: HttpException) {
+            val errorBodyString = try {
+                e.response()?.errorBody()?.string()
+            } catch (ioe: IOException) {
+                Log.e(TAG, "Error leyendo error body", ioe)
+                null
+            }
+            
+            val errorMessage = extractErrorMessage(errorBodyString)
+            Log.e(TAG, "verifyAccount() - Error HTTP ${e.code()}: $errorMessage")
+            Log.e(TAG, "verifyAccount() - Error body raw: $errorBodyString")
+            emit(Result.Error(e, errorMessage))
         } catch (e: Exception) {
+            Log.e(TAG, "verifyAccount() - Error: ${e.message}", e)
             emit(Result.Error(e, e.message))
         }
     }
@@ -91,7 +143,41 @@ class UserRepository @Inject constructor(
         try {
             val response = userApiService.sendVerificationCode(email)
             emit(Result.Success(response["code"] ?: ""))
+        } catch (e: HttpException) {
+            val errorBodyString = try {
+                e.response()?.errorBody()?.string()
+            } catch (ioe: IOException) {
+                Log.e(TAG, "Error leyendo error body", ioe)
+                null
+            }
+            val errorMessage = extractErrorMessage(errorBodyString)
+            Log.e(TAG, "sendVerificationCode() - Error HTTP ${e.code()}: $errorMessage")
+            emit(Result.Error(e, errorMessage))
         } catch (e: Exception) {
+            Log.e(TAG, "sendVerificationCode() - Error: ${e.message}", e)
+            emit(Result.Error(e, e.message))
+        }
+    }
+
+    suspend fun resendVerificationCode(email: String): Flow<Result<String>> = flow {
+        emit(Result.Loading)
+        try {
+            Log.d(TAG, "resendVerificationCode() - Reenviando código a: $email")
+            val response = userApiService.sendVerificationCode(email)
+            Log.d(TAG, "resendVerificationCode() - Éxito: código reenviado a $email")
+            emit(Result.Success(response["code"] ?: ""))
+        } catch (e: HttpException) {
+            val errorBodyString = try {
+                e.response()?.errorBody()?.string()
+            } catch (ioe: IOException) {
+                Log.e(TAG, "Error leyendo error body", ioe)
+                null
+            }
+            val errorMessage = extractErrorMessage(errorBodyString)
+            Log.e(TAG, "resendVerificationCode() - Error HTTP ${e.code()}: $errorMessage")
+            emit(Result.Error(e, errorMessage))
+        } catch (e: Exception) {
+            Log.e(TAG, "resendVerificationCode() - Error: ${e.message}", e)
             emit(Result.Error(e, e.message))
         }
     }

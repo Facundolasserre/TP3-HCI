@@ -1,6 +1,7 @@
 package com.example.bagit.auth.ui
 
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -30,37 +31,45 @@ import com.example.bagit.data.repository.Result
 import com.example.bagit.ui.theme.*
 import com.example.bagit.ui.viewmodel.AuthViewModel
 
+private const val TAG = "VerifyAccountScreen"
+
 @Composable
 fun VerifyAccountScreen(
     email: String,
-    password: String, // Necesitamos la contraseña para hacer login automático
+    password: String,
     onVerifySuccess: () -> Unit,
     onBackToLogin: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     var code by rememberSaveable { mutableStateOf("") }
-    var errorMessage by rememberSaveable { mutableStateOf("") }
-    var successMessage by rememberSaveable { mutableStateOf("") }
     var isVerified by rememberSaveable { mutableStateOf(false) }
+
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val verifyState by viewModel.userState
     val loginState by viewModel.loginState
+    val resendCodeState by viewModel.resendCodeState
+
+    Log.d(TAG, "VerifyAccountScreen renderizado - email=$email")
 
     // Observar el estado de verificación
     LaunchedEffect(verifyState) {
         when (verifyState) {
             is Result.Success -> {
                 if (!isVerified) {
+                    Log.d(TAG, "Verificación exitosa, iniciando login automático")
                     isVerified = true
-                    successMessage = "¡Cuenta verificada! Iniciando sesión..."
+                    snackbarHostState.showSnackbar("¡Cuenta verificada! Iniciando sesión...")
                     kotlinx.coroutines.delay(800)
                     // Hacer login automáticamente después de verificar
                     viewModel.login(email, password)
                 }
             }
             is Result.Error -> {
-                errorMessage = (verifyState as Result.Error).message ?: "Código incorrecto. Verifica el código enviado a tu email."
+                val errorMsg = (verifyState as Result.Error).message ?: "Código incorrecto. Verifica el código enviado a tu email."
+                Log.e(TAG, "Error en verificación: $errorMsg")
+                snackbarHostState.showSnackbar(errorMsg)
                 isVerified = false
             }
             else -> {}
@@ -72,17 +81,35 @@ fun VerifyAccountScreen(
         if (isVerified) {
             when (loginState) {
                 is Result.Success -> {
-                    // Login exitoso después de verificar, navegar a Home
+                    Log.d(TAG, "Login automático exitoso, navegando a Home")
                     kotlinx.coroutines.delay(500)
                     onVerifySuccess()
                 }
                 is Result.Error -> {
-                    errorMessage = "Cuenta verificada pero error al iniciar sesión. Por favor inicia sesión manualmente."
+                    val errorMsg = "Cuenta verificada pero error al iniciar sesión. Por favor inicia sesión manualmente."
+                    Log.e(TAG, "Error en login automático: $errorMsg")
+                    snackbarHostState.showSnackbar(errorMsg)
                     kotlinx.coroutines.delay(2000)
                     onBackToLogin()
                 }
                 else -> {}
             }
+        }
+    }
+
+    // Observar el estado de resend
+    LaunchedEffect(resendCodeState) {
+        when (resendCodeState) {
+            is Result.Success -> {
+                Log.d(TAG, "Código reenviado exitosamente")
+                snackbarHostState.showSnackbar("✓ Código reenviado correctamente a $email")
+            }
+            is Result.Error -> {
+                val errorMsg = (resendCodeState as Result.Error).message ?: "Error al reenviar código"
+                Log.e(TAG, "Error en resend: $errorMsg")
+                snackbarHostState.showSnackbar("Error: $errorMsg")
+            }
+            else -> {}
         }
     }
 
@@ -103,199 +130,189 @@ fun VerifyAccountScreen(
         }
     }
 
-    // Normalizamos a MAYÚSCULAS y limitamos a 16 alfanuméricos
+    // Normaliza a minúsculas (el backend genera tokens en hex minúsculas) y limita a 16 alfanuméricos
     fun normalize(input: String): String {
         val filtered = input
-            .uppercase()
+            .lowercase()
             .filter { it.isLetterOrDigit() }
         return filtered.take(16)
     }
 
     val isReady = code.length == 16
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(DarkNavyBlue),
-        contentAlignment = Alignment.Center
-    ) {
-        Card(
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        modifier = modifier.fillMaxSize()
+    ) { paddingValues ->
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp),
-            colors = CardDefaults.cardColors(containerColor = LightPurple),
-            shape = RoundedCornerShape(18.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                .fillMaxSize()
+                .background(DarkNavyBlue)
+                .padding(paddingValues),
+            contentAlignment = Alignment.Center
         ) {
-            Column(
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 28.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(horizontal = 24.dp),
+                colors = CardDefaults.cardColors(containerColor = LightPurple),
+                shape = RoundedCornerShape(18.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
-                // Icono en círculo
-                Box(
-                    modifier = Modifier
-                        .size(100.dp)
-                        .clip(CircleShape)
-                        .background(White.copy(alpha = 0.9f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                        contentDescription = "App icon",
-                        modifier = Modifier.fillMaxSize(0.7f)
-                    )
-                }
-
-                Spacer(Modifier.height(14.dp))
-
-                Text(
-                    text = "Verificar Cuenta",
-                    color = White,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    text = "Ingresa el código de verificación enviado a $emailMasked",
-                    color = White.copy(alpha = 0.8f),
-                    fontSize = 12.sp,
-                    lineHeight = 16.sp,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(Modifier.height(18.dp))
-
-                // Campo de código (estilo línea)
-                OutlinedTextField(
-                    value = code,
-                    onValueChange = { code = normalize(it) },
-                    placeholder = { Text("Ingresa el código de 16 caracteres", color = Gray) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Ascii,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            if (isReady) {
-                                errorMessage = ""
-                                successMessage = ""
-                                viewModel.verifyAccount(code)
-                            }
-                        }
-                    ),
-                    supportingText = {
-                        Text(
-                            "${code.length}/16",
-                            color = White.copy(alpha = 0.8f),
-                            fontSize = 12.sp
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                        focusedIndicatorColor = White,
-                        unfocusedIndicatorColor = White.copy(alpha = 0.6f),
-                        cursorColor = White,
-                        focusedPlaceholderColor = Gray,
-                        unfocusedPlaceholderColor = Gray,
-                        focusedTextColor = White,
-                        unfocusedTextColor = White
-                    )
-                )
-
-                Spacer(Modifier.height(20.dp))
-
-                // Mostrar mensaje de error
-                if (errorMessage.isNotEmpty()) {
-                    Text(
-                        text = errorMessage,
-                        color = MaterialTheme.colorScheme.error,
-                        fontSize = 12.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(Modifier.height(8.dp))
-                }
-
-                // Mostrar mensaje de éxito
-                if (successMessage.isNotEmpty()) {
-                    Text(
-                        text = successMessage,
-                        color = Color.Green,
-                        fontSize = 12.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(Modifier.height(8.dp))
-                }
-
-                // Botón "Verificar"
-                Button(
-                    onClick = {
-                        if (isReady) {
-                            errorMessage = ""
-                            successMessage = ""
-                            viewModel.verifyAccount(code)
-                        }
-                    },
-                    enabled = isReady && verifyState !is Result.Loading,
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = White,
-                        contentColor = Color.Black,
-                        disabledContainerColor = White.copy(alpha = 0.5f),
-                        disabledContentColor = Color.Black.copy(alpha = 0.6f)
-                    ),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
+                        .padding(horizontal = 24.dp, vertical = 28.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    if (verifyState is Result.Loading) {
-                        CircularProgressIndicator(
-                            color = Color.Black,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    } else {
-                        Text("Verificar", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-
-                Spacer(Modifier.height(14.dp))
-
-                // Links secundarios
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    TextButton(
-                        onClick = {
-                            errorMessage = ""
-                            successMessage = "Código reenviado"
-                            // Enviar código de nuevo (puedes implementar esto en el ViewModel si la API lo soporta)
-                        }
+                    // Icono en círculo
+                    Box(
+                        modifier = Modifier
+                            .size(100.dp)
+                            .clip(CircleShape)
+                            .background(White.copy(alpha = 0.9f)),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            "Reenviar código",
-                            color = White,
-                            fontSize = 12.sp,
-                            textDecoration = TextDecoration.Underline
+                        Image(
+                            painter = painterResource(id = R.drawable.logo_hci),
+                            contentDescription = "App icon",
+                            modifier = Modifier.fillMaxSize(0.7f)
                         )
                     }
-                    TextButton(onClick = onBackToLogin) {
-                        Text(
-                            "Volver al login",
-                            color = White,
-                            fontSize = 12.sp,
-                            textDecoration = TextDecoration.Underline
+
+                    Spacer(Modifier.height(14.dp))
+
+                    Text(
+                        text = "Verificar Cuenta",
+                        color = White,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = "Ingresa el código de verificación enviado a $emailMasked",
+                        color = White.copy(alpha = 0.8f),
+                        fontSize = 12.sp,
+                        lineHeight = 16.sp,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(Modifier.height(18.dp))
+
+                    // Campo de código (estilo línea)
+                    OutlinedTextField(
+                        value = code,
+                        onValueChange = { code = normalize(it) },
+                        placeholder = { Text("Ingresa el código de 16 caracteres", color = Gray) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Ascii,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                if (isReady) {
+                                    Log.d(TAG, "Presionado Done en teclado - verificando código")
+                                    viewModel.verifyAccount(email, code)
+                                }
+                            }
+                        ),
+                        supportingText = {
+                            Text(
+                                "${code.length}/16",
+                                color = White.copy(alpha = 0.8f),
+                                fontSize = 12.sp
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            disabledContainerColor = Color.Transparent,
+                            focusedIndicatorColor = White,
+                            unfocusedIndicatorColor = White.copy(alpha = 0.6f),
+                            cursorColor = White,
+                            focusedPlaceholderColor = Gray,
+                            unfocusedPlaceholderColor = Gray,
+                            focusedTextColor = White,
+                            unfocusedTextColor = White
                         )
+                    )
+
+                    Spacer(Modifier.height(20.dp))
+
+                    // Botón "Verificar"
+                    Button(
+                        onClick = {
+                            if (isReady) {
+                                Log.d(TAG, "Click en Verificar - email=$email, code=${code.take(4)}...")
+                                viewModel.verifyAccount(email, code)
+                            }
+                        },
+                        enabled = isReady && verifyState !is Result.Loading,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = White,
+                            contentColor = Color.Black,
+                            disabledContainerColor = White.copy(alpha = 0.5f),
+                            disabledContentColor = Color.Black.copy(alpha = 0.6f)
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
+                    ) {
+                        if (verifyState is Result.Loading) {
+                            CircularProgressIndicator(
+                                color = Color.Black,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        } else {
+                            Text("Verificar", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+
+                    Spacer(Modifier.height(14.dp))
+
+                    // Links secundarios
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        TextButton(
+                            onClick = {
+                                Log.d(TAG, "Click en Reenviar código - email=$email")
+                                viewModel.resendVerificationCode(email)
+                            },
+                            enabled = resendCodeState !is Result.Loading
+                        ) {
+                            if (resendCodeState is Result.Loading) {
+                                CircularProgressIndicator(
+                                    color = White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(Modifier.width(8.dp))
+                            }
+                            Text(
+                                "Reenviar código",
+                                color = White,
+                                fontSize = 12.sp,
+                                textDecoration = TextDecoration.Underline
+                            )
+                        }
+                        TextButton(onClick = {
+                            Log.d(TAG, "Click en Volver al login")
+                            onBackToLogin()
+                        }) {
+                            Text(
+                                "Volver al login",
+                                color = White,
+                                fontSize = 12.sp,
+                                textDecoration = TextDecoration.Underline
+                            )
+                        }
                     }
                 }
             }

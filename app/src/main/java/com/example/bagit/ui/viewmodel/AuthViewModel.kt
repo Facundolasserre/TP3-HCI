@@ -1,5 +1,6 @@
 package com.example.bagit.ui.viewmodel
 
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -11,6 +12,8 @@ import com.example.bagit.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+private const val TAG = "AuthViewModel"
 
 /**
  * ViewModel para manejar la lógica de autenticación.
@@ -40,6 +43,10 @@ class AuthViewModel @Inject constructor(
     // Estado del usuario (perfil)
     private val _userState = mutableStateOf<Result<User>?>(null)
     val userState: State<Result<User>?> = _userState
+
+    // Estado del reenvío de código
+    private val _resendCodeState = mutableStateOf<Result<String>?>(null)
+    val resendCodeState: State<Result<String>?> = _resendCodeState
 
     // Indicador de sesión iniciada
     private val _isLoggedIn = mutableStateOf(false)
@@ -171,12 +178,39 @@ class AuthViewModel @Inject constructor(
     /**
      * Verifica la cuenta del usuario con un código.
      *
-     * @param code Código de verificación
+     * @param email Email del usuario (mantenido para compatibilidad, no se envía al backend)
+     * @param code Código de verificación (16 caracteres)
      */
-    fun verifyAccount(code: String) {
+    fun verifyAccount(email: String, code: String) {
+        Log.d(TAG, "verifyAccount() - Llamada iniciada para email=$email, code=${code.take(4)}...")
         viewModelScope.launch {
-            userRepository.verifyAccount(VerifyAccountRequest(code)).collect { result ->
+            // El backend solo espera el código, no el email
+            userRepository.verifyAccount(VerifyAccountRequest(code.trim())).collect { result ->
                 _userState.value = result
+                when (result) {
+                    is Result.Success -> Log.d(TAG, "verifyAccount() - Éxito")
+                    is Result.Error -> Log.e(TAG, "verifyAccount() - Error: ${result.message}")
+                    is Result.Loading -> Log.d(TAG, "verifyAccount() - Cargando...")
+                }
+            }
+        }
+    }
+
+    /**
+     * Reenvía el código de verificación al email del usuario.
+     *
+     * @param email Email del usuario
+     */
+    fun resendVerificationCode(email: String) {
+        Log.d(TAG, "resendVerificationCode() - Llamada iniciada para email=$email")
+        viewModelScope.launch {
+            userRepository.resendVerificationCode(email).collect { result ->
+                _resendCodeState.value = result
+                when (result) {
+                    is Result.Success -> Log.d(TAG, "resendVerificationCode() - Éxito: código reenviado")
+                    is Result.Error -> Log.e(TAG, "resendVerificationCode() - Error: ${result.message}")
+                    is Result.Loading -> Log.d(TAG, "resendVerificationCode() - Cargando...")
+                }
             }
         }
     }

@@ -38,6 +38,10 @@ data class VerifyAccountRequest(
     @SerializedName("code") val code: String
 )
 
+data class ResendVerificationCodeRequest(
+    @SerializedName("email") val email: String
+)
+
 data class UpdateUserProfileRequest(
     @SerializedName("name") val name: String,
     @SerializedName("surname") val surname: String,
