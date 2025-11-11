@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -101,13 +102,26 @@ fun NewUserScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(DarkNavyBlue)
-                .padding(inner),
-            contentAlignment = Alignment.Center
+                .padding(inner)
         ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = White
+                )
+            }
+
             Card(
                 colors = CardDefaults.cardColors(containerColor = LightPurple),
                 shape = RoundedCornerShape(20.dp),
                 modifier = Modifier
+                    .align(Alignment.Center)
                     .fillMaxWidth(0.85f)
                     .wrapContentHeight()
                     .padding(vertical = 16.dp)
