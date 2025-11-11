@@ -17,7 +17,7 @@ import com.example.bagit.auth.ui.LoginScreen
 import com.example.bagit.auth.ui.NewUserScreen
 import com.example.bagit.auth.ui.ResetPasswordScreen
 import com.example.bagit.auth.ui.VerifyAccountScreen
-import com.example.bagit.ui.screens.HomeScreen
+import com.example.bagit.ui.AppShell
 import com.example.bagit.ui.theme.BagItTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -102,9 +102,9 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // ---------- HOME ----------
+                        // ---------- HOME (with AppShell for bottom navigation) ----------
                         composable("home") {
-                            HomeScreen(
+                            AppShell(
                                 onLogout = {
                                     navController.navigate("login") {
                                         popUpTo("home") { inclusive = true }

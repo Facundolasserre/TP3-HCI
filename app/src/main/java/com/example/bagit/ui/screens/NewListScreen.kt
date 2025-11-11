@@ -1,0 +1,408 @@
+package com.example.bagit.ui.screens
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.bagit.ui.components.*
+import com.example.bagit.ui.theme.BagItTheme
+import com.example.bagit.ui.theme.DarkNavy
+import com.example.bagit.ui.theme.OnDark
+import com.example.bagit.ui.viewmodel.NewListViewModel
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NewListScreen(
+    onBack: () -> Unit = {},
+    onListCreated: () -> Unit = {},
+    viewModel: NewListViewModel = hiltViewModel()
+) {
+    val uiState = viewModel.uiState
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let { error ->
+            snackbarHostState.showSnackbar(
+                message = error,
+                duration = SnackbarDuration.Short
+            )
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "New List",
+                        fontWeight = FontWeight.SemiBold,
+                        color = OnDark
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = OnDark
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = DarkNavy,
+                    titleContentColor = OnDark,
+                    navigationIconContentColor = OnDark
+                )
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = DarkNavy,
+        bottomBar = {
+            BottomActionBar(
+                onCancel = onBack,
+                onCreate = {
+                    viewModel.createList(onSuccess = onListCreated)
+                },
+                isCreating = uiState.isSaving,
+                isEnabled = uiState.name.trim().isNotEmpty()
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(DarkNavy)
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 16.dp)
+        ) {
+            // Preview Card
+            PreviewCard(
+                name = uiState.name.ifBlank { "My List" },
+                category = uiState.category,
+                colorHex = uiState.colorHex,
+                iconKey = uiState.iconKey,
+                isFavorite = uiState.isFavorite
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Name Input
+            Text(
+                text = "List Name",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = OnDark.copy(alpha = 0.9f)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = uiState.name,
+                onValueChange = { viewModel.updateName(it) },
+                placeholder = { Text("e.g., Supermarket") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFF2A2D3E),
+                    unfocusedContainerColor = Color(0xFF2A2D3E),
+                    focusedTextColor = OnDark,
+                    unfocusedTextColor = OnDark,
+                    focusedBorderColor = Color(0xFF5249B6),
+                    unfocusedBorderColor = Color(0xFF3D3F54),
+                    cursorColor = Color(0xFF5249B6)
+                ),
+                singleLine = true,
+                isError = uiState.name.isNotBlank() && uiState.name.trim().isEmpty()
+            )
+            if (uiState.name.isNotBlank()) {
+                Text(
+                    text = "${uiState.name.length}/50",
+                    fontSize = 12.sp,
+                    color = OnDark.copy(alpha = 0.5f),
+                    modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Category Chips
+            Text(
+                text = "Category",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = OnDark.copy(alpha = 0.9f)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            CategoryChips(
+                selectedCategory = uiState.category,
+                onCategorySelected = { viewModel.updateCategory(it) }
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Color Picker
+            ColorPicker(
+                selectedColorHex = uiState.colorHex,
+                onColorSelected = { viewModel.updateColor(it) }
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Icon Picker
+            IconPicker(
+                selectedIconKey = uiState.iconKey,
+                onIconSelected = { viewModel.updateIcon(it) }
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Favorite Toggle
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = "Favorite",
+                        tint = if (uiState.isFavorite) Color(0xFFFFC107) else OnDark.copy(alpha = 0.7f),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "Mark as favorite",
+                        fontSize = 16.sp,
+                        color = OnDark
+                    )
+                }
+                Switch(
+                    checked = uiState.isFavorite,
+                    onCheckedChange = { viewModel.toggleFavorite() },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color(0xFF5249B6),
+                        checkedTrackColor = Color(0xFF5249B6).copy(alpha = 0.5f)
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Notes
+            Text(
+                text = "Notes (optional)",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = OnDark.copy(alpha = 0.9f)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = uiState.notes,
+                onValueChange = { viewModel.updateNotes(it) },
+                placeholder = { Text("Add any notes about this list...") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFF2A2D3E),
+                    unfocusedContainerColor = Color(0xFF2A2D3E),
+                    focusedTextColor = OnDark,
+                    unfocusedTextColor = OnDark,
+                    focusedBorderColor = Color(0xFF5249B6),
+                    unfocusedBorderColor = Color(0xFF3D3F54),
+                    cursorColor = Color(0xFF5249B6)
+                ),
+                maxLines = 3
+            )
+
+            Spacer(modifier = Modifier.height(100.dp))
+        }
+    }
+}
+
+@Composable
+private fun PreviewCard(
+    name: String,
+    category: String,
+    colorHex: String,
+    iconKey: String,
+    isFavorite: Boolean
+) {
+    val color = Color(android.graphics.Color.parseColor(colorHex))
+    val icon = availableIcons.find { it.key == iconKey }?.icon ?: Icons.Default.List
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFD5D0E8)
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
+                Surface(
+                    modifier = Modifier.size(48.dp),
+                    shape = CircleShape,
+                    color = color
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = name,
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column {
+                    Text(
+                        text = name,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF2E2A3A)
+                    )
+                    Text(
+                        text = category,
+                        fontSize = 14.sp,
+                        color = Color(0xFF2E2A3A).copy(alpha = 0.7f)
+                    )
+                }
+            }
+
+            if (isFavorite) {
+                Icon(
+                    imageVector = Icons.Default.Star,
+                    contentDescription = "Favorite",
+                    tint = Color(0xFFFFC107),
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CategoryChips(
+    selectedCategory: String,
+    onCategorySelected: (String) -> Unit
+) {
+    val categories = listOf("Groceries", "Family", "Personal", "Work", "Health", "Other")
+
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(categories) { category ->
+            FilterChip(
+                selected = category == selectedCategory,
+                onClick = { onCategorySelected(category) },
+                label = { Text(category) },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = Color(0xFF5249B6),
+                    selectedLabelColor = Color.White,
+                    containerColor = Color(0xFF2A2D3E),
+                    labelColor = OnDark.copy(alpha = 0.8f)
+                )
+            )
+        }
+    }
+}
+
+@Composable
+private fun BottomActionBar(
+    onCancel: () -> Unit,
+    onCreate: () -> Unit,
+    isCreating: Boolean,
+    isEnabled: Boolean
+) {
+    Surface(
+        color = DarkNavy,
+        shadowElevation = 8.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OutlinedButton(
+                onClick = onCancel,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = OnDark
+                ),
+                enabled = !isCreating
+            ) {
+                Text("Cancel", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            }
+
+            Button(
+                onClick = onCreate,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF5249B6),
+                    contentColor = Color.White,
+                    disabledContainerColor = Color(0xFF5249B6).copy(alpha = 0.5f),
+                    disabledContentColor = Color.White.copy(alpha = 0.5f)
+                ),
+                enabled = isEnabled && !isCreating
+            ) {
+                if (isCreating) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text("Create List", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF171A26)
+@Composable
+fun NewListScreenPreview() {
+    BagItTheme {
+        NewListScreen()
+    }
+}
+
