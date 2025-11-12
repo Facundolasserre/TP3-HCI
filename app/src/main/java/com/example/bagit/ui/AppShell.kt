@@ -25,7 +25,7 @@ fun AppShell(
     val currentRoute = currentBackStackEntry?.destination?.route ?: "home"
 
     // ✅ Mostrar bottom bar SOLO en estas rutas (excluye account_settings)
-    val bottomBarRoutes = setOf("home", "favorites")
+    val bottomBarRoutes = setOf("home", "favorites", "products")
     val showBottomBar = currentRoute in bottomBarRoutes
 
     // Mapear ruta actual a BottomDest (si estás en account_settings no se muestra la bottom bar)
