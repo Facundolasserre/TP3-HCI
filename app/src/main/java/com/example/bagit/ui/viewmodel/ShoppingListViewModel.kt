@@ -58,7 +58,7 @@ class ShoppingListViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             shoppingListRepository.createShoppingList(
-                ShoppingListRequest(name, description, recurring, metadata)
+                ShoppingListRequest(name, description ?: "", recurring, metadata)
             ).collect { result ->
                 if (result is Result.Success) {
                     // Refresh lists
@@ -78,7 +78,7 @@ class ShoppingListViewModel @Inject constructor(
         viewModelScope.launch {
             shoppingListRepository.updateShoppingList(
                 id,
-                ShoppingListRequest(name, description, recurring, metadata)
+                ShoppingListRequest(name, description ?: "", recurring, metadata)
             ).collect { result ->
                 _currentListState.value = result
             }

@@ -33,7 +33,7 @@ import com.example.bagit.ui.viewmodel.NewListViewModel
 @Composable
 fun NewListScreen(
     onBack: () -> Unit = {},
-    onListCreated: () -> Unit = {},
+    onListCreated: (Long) -> Unit = {},
     viewModel: NewListViewModel = hiltViewModel()
 ) {
     val uiState = viewModel.uiState
@@ -86,7 +86,9 @@ fun NewListScreen(
             BottomActionBar(
                 onCancel = onBack,
                 onCreate = {
-                    viewModel.createList(onSuccess = onListCreated)
+                    viewModel.createList(onSuccess = { listId ->
+                        onListCreated(listId)
+                    })
                 },
                 isCreating = uiState.isSaving,
                 isEnabled = uiState.name.trim().isNotEmpty()

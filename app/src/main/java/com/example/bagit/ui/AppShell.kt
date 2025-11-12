@@ -4,15 +4,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.bagit.ui.components.BottomDest
 import com.example.bagit.ui.components.BottomNavBar
 import com.example.bagit.ui.screens.AccountSettingsScreen
 import com.example.bagit.ui.screens.FavoritesScreen
 import com.example.bagit.ui.screens.HomeScreen
+import com.example.bagit.ui.screens.ListDetailScreen
 import com.example.bagit.ui.screens.NewListScreen
 import com.example.bagit.ui.products.ProductsRoute
 
@@ -78,6 +81,9 @@ fun AppShell(
                     onNavigateToNewList = {
                         navController.navigate("new_list")
                     },
+                    onNavigateToList = { listId ->
+                        navController.navigate("list_detail/$listId")
+                    },
                     onNavigateToProducts = {
                         navController.navigate("products")
                     }
@@ -102,7 +108,24 @@ fun AppShell(
             composable("new_list") {
                 NewListScreen(
                     onBack = { navController.popBackStack() },
-                    onListCreated = {
+                    onListCreated = { listId ->
+                        navController.navigate("list_detail/$listId") {
+                            popUpTo("home") {
+                                inclusive = false
+                            }
+                        }
+                    }
+                )
+            }
+
+            composable(
+                route = "list_detail/{listId}",
+                arguments = listOf(navArgument("listId") { type = NavType.LongType })
+            ) { backStackEntry ->
+                val listId = backStackEntry.arguments?.getLong("listId") ?: return@composable
+                ListDetailScreen(
+                    listId = listId,
+                    onBack = {
                         navController.navigate("home") {
                             popUpTo(navController.graph.startDestinationId) {
                                 inclusive = false

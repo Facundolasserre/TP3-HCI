@@ -17,7 +17,7 @@ data class ShoppingList(
 
 data class ShoppingListRequest(
     @SerializedName("name") val name: String,
-    @SerializedName("description") val description: String? = null,
+    @SerializedName("description") val description: String = "",
     @SerializedName("recurring") val recurring: Boolean = false,
     @SerializedName("metadata") val metadata: Map<String, Any>? = null
 )

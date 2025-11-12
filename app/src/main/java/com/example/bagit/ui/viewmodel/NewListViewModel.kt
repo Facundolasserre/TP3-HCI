@@ -56,7 +56,7 @@ class NewListViewModel @Inject constructor(
         uiState = uiState.copy(notes = notes)
     }
 
-    fun createList(onSuccess: () -> Unit) {
+    fun createList(onSuccess: (Long) -> Unit) {
         val trimmedName = uiState.name.trim()
         if (trimmedName.isEmpty()) {
             uiState = uiState.copy(error = "List name is required")
@@ -75,7 +75,7 @@ class NewListViewModel @Inject constructor(
 
             val request = ShoppingListRequest(
                 name = trimmedName,
-                description = uiState.notes.takeIf { it.isNotBlank() },
+                description = uiState.notes.takeIf { it.isNotBlank() } ?: "",
                 recurring = false,
                 metadata = metadata
             )
@@ -84,7 +84,7 @@ class NewListViewModel @Inject constructor(
                 when (result) {
                     is Result.Success -> {
                         uiState = uiState.copy(isSaving = false, isSuccess = true)
-                        onSuccess()
+                        onSuccess(result.data.id)
                     }
                     is Result.Error -> {
                         uiState = uiState.copy(
