@@ -15,8 +15,9 @@ import com.example.bagit.ui.components.BottomNavBar
 import com.example.bagit.ui.screens.AccountSettingsScreen
 import com.example.bagit.ui.screens.FavoritesScreen
 import com.example.bagit.ui.screens.HomeScreen
-import com.example.bagit.ui.screens.ListDetailScreen
-import com.example.bagit.ui.screens.NewListScreen
+import com.example.bagit.lists.ListDetailScreen
+import com.example.bagit.lists.NewListScreen
+import com.example.bagit.members.ShareMembersScreen
 import com.example.bagit.ui.products.ProductsRoute
 
 @Composable
@@ -114,7 +115,8 @@ fun AppShell(
                                 inclusive = false
                             }
                         }
-                    }
+                    },
+                    navController = navController
                 )
             }
 
@@ -132,6 +134,27 @@ fun AppShell(
                             }
                             launchSingleTop = true
                         }
+                    },
+                    onShareMembers = { listId, listName ->
+                        navController.navigate("share_members/$listId/${listName.replace(" ", "_")}")
+                    }
+                )
+            }
+
+            composable(
+                route = "share_members/{listId}/{listName}",
+                arguments = listOf(
+                    navArgument("listId") { type = NavType.LongType },
+                    navArgument("listName") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val listId = backStackEntry.arguments?.getLong("listId") ?: return@composable
+                val listName = backStackEntry.arguments?.getString("listName")?.replace("_", " ") ?: ""
+                ShareMembersScreen(
+                    listId = listId,
+                    listName = listName,
+                    onBack = {
+                        navController.popBackStack()
                     }
                 )
             }

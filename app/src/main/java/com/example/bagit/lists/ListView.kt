@@ -1,4 +1,4 @@
-package com.example.bagit.ui.screens
+package com.example.bagit.lists
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,17 +26,20 @@ import com.example.bagit.data.repository.Result
 import com.example.bagit.ui.theme.DarkNavy
 import com.example.bagit.ui.theme.OnDark
 import com.example.bagit.ui.utils.*
+import com.example.bagit.ui.viewmodel.ListDetailViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListDetailScreen(
     listId: Long,
     onBack: () -> Unit = {},
-    viewModel: com.example.bagit.ui.viewmodel.ListDetailViewModel = hiltViewModel()
+    onShareMembers: (Long, String) -> Unit = { _, _ -> },
+    viewModel: ListDetailViewModel = hiltViewModel()
 ) {
     val listState by viewModel.currentListState
     val listItemsState by viewModel.listItemsState
     var showAddItemDialog by remember { mutableStateOf(false) }
+    val showMenuState = remember { mutableStateOf(false) }
 
     // Load data
     LaunchedEffect(listId) {
@@ -75,6 +78,46 @@ fun ListDetailScreen(
                             contentDescription = "Back",
                             tint = OnDark
                         )
+                    }
+                },
+                actions = {
+                    Box {
+                        IconButton(onClick = { showMenuState.value = true }) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "More options",
+                                tint = OnDark
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showMenuState.value,
+                            onDismissRequest = { showMenuState.value = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Renombrar") },
+                                onClick = {
+                                    when (val state = listState) {
+                                        is Result.Success -> {
+                                            onRenameClick(listId, state.data.name)
+                                        }
+                                        else -> {}
+                                    }
+                                    showMenuState.value = false
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Compartir lista") },
+                                onClick = {
+                                    when (val state = listState) {
+                                        is Result.Success -> {
+                                            onShareMembers(listId, state.data.name)
+                                        }
+                                        else -> {}
+                                    }
+                                    showMenuState.value = false
+                                }
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -331,7 +374,7 @@ fun ListItemCard(
 fun AddItemDialog(
     onDismiss: () -> Unit,
     onAddItem: (productId: Long, quantity: Double, unit: String) -> Unit,
-    viewModel: com.example.bagit.ui.viewmodel.ListDetailViewModel
+    viewModel: ListDetailViewModel
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("1") }
@@ -542,4 +585,12 @@ fun AddItemDialog(
         }
     }
 }
+
+private fun onRenameClick(listId: Long, listName: String) {
+    // Implementar lógica para renombrar la lista
+    // Aquí irá la navegación a un diálogo de renombre o pantalla de edición
+    println("Renombrar lista: $listId - $listName")
+}
+
+
 
