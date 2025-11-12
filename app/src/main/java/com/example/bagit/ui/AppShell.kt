@@ -22,12 +22,13 @@ fun AppShell(
 ) {
     val navController = rememberNavController()
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = currentBackStackEntry?.destination?.route
+    val currentRoute = currentBackStackEntry?.destination?.route ?: "home"
 
-    // Determinar si mostrar bottom bar (solo en las 3 pantallas principales)
-    val showBottomBar = currentRoute in listOf("home", "favorites", "account_settings")
+    // ✅ Mostrar bottom bar SOLO en estas rutas (excluye account_settings)
+    val bottomBarRoutes = setOf("home", "favorites")
+    val showBottomBar = currentRoute in bottomBarRoutes
 
-    // Mapear ruta actual a BottomDest
+    // Mapear ruta actual a BottomDest (si estás en account_settings no se muestra la bottom bar)
     val selectedDest = when (currentRoute) {
         "favorites" -> BottomDest.Favorites
         "account_settings" -> BottomDest.Profile
@@ -55,6 +56,7 @@ fun AppShell(
                                 }
                             }
                             BottomDest.Profile -> {
+                                // Al tocar "Profile" navegás a una pantalla FULL y la bottom bar desaparece
                                 navController.navigate("account_settings") {
                                     launchSingleTop = true
                                 }
@@ -92,8 +94,6 @@ fun AppShell(
                         navController.popBackStack()
                     },
                     onSignOut = {
-                        // TODO: route "login" when implemented
-                        // For now, call the logout callback
                         onLogout()
                     }
                 )
@@ -101,11 +101,8 @@ fun AppShell(
 
             composable("new_list") {
                 NewListScreen(
-                    onBack = {
-                        navController.popBackStack()
-                    },
+                    onBack = { navController.popBackStack() },
                     onListCreated = {
-                        // TODO: Refresh lists in HomeScreen after creation
                         navController.navigate("home") {
                             popUpTo(navController.graph.startDestinationId) {
                                 inclusive = false
@@ -119,12 +116,9 @@ fun AppShell(
             composable("products") {
                 ProductsRoute(
                     onLogout = onLogout,
-                    onNavigateToProducts = {
-                        // Already on products screen
-                    }
+                    onNavigateToProducts = { /* ya estás en products */ }
                 )
             }
         }
     }
 }
-

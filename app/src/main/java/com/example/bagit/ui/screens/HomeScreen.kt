@@ -60,7 +60,10 @@ fun HomeScreen(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
-                drawerContainerColor = Color.Transparent
+                drawerContainerColor = Color.Transparent,
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(0.85f)
             ) {
                 DrawerContent(
                     onSignOut = {
@@ -74,6 +77,15 @@ fun HomeScreen(
                             drawerState.close()
                         }
                         onNavigateToProducts()
+                    },
+                    onSettingsClick = {
+                        scope.launch {
+                            drawerState.close()
+                        }
+                        // TODO: Navigate to settings screen
+                    },
+                    onToggleLanguage = {
+                        // TODO: Implement language toggle
                     }
                 )
             }
@@ -314,10 +326,15 @@ fun HomeScreenDrawerOpenPreview() {
             drawerState = drawerState,
             drawerContent = {
                 ModalDrawerSheet(
-                    drawerContainerColor = Color.Transparent
+                    drawerContainerColor = Color.Transparent,
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(0.85f)
                 ) {
                     DrawerContent(
-                        onSignOut = { }
+                        onSignOut = { },
+                        onSettingsClick = { },
+                        onToggleLanguage = { }
                     )
                 }
             }

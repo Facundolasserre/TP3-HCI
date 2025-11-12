@@ -62,11 +62,11 @@ export async function createNewUser(
     if (queryRunner.isTransactionActive) {
       await queryRunner.rollbackTransaction();
     }
-    
+
     if (err instanceof QueryFailedError && err.message.includes('UNIQUE constraint failed: user.email')) {
       throw new ConflictError(ERROR_MESSAGES.BUSINESS_RULE.EMAIL_ALREADY_EXISTS);
     }
-    
+
     throw err;
   } finally {
     await queryRunner.release();
@@ -195,30 +195,28 @@ export async function sendPasswordRecoveryEmail(email: string, mailer: Mailer): 
 
   try {
     const user: User | null = await queryRunner.manager.findOne(User, {
-      where: { email }
+      where: { email },
+      relations: ["passwordRecoveryToken"]
     });
 
     if (!user) throw new NotFoundError(ERROR_MESSAGES.NOT_FOUND.USER);
 
-    // Generate a temporary password (8 random characters)
-    const tempPassword = generateUserToken().substring(0, 8);
-    console.log(`[DEBUG] Generated temporary password for ${email}: ${tempPassword}`);
+    const oldToken = user.passwordRecoveryToken;
+    if (oldToken) await queryRunner.manager.remove(oldToken);
 
-    user.password = getHashedPassword(tempPassword);
+    const newToken: UserPasswordRecoveryToken = new UserPasswordRecoveryToken();
+    newToken.user = user;
+    newToken.token = generateUserToken();
+    newToken.expirationDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    await queryRunner.manager.save(user);
+    await queryRunner.manager.save(newToken);
     await queryRunner.commitTransaction();
 
-    // Send the temporary password via email
-    console.log(`[DEBUG] Sending reset password email to ${email} with password: ${tempPassword}`);
-    await mailer.sendEmail(EmailType.RESET_PASSWORD, tempPassword);
-    console.log(`[DEBUG] Reset password email sent successfully`);
+    await mailer.sendEmail(EmailType.RESET_PASSWORD, newToken.token, newToken.expirationDate);
 
     return true;
   } catch (err: unknown) {
-    if (queryRunner.isTransactionActive) {
-      await queryRunner.rollbackTransaction();
-    }
+    await queryRunner.rollbackTransaction();
     throw err;
   } finally {
     await queryRunner.release();
@@ -230,7 +228,7 @@ export async function sendPasswordRecoveryEmail(email: string, mailer: Mailer): 
  * Runs inside a transaction to update the password and remove the token atomically.
  *
  * @param {PasswordResetData} resetPasswordData - Contains reset token and new password
- * @returns {Promise<void>} 
+ * @returns {Promise<void>}
  * @throws {NotFoundError} If token is invalid
  * @throws {BadRequestError} If token expired
  */
@@ -298,13 +296,13 @@ export async function sendVerificationCode(email: string, mailer: Mailer): Promi
 
     const verificationToken = new UserVerificationToken();
     verificationToken.token = generateUserToken();
-    verificationToken.expirationDate = new Date(Date.now() + 24 * 60 * 60 * 1000); 
+    verificationToken.expirationDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
     verificationToken.user = user;
     await queryRunner.manager.save(verificationToken);
 
     await queryRunner.commitTransaction();
 
-    await mailer.sendEmail(EmailType.REGISTRATION, user.name, verificationToken.token);
+    mailer.sendEmail(EmailType.REGISTRATION, user.name, verificationToken.token);
 
     return { code: verificationToken.token }
   } catch (err) {

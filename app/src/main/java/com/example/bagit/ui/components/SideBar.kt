@@ -1,46 +1,96 @@
 package com.example.bagit.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.bagit.ui.theme.CardBg
+import com.example.bagit.ui.theme.DarkNavyBlue
 import com.example.bagit.ui.theme.DrawerBg
 import com.example.bagit.ui.theme.OnDrawer
 
+/**
+ * Drawer de ancho lateral pero con look "full-length":
+ * - Fondo sólido que cubre toda la pantalla.
+ * - Contenido scrollable con botón "Log out" pegado abajo.
+ * Nota: para que no se vea la bottom bar detrás, en el contenedor usar
+ * ModalNavigationDrawer con scrimColor opaco y ModalDrawerSheet con drawerContainerColor.
+ */
 @Composable
 fun DrawerContent(
     onSignOut: () -> Unit,
+    modifier: Modifier = Modifier,
     onNavigateToProducts: () -> Unit = {},
-    modifier: Modifier = Modifier
+    onSettingsClick: () -> Unit = {},
+    onToggleLanguage: () -> Unit = {}
 ) {
     Column(
         modifier = modifier
-            .fillMaxHeight()
-            .width(280.dp)
-            .background(DrawerBg)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.SpaceBetween
+            .fillMaxHeight()             // ocupa alto completo del viewport
+            .fillMaxWidth()              // ocupa ancho completo
+            .background(DarkNavyBlue)    // fondo sólido (no transparente)
     ) {
-        Column {
+        // Contenido scrollable (todo excepto el botón de logout)
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            horizontalAlignment = Alignment.Start
+        ) {
+            // Row superior: Settings (izq) y Language (der)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = onSettingsClick,
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Settings",
+                        tint = OnDrawer
+                    )
+                }
+                IconButton(
+                    onClick = onToggleLanguage,
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Language,
+                        contentDescription = "Toggle Language",
+                        tint = OnDrawer
+                    )
+                }
+            }
 
-            // User avatar and name
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Avatar + nombre
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
@@ -48,7 +98,7 @@ fun DrawerContent(
                 Surface(
                     modifier = Modifier.size(80.dp),
                     shape = CircleShape,
-                    color = Color(0xFF3D3456)
+                    color = DrawerBg
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
@@ -75,7 +125,7 @@ fun DrawerContent(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Options card
+            // Tarjeta de opciones
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -83,9 +133,7 @@ fun DrawerContent(
                     containerColor = CardBg
                 )
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     DrawerMenuItem(
                         icon = Icons.Default.ShoppingCart,
                         text = "Productos",
@@ -111,17 +159,18 @@ fun DrawerContent(
             }
         }
 
-        // Log out button at bottom
+        // Botón "Log out" pegado abajo (no afectado por el scroll)
         Button(
             onClick = onSignOut,
             shape = RoundedCornerShape(24.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF3D3456),
+                containerColor = DrawerBg,
                 contentColor = OnDrawer
             ),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
+                .padding(16.dp)
         ) {
             Text(
                 text = "Log out",
@@ -131,8 +180,7 @@ fun DrawerContent(
             Spacer(modifier = Modifier.width(8.dp))
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                contentDescription = "Log out",
-                modifier = Modifier.size(20.dp)
+                contentDescription = "Log out"
             )
         }
     }
@@ -146,7 +194,9 @@ private fun DrawerMenuItem(
 ) {
     Row(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start
     ) {
@@ -165,4 +215,3 @@ private fun DrawerMenuItem(
         )
     }
 }
-

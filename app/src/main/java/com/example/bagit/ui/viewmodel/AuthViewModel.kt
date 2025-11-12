@@ -58,10 +58,16 @@ class AuthViewModel @Inject constructor(
 
     /**
      * Verifica si existe una sesión válida al iniciar.
+     * Se ejecuta:
+     * - Al inicializar el ViewModel
+     * - Al loguear exitosamente
+     * - Después de cada operación importante
      */
-    private fun checkLoginStatus() {
+    fun checkLoginStatus() {
         viewModelScope.launch {
-            _isLoggedIn.value = authRepository.isLoggedIn()
+            val isLoggedIn = authRepository.isLoggedIn()
+            _isLoggedIn.value = isLoggedIn
+            Log.d(TAG, "checkLoginStatus() - isLoggedIn: $isLoggedIn")
         }
     }
 
@@ -82,6 +88,10 @@ class AuthViewModel @Inject constructor(
                 _loginState.value = result
                 if (result is Result.Success) {
                     _isLoggedIn.value = true
+                    Log.d(TAG, "login() - Éxito para email: $email")
+                    checkLoginStatus() // Verificar nuevamente para confirmar
+                } else if (result is Result.Error) {
+                    Log.e(TAG, "login() - Error: ${result.message}")
                 }
             }
         }
@@ -123,21 +133,30 @@ class AuthViewModel @Inject constructor(
     fun logout() {
         viewModelScope.launch {
             try {
+                Log.d(TAG, "logout() - Iniciando logout")
                 userRepository.logout().collect { result ->
-                    if (result is Result.Success || result is Result.Error) {
-                        // Incluso si falla, limpiamos los datos locales
-                        authRepository.clearAuthToken()
-                        _isLoggedIn.value = false
-                        _userState.value = null
-                        _loginState.value = null
+                    when (result) {
+                        is Result.Success -> {
+                            Log.d(TAG, "logout() - API logout exitoso")
+                        }
+                        is Result.Error -> {
+                            Log.w(TAG, "logout() - Error en API logout: ${result.message}, limpiando datos locales de todas formas")
+                        }
+                        else -> {}
                     }
+                    // Limpiar SOLO el token, mantener otros datos para re-login
+                    authRepository.clearAuthToken()
+                    _isLoggedIn.value = false
+                    // NO limpiar loginState ni userState, pueden ser útiles para debugging
+                    Log.d(TAG, "logout() - Token limpiado, sesión cerrada")
                 }
             } catch (e: Exception) {
+                Log.e(TAG, "logout() - Excepción: ${e.message}", e)
                 // Si algo falla, limpiar datos locales de todas formas
                 viewModelScope.launch {
                     authRepository.clearAuthToken()
                     _isLoggedIn.value = false
-                    _userState.value = null
+                    Log.d(TAG, "logout() - Token limpiado por excepción")
                 }
             }
         }

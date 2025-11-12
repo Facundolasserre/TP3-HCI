@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
@@ -31,10 +32,16 @@ class MainActivity : ComponentActivity() {
         setContent {
             BagItTheme {
                 val navController = rememberNavController()
+                val viewModel: AuthViewModel = hiltViewModel()
+                val isLoggedIn by viewModel.isLoggedIn
+
+                // Determinar la ruta inicial basada en el estado de login
+                val startDestination = if (isLoggedIn) "home" else "login"
+
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     NavHost(
                         navController = navController,
-                        startDestination = "login",
+                        startDestination = startDestination,
                         modifier = Modifier.padding(innerPadding)
                     ) {
                         // ---------- LOGIN ----------

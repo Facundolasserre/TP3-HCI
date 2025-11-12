@@ -24,14 +24,11 @@ const DEFAULT_RESET_PASSWORD_TEMPLATE = `<div style="text-align: center;">
         <strong>Password recovery</strong>
     </h1>
     <p>
-        <span>Your temporary password has been generated</span>
+        <span>Valid until <%EXPIRATION_DATE%></span>
     </p>
     <h3>
-        <strong>Your temporary password is <span style="color: #fc987e;"><%TEMPORARY_PASSWORD%></span></strong>
+        <strong>Your code is <span style="color: #fc987e;"><%VERIFICATION_CODE%></span></strong>
     </h3>
-    <p>
-        <span>Please change it after logging in</span>
-    </p>
 </div>`;
 
 const DEFAULT_PANTRY_SHARED_TEMPLATE = `<div style="text-align: center;">
@@ -90,7 +87,7 @@ export class Mailer {
         await this.sendRegistrationEmail(params[0], params[1]);
         break;
       case EmailType.RESET_PASSWORD:
-        await this.sendResetPasswordEmail(params[0]);
+        await this.sendResetPasswordEmail(params[0], params[1]);
         break;
       case EmailType.PANTRY_SHARED:
         await this.sendPantrySharedEmail(params[0], params[1], params[2]);
@@ -113,20 +110,14 @@ export class Mailer {
     await this.transporter.sendMail(emailOptions);
   }
 
-  private async sendResetPasswordEmail(tempPassword: string): Promise<void> {
+  private async sendResetPasswordEmail(token: string, expirationDate: Date): Promise<void> {
     const subject = process.env.RESET_PASSWORD_SUBJECT || DEFAULT_RESET_PASSWORD_SUBJECT;
-    console.log(`[DEBUG] sendResetPasswordEmail called with password: ${tempPassword}`);
-
-    const htmlContent = this.getResetPasswordEmailTemplate(tempPassword);
-    console.log(`[DEBUG] Rendered HTML content: ${htmlContent.substring(0, 200)}...`);
-
     const emailOptions: Mail.Options = {
       ...this.baseEmailOptions,
       subject,
-      html: htmlContent
+      html: this.getResetPasswordEmailTemplate(token, expirationDate)
     }
     await this.transporter.sendMail(emailOptions);
-    console.log(`[DEBUG] Reset password email sent successfully`);
   }
 
   private async sendPantrySharedEmail(recipientName: string, pantryName: string, ownerName: string): Promise<void> {
@@ -158,18 +149,13 @@ export class Mailer {
       .replace(/<%VERIFICATION_CODE%>/g, verificationCode);
   }
 
-  private getResetPasswordEmailTemplate(tempPassword: string): string {
+  private getResetPasswordEmailTemplate(token: string, expirationDate: Date): string {
     let template = readFileContent("templates/reset-password.mft");
     if (!template) template = DEFAULT_RESET_PASSWORD_TEMPLATE;
 
-    console.log(`[DEBUG] Template before replacement:\n${template.substring(0, 300)}...`);
-    console.log(`[DEBUG] Replacing <%TEMPORARY_PASSWORD%> with: ${tempPassword}`);
-
-    const result = template
-      .replace(/<%TEMPORARY_PASSWORD%>/g, tempPassword);
-
-    console.log(`[DEBUG] Template after replacement:\n${result.substring(0, 300)}...`);
-    return result;
+    return template
+      .replace(/<%EXPIRATION_DATE%>/g, expirationDate.toLocaleString())
+      .replace(/<%VERIFICATION_CODE%>/g, token);
   }
 
   private getPantrySharedEmailTemplate(recipientName: string, pantryName: string, ownerName: string): string {
@@ -195,13 +181,8 @@ export class Mailer {
 
 function readFileContent(filePath: string): string | null {
   try {
-    // Resolver la ruta desde la raíz del proyecto (api/)
-    // __dirname apunta a /api/build/services cuando se ejecuta
-    // Necesitamos ir dos niveles arriba para llegar a /api/ donde están los templates
-    const absolutePath = path.resolve(__dirname, '../../', filePath);
-    console.log(`[DEBUG] Reading template from: ${absolutePath}`);
+    const absolutePath = path.resolve(filePath);
     const fileContent = fs.readFileSync(absolutePath, 'utf-8');
-    console.log(`[DEBUG] Template file read successfully, length: ${fileContent.length}`);
     return fileContent;
   } catch (error) {
     console.error(`Error reading template file ${filePath}: ${error}`);

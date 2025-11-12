@@ -43,7 +43,10 @@ fun ProductsRoute(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
-                drawerContainerColor = Color.Transparent
+                drawerContainerColor = Color.Transparent,
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(0.85f)
             ) {
                 com.example.bagit.ui.components.DrawerContent(
                     onSignOut = {
@@ -57,6 +60,15 @@ fun ProductsRoute(
                             drawerState.close()
                         }
                         onNavigateToProducts()
+                    },
+                    onSettingsClick = {
+                        scope.launch {
+                            drawerState.close()
+                        }
+                        // TODO: Navigate to settings screen
+                    },
+                    onToggleLanguage = {
+                        // TODO: Implement language toggle
                     }
                 )
             }

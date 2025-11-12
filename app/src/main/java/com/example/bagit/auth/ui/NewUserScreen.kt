@@ -35,16 +35,17 @@ import com.example.bagit.ui.viewmodel.AuthViewModel
 
 @Composable
 fun NewUserScreen(
-    onRegisterSuccess: (String, String) -> Unit, // Ahora recibe email Y password
+    onRegisterSuccess: (String, String) -> Unit, // email y password
     onBack: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     var name by rememberSaveable { mutableStateOf("") }
     var surname by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
-    var rewriteEmail by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
+    var confirmPassword by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
+    var confirmPasswordVisible by rememberSaveable { mutableStateOf(false) }
     var errorMessage by rememberSaveable { mutableStateOf("") }
 
     val registerState by viewModel.registerState
@@ -52,34 +53,26 @@ fun NewUserScreen(
     // Observar el estado de registro
     LaunchedEffect(registerState) {
         when (registerState) {
-            is Result.Success -> {
-                // Registro exitoso, navegar a verificación pasando email Y password
-                onRegisterSuccess(email, password)
-            }
+            is Result.Success -> onRegisterSuccess(email, password)
             is Result.Error -> {
                 val error = registerState as Result.Error
-                // Mejorar el mensaje de error según el tipo
                 errorMessage = when {
                     error.message?.contains("Failed to connect") == true ||
-                    error.message?.contains("Unable to resolve host") == true ||
-                    error.message?.contains("timeout") == true ->
+                            error.message?.contains("Unable to resolve host") == true ||
+                            error.message?.contains("timeout") == true ->
                         "No se puede conectar al servidor. Verifica que la API esté corriendo."
-
                     error.message?.contains("already exists") == true ||
-                    error.message?.contains("duplicate") == true ||
-                    error.message?.contains("409") == true ->
+                            error.message?.contains("duplicate") == true ||
+                            error.message?.contains("409") == true ->
                         "Este email ya está registrado. Intenta con otro email."
-
                     error.message?.contains("400") == true ->
                         "Datos inválidos. Verifica que todos los campos sean correctos."
-
                     error.message?.contains("500") == true ->
                         "Error en el servidor. Intenta de nuevo más tarde."
-
                     else -> "Error al registrar: ${error.message ?: "Desconocido"}"
                 }
             }
-            else -> {}
+            else -> Unit
         }
     }
 
@@ -190,19 +183,6 @@ fun NewUserScreen(
                     Spacer(Modifier.height(16.dp))
 
                     OutlinedTextField(
-                        value = rewriteEmail,
-                        onValueChange = { rewriteEmail = it },
-                        placeholder = { Text("Confirmar email") },
-                        singleLine = true,
-                        shape = RoundedCornerShape(8.dp),
-                        colors = tfColors,
-                        modifier = Modifier.fillMaxWidth(),
-                        isError = rewriteEmail.isNotEmpty() && rewriteEmail != email
-                    )
-
-                    Spacer(Modifier.height(16.dp))
-
-                    OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
                         placeholder = { Text("Contraseña") },
@@ -223,7 +203,29 @@ fun NewUserScreen(
                         isError = password.isNotEmpty() && password.length < 6
                     )
 
-                    // Mostrar mensaje de error si existe
+                    Spacer(Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = confirmPassword,
+                        onValueChange = { confirmPassword = it },
+                        placeholder = { Text("Repetir contraseña") },
+                        singleLine = true,
+                        visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                                Icon(
+                                    imageVector = if (confirmPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                                    contentDescription = if (confirmPasswordVisible) "Hide password" else "Show password",
+                                    tint = Gray
+                                )
+                            }
+                        },
+                        shape = RoundedCornerShape(8.dp),
+                        colors = tfColors,
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = confirmPassword.isNotEmpty() && confirmPassword != password
+                    )
+
                     if (errorMessage.isNotEmpty()) {
                         Spacer(Modifier.height(8.dp))
                         Text(
@@ -243,12 +245,9 @@ fun NewUserScreen(
                                 name.isBlank() -> errorMessage = "El nombre es requerido"
                                 surname.isBlank() -> errorMessage = "El apellido es requerido"
                                 !email.contains("@") -> errorMessage = "Email inválido"
-                                email != rewriteEmail -> errorMessage = "Los emails no coinciden"
                                 password.length < 6 -> errorMessage = "La contraseña debe tener al menos 6 caracteres"
-                                else -> {
-                                    // Registrar usuario
-                                    viewModel.register(name, surname, email, password)
-                                }
+                                confirmPassword != password -> errorMessage = "Las contraseñas no coinciden"
+                                else -> viewModel.register(name, surname, email, password)
                             }
                         },
                         enabled = registerState !is Result.Loading,
@@ -281,7 +280,7 @@ fun NewUserScreen(
 fun NewUserScreenPreview() {
     BagItTheme {
         NewUserScreen(
-            onRegisterSuccess = { _, _ -> }, // Recibe email y password
+            onRegisterSuccess = { _, _ -> },
             onBack = {}
         )
     }

@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
@@ -26,7 +30,7 @@ import com.example.bagit.data.repository.Result
 import com.example.bagit.ui.theme.*
 import com.example.bagit.ui.utils.*
 import com.example.bagit.ui.viewmodel.AuthViewModel
-
+import androidx.compose.runtime.saveable.rememberSaveable
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
@@ -39,22 +43,17 @@ fun LoginScreen(
     var errorMessage by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Observar el estado del login desde el ViewModel
     val loginState by viewModel.loginState
 
     // Manejar cambios en el estado de login
     LaunchedEffect(loginState) {
         when (loginState) {
-            is Result.Success -> {
-                onLoginSuccess()
-            }
+            is Result.Success -> onLoginSuccess()
             is Result.Error -> {
                 errorMessage = (loginState as Result.Error).message ?: "Error desconocido"
                 snackbarHostState.showSnackbar(errorMessage)
             }
-            is Result.Loading, null -> {
-                // No hacer nada
-            }
+            else -> Unit
         }
     }
 
@@ -62,22 +61,19 @@ fun LoginScreen(
     val isTablet = isTablet()
     val contentPadding = getContentPadding()
     val maxContentWidth = getMaxContentWidth()
-    
-    // Responsive logo size
+
     val logoSize = when {
         isTablet && isLandscape -> 100.dp
         isTablet -> 120.dp
         else -> 100.dp
     }
-    
-    // Responsive card padding
+
     val cardPadding = when {
         isTablet && isLandscape -> 32.dp
         isTablet -> 32.dp
         else -> 24.dp
     }
-    
-    // Responsive spacing
+
     val verticalSpacing = when {
         isTablet && isLandscape -> 16.dp
         else -> 24.dp
@@ -89,7 +85,7 @@ fun LoginScreen(
             .background(DarkNavyBlue),
         contentAlignment = Alignment.Center
     ) {
-        // For landscape tablets, use two-column layout
+        // Para tablets en horizontal → dos columnas
         if (isTablet && isLandscape) {
             Row(
                 modifier = Modifier
@@ -97,7 +93,7 @@ fun LoginScreen(
                     .padding(horizontal = contentPadding),
                 horizontalArrangement = Arrangement.Center
             ) {
-                // Left side: Logo and branding
+                // Lado izquierdo: logo
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -118,8 +114,8 @@ fun LoginScreen(
                         fontWeight = FontWeight.Bold
                     )
                 }
-                
-                // Right side: Login form
+
+                // Lado derecho: formulario
                 Card(
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = LightPurple),
@@ -147,7 +143,7 @@ fun LoginScreen(
                 }
             }
         } else {
-            // Portrait or phone: single column layout
+            // Celulares o portrait
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
@@ -245,7 +241,7 @@ fun LoginScreen(
             }
         }
 
-        // Snackbar para mostrar errores
+        // Snackbar para errores
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier.align(Alignment.BottomCenter)
@@ -268,7 +264,6 @@ private fun LoginFormContent(
     val isTablet = isTablet()
     val isLandscape = isLandscape()
 
-    // Responsive spacing
     val verticalSpacing = when {
         isTablet && isLandscape -> 16.dp
         else -> 24.dp
@@ -284,9 +279,9 @@ private fun LoginFormContent(
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold
         )
-        
+
         Spacer(modifier = Modifier.height(verticalSpacing))
-        
+
         LoginFormFields(
             username = username,
             password = password,
@@ -321,9 +316,9 @@ private fun LoginFormContent(
                 fontSize = 18.sp
             )
         }
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         Row {
             Text(
                 text = "Don't have an account? ",
@@ -370,11 +365,22 @@ private fun LoginFormFields(
     Spacer(modifier = Modifier.height(16.dp))
 
     // ===== PASSWORD =====
+    var passwordVisible by rememberSaveable { mutableStateOf(false) }
+
     OutlinedTextField(
         value = password,
         onValueChange = onPasswordChange,
         label = { Text("Password") },
-        visualTransformation = PasswordVisualTransformation(),
+        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+        trailingIcon = {
+            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                Icon(
+                    imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                    contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                    tint = Gray
+                )
+            }
+        },
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = AccentPurple,
             unfocusedBorderColor = Gray,

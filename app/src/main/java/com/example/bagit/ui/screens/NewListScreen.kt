@@ -28,7 +28,7 @@ import com.example.bagit.ui.theme.DarkNavy
 import com.example.bagit.ui.theme.OnDark
 import com.example.bagit.ui.utils.*
 import com.example.bagit.ui.viewmodel.NewListViewModel
-
+// -------------- ADD LIST OPTIONS -------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewListScreen(
