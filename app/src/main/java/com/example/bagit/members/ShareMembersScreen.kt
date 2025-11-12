@@ -17,6 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import android.util.Log
 import com.example.bagit.ui.theme.BagItTheme
 import com.example.bagit.ui.theme.DarkNavy
 import com.example.bagit.ui.theme.OnDark
@@ -32,18 +33,37 @@ fun ShareMembersScreen(
     onShareList: () -> Unit = {},
     viewModel: ShareMembersViewModel = hiltViewModel()
 ) {
+    Log.d("ShareMembersScreen", "Screen initialized: listId=$listId, listName=$listName")
+
     LaunchedEffect(listId) {
-        viewModel.loadListMembers(listId, listName)
+        Log.d("ShareMembersScreen", "LaunchedEffect triggered with listId=$listId")
+        if (listId <= 0) {
+            Log.e("ShareMembersScreen", "ERROR: Invalid listId=$listId (must be > 0)")
+        } else {
+            viewModel.loadListMembers(listId, listName)
+        }
     }
 
     val uiState by viewModel.uiState
+    var showShareDialog by remember { mutableStateOf(false) }
+    var previousIsLoading by remember { mutableStateOf(false) }
+
+    // Cerrar el diálogo automáticamente cuando addMember tiene éxito
+    LaunchedEffect(uiState.isLoading, uiState.error) {
+        // Si estaba cargando y ahora no está cargando y no hay error, significa éxito
+        if (previousIsLoading && !uiState.isLoading && uiState.error == null && showShareDialog) {
+            Log.d("ShareMembersScreen", "addMember success, closing dialog")
+            showShareDialog = false
+        }
+        previousIsLoading = uiState.isLoading
+    }
 
     Scaffold(
         topBar = {
             MembersTopBar(
                 listName = listName,
                 onBack = onBack,
-                onAddMember = onAddMember,
+                onAddMember = { showShareDialog = true },
                 onRenameList = onRenameList,
                 onShareList = onShareList
             )
@@ -79,12 +99,39 @@ fun ShareMembersScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
+            // Error message if any
+            if (uiState.error != null) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFF5F2C2C)
+                    )
+                ) {
+                    Text(
+                        text = uiState.error!!,
+                        fontSize = 14.sp,
+                        color = Color(0xFFFFB3B3),
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
             // Members List
             val displayedMembers = uiState.getDisplayedMembers()
-            if (displayedMembers.isEmpty()) {
+
+            if (uiState.isLoading && displayedMembers.isEmpty()) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize(),
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color(0xFF7B68EE))
+                }
+            } else if (displayedMembers.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -102,14 +149,40 @@ fun ShareMembersScreen(
                     items(displayedMembers, key = { it.id }) { member ->
                         MemberRow(
                             member = member,
+                            isCurrentUserOwner = uiState.isCurrentUserOwner,
                             onEdit = { /* TODO */ },
-                            onRemove = { viewModel.removeMember(member) }
+                            onRemove = { viewModel.removeMember(member) },
+                            onChangeRole = { member, newRole ->
+                                viewModel.updateMemberRole(member, newRole)
+                            }
                         )
                     }
                 }
             }
         }
     }
+
+    // Share Member Dialog
+    ShareMemberDialog(
+        listName = listName,
+        isVisible = showShareDialog,
+        isLoading = uiState.isLoading,
+        error = if (showShareDialog) uiState.error else null,
+        onClose = { 
+            showShareDialog = false
+            // Limpiar error cuando se cierra el diálogo
+            if (uiState.error != null) {
+                viewModel.uiState.value = viewModel.uiState.value.copy(error = null)
+            }
+        },
+        onSend = { email, message, role ->
+            Log.d("ShareMembersScreen", "ShareMemberDialog onSend: email=$email, message=$message, role=$role")
+            viewModel.addMember(email, message, role)
+        },
+        onCopyLink = {
+            // TODO: Implement copy link functionality
+        }
+    )
 }
 
 @Composable

@@ -11,7 +11,8 @@ data class MembersUiState(
     val selectedTab: MembersTab = MembersTab.ALL,
     val searchQuery: String = "",
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val isCurrentUserOwner: Boolean = false // Indica si el usuario actual es el owner
 )
 
 enum class MembersTab {

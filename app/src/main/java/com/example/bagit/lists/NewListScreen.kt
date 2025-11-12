@@ -1,6 +1,7 @@
 package com.example.bagit.lists
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -22,7 +23,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import com.example.bagit.ui.components.*
 import com.example.bagit.ui.theme.BagItTheme
 import com.example.bagit.ui.theme.DarkNavy
@@ -35,7 +35,7 @@ import com.example.bagit.ui.viewmodel.NewListViewModel
 fun NewListScreen(
     onBack: () -> Unit = {},
     onListCreated: (Long) -> Unit = {},
-    navController: NavController? = null,
+    onShareList: (String) -> Unit = {},
     viewModel: NewListViewModel = hiltViewModel()
 ) {
     val uiState = viewModel.uiState
@@ -194,41 +194,6 @@ fun NewListScreen(
                 onIconSelected = { viewModel.updateIcon(it) }
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Share List Option
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Share,
-                        contentDescription = "Share",
-                        tint = OnDark.copy(alpha = 0.7f),
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = "Share List",
-                        fontSize = 16.sp,
-                        color = OnDark
-                    )
-                }
-                IconButton(
-                    onClick = {
-                        navController?.navigate("share_members/0/NewList")
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Navigate",
-                        tint = OnDark.copy(alpha = 0.7f),
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -264,6 +229,44 @@ fun NewListScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Compartir lista Option
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .background(
+                        color = Color(0xFF2A2D3E),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .clickable { onShareList(uiState.name.ifBlank { "New List" }) }
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Share,
+                        contentDescription = "Compartir lista",
+                        tint = OnDark.copy(alpha = 0.7f),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "Compartir lista",
+                        fontSize = 16.sp,
+                        color = OnDark
+                    )
+                }
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = "Navigate",
+                    tint = OnDark.copy(alpha = 0.5f),
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             // Notes
             Text(
                 text = "Notes (optional)",
@@ -289,7 +292,8 @@ fun NewListScreen(
                     unfocusedBorderColor = Color(0xFF3D3F54),
                     cursorColor = Color(0xFF5249B6)
                 ),
-                maxLines = 3
+                maxLines = 3,
+                enabled = !uiState.isSaving
             )
 
             Spacer(modifier = Modifier.height(100.dp))

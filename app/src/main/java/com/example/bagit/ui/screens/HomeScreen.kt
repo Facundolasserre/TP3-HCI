@@ -428,6 +428,18 @@ fun ShoppingListCard(
                         )
                     }
                 }
+                // Mostrar información del owner si la lista es compartida
+                // IMPORTANTE: Usamos list.owner que viene del backend (el remitente real),
+                // NO el usuario actual. Esto asegura que el receptor vea quién realmente compartió.
+                if (list.sharedWith?.isNotEmpty() == true) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "${list.owner.name} ${list.owner.surname} te compartió esta lista",
+                        fontSize = 12.sp,
+                        color = OnDark.copy(alpha = 0.5f),
+                        maxLines = 1
+                    )
+                }
             }
 
             // Arrow icon

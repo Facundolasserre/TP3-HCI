@@ -116,7 +116,9 @@ fun AppShell(
                             }
                         }
                     },
-                    navController = navController
+                    onShareList = { listName ->
+                        navController.navigate("share_members/0/${listName.replace(" ", "_")}")
+                    }
                 )
             }
 
