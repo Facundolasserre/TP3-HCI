@@ -34,5 +34,8 @@ interface UserApiService {
 
     @POST("api/users/change-password")
     suspend fun changePassword(@Body request: ChangePasswordRequest)
+
+    @DELETE("api/users/profile")
+    suspend fun deleteAccount()
 }
 

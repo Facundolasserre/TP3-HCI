@@ -1,7 +1,19 @@
 package com.example.bagit.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,35 +21,183 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.bagit.ui.theme.BagItTheme
 import com.example.bagit.ui.theme.Cream
 import com.example.bagit.ui.theme.DarkNavy
 import com.example.bagit.ui.theme.OnDark
-import com.example.bagit.ui.utils.*
+import com.example.bagit.ui.utils.getContentPadding
+import com.example.bagit.ui.utils.getMaxContentWidth
+import com.example.bagit.ui.utils.getResponsiveButtonHeight
+import com.example.bagit.ui.utils.isTablet
+import com.example.bagit.ui.viewmodel.AccountSettingsEvent
+import com.example.bagit.ui.viewmodel.AccountSettingsUiState
+import com.example.bagit.ui.viewmodel.AccountSettingsViewModel
+import com.example.bagit.ui.viewmodel.SnackbarType
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AccountSettingsScreen(
+fun AccountSettingsRoute(
     onBack: () -> Unit = {},
-    onSignOut: () -> Unit = {}
+    onSignOut: () -> Unit = {},
+    onAccountDeleted: () -> Unit = {},
+    viewModel: AccountSettingsViewModel = hiltViewModel()
 ) {
-    val screenSize = getScreenSize()
-    val isTablet = isTablet()
+    val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    var nameInput by rememberSaveable { mutableStateOf("") }
+    var usernameInput by rememberSaveable { mutableStateOf("") }
+    var currentPassword by rememberSaveable { mutableStateOf("") }
+    var newPassword by rememberSaveable { mutableStateOf("") }
+    var repeatPassword by rememberSaveable { mutableStateOf("") }
+    var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(uiState.name, uiState.username) {
+        nameInput = uiState.name
+        usernameInput = uiState.username
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.events.collectLatest { event ->
+            when (event) {
+                is AccountSettingsEvent.ShowSnackbar -> {
+                    snackbarHostState.showSnackbar(
+                        message = event.message
+                    )
+                    when (event.type) {
+                        SnackbarType.PASSWORD_SUCCESS -> {
+                            currentPassword = ""
+                            newPassword = ""
+                            repeatPassword = ""
+                        }
+
+                        SnackbarType.PROFILE_SUCCESS -> Unit
+                        SnackbarType.SUCCESS -> Unit
+                        SnackbarType.ERROR -> Unit
+                    }
+                }
+
+                AccountSettingsEvent.AccountDeleted -> {
+                    snackbarHostState.showSnackbar("Cuenta eliminada correctamente")
+                    onAccountDeleted()
+                }
+            }
+        }
+    }
+
+    AccountSettingsScreen(
+        uiState = uiState,
+        name = nameInput,
+        username = usernameInput,
+        currentPassword = currentPassword,
+        newPassword = newPassword,
+        repeatPassword = repeatPassword,
+        onNameChange = {
+            nameInput = it
+            viewModel.clearProfileError()
+        },
+        onUsernameChange = {
+            usernameInput = it
+            viewModel.clearProfileError()
+        },
+        onCurrentPasswordChange = {
+            currentPassword = it
+            viewModel.clearPasswordError()
+        },
+        onNewPasswordChange = {
+            newPassword = it
+            viewModel.clearPasswordError()
+        },
+        onRepeatPasswordChange = {
+            repeatPassword = it
+            viewModel.clearPasswordError()
+        },
+        onSaveProfile = { viewModel.updateProfile(nameInput, usernameInput) },
+        onChangePassword = {
+            viewModel.changePassword(currentPassword, newPassword, repeatPassword)
+        },
+        onDeleteAccountClick = { showDeleteDialog = true },
+        onConfirmDeleteAccount = {
+            showDeleteDialog = false
+            viewModel.deleteAccount()
+        },
+        onDismissDeleteAccount = { showDeleteDialog = false },
+        onBack = onBack,
+        onSignOut = onSignOut,
+        snackbarHostState = snackbarHostState,
+        showDeleteDialog = showDeleteDialog
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AccountSettingsScreen(
+    uiState: AccountSettingsUiState,
+    name: String,
+    username: String,
+    currentPassword: String,
+    newPassword: String,
+    repeatPassword: String,
+    onNameChange: (String) -> Unit,
+    onUsernameChange: (String) -> Unit,
+    onCurrentPasswordChange: (String) -> Unit,
+    onNewPasswordChange: (String) -> Unit,
+    onRepeatPasswordChange: (String) -> Unit,
+    onSaveProfile: () -> Unit,
+    onChangePassword: () -> Unit,
+    onDeleteAccountClick: () -> Unit,
+    onConfirmDeleteAccount: () -> Unit,
+    onDismissDeleteAccount: () -> Unit,
+    onBack: () -> Unit,
+    onSignOut: () -> Unit,
+    snackbarHostState: SnackbarHostState,
+    showDeleteDialog: Boolean
+) {
     val contentPadding = getContentPadding()
     val maxContentWidth = getMaxContentWidth()
-    
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -52,7 +212,7 @@ fun AccountSettingsScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = "Atrás",
                             tint = OnDark
                         )
                     }
@@ -65,6 +225,7 @@ fun AccountSettingsScreen(
                 modifier = Modifier.statusBarsPadding()
             )
         },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         containerColor = DarkNavy
     ) { paddingValues ->
         Box(
@@ -72,8 +233,7 @@ fun AccountSettingsScreen(
                 .fillMaxSize()
                 .background(DarkNavy)
                 .padding(paddingValues)
-                .navigationBarsPadding(),
-            contentAlignment = Alignment.Center
+                .navigationBarsPadding()
         ) {
             Column(
                 modifier = Modifier
@@ -88,66 +248,113 @@ fun AccountSettingsScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = contentPadding, vertical = contentPadding)
             ) {
-            // Profile Card
-            ProfileCard()
+                AnimatedVisibility(visible = !uiState.errorMessage.isNullOrBlank()) {
+                    Column {
+                        ErrorBanner(message = uiState.errorMessage.orEmpty())
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Preferences Section
-            SectionTitle("Preferences")
-            Spacer(modifier = Modifier.height(8.dp))
-            PreferencesSection()
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Security Section
-            SectionTitle("Security")
-            Spacer(modifier = Modifier.height(8.dp))
-            SecuritySection()
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Danger Zone
-            SectionTitle("Danger Zone")
-            Spacer(modifier = Modifier.height(8.dp))
-            DangerZoneSection()
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Sign Out Button
-            OutlinedButton(
-                onClick = onSignOut,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(getResponsiveButtonHeight()),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = OnDark
-                ),
-                border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                    contentDescription = "Sign out",
-                    modifier = Modifier.size(20.dp)
+                ProfileHeaderCard(
+                    name = uiState.name,
+                    username = uiState.username,
+                    email = uiState.email
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Sign Out",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                SectionTitle(text = "Profile")
+                Spacer(modifier = Modifier.height(8.dp))
+                ProfileSettingsCard(
+                    name = name,
+                    username = username,
+                    onNameChange = onNameChange,
+                    onUsernameChange = onUsernameChange,
+                    onSaveProfile = onSaveProfile,
+                    isSaving = uiState.isSavingProfile,
+                    errorMessage = uiState.profileError
                 )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                SectionTitle(text = "Account Security")
+                Spacer(modifier = Modifier.height(8.dp))
+                SecuritySettingsCard(
+                    email = uiState.email,
+                    currentPassword = currentPassword,
+                    newPassword = newPassword,
+                    repeatPassword = repeatPassword,
+                    onCurrentPasswordChange = onCurrentPasswordChange,
+                    onNewPasswordChange = onNewPasswordChange,
+                    onRepeatPasswordChange = onRepeatPasswordChange,
+                    onChangePassword = onChangePassword,
+                    isChangingPassword = uiState.isChangingPassword,
+                    errorMessage = uiState.passwordError
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                SectionTitle(text = "Privacy & Data")
+                Spacer(modifier = Modifier.height(8.dp))
+                DangerZoneCard(
+                    isDeleting = uiState.isDeletingAccount,
+                    errorMessage = uiState.deleteError,
+                    onDeleteAccountClick = onDeleteAccountClick
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                OutlinedButton(
+                    onClick = onSignOut,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(getResponsiveButtonHeight()),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = OnDark
+                    ),
+                    border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                        contentDescription = "Cerrar sesión",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Sign Out",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = Color.White
+                )
             }
         }
+    }
+
+    if (showDeleteDialog) {
+        ConfirmDeleteDialog(
+            isProcessing = uiState.isDeletingAccount,
+            onConfirm = onConfirmDeleteAccount,
+            onDismiss = onDismissDeleteAccount
+        )
     }
 }
 
 @Composable
-private fun ProfileCard() {
+private fun ProfileHeaderCard(
+    name: String,
+    username: String,
+    email: String
+) {
     val isTablet = isTablet()
+    val initials = remember(name) { extractInitials(name.ifBlank { username }) }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -162,7 +369,6 @@ private fun ProfileCard() {
                 .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Avatar
             Surface(
                 modifier = Modifier.size(if (isTablet) 100.dp else 80.dp),
                 shape = CircleShape,
@@ -173,7 +379,7 @@ private fun ProfileCard() {
                     modifier = Modifier.fillMaxSize()
                 ) {
                     Text(
-                        text = "J",
+                        text = initials,
                         fontSize = if (isTablet) 40.sp else 32.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF2E2A3A)
@@ -184,7 +390,7 @@ private fun ProfileCard() {
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "John Doe",
+                text = if (name.isNotBlank()) name else "—",
                 fontSize = if (isTablet) 26.sp else 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF2E2A3A)
@@ -193,7 +399,7 @@ private fun ProfileCard() {
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "@john",
+                text = if (username.isNotBlank()) "@$username" else "—",
                 fontSize = if (isTablet) 16.sp else 14.sp,
                 color = Color(0xFF2E2A3A).copy(alpha = 0.7f)
             )
@@ -201,230 +407,291 @@ private fun ProfileCard() {
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "john@bagit.com",
+                text = if (email.isNotBlank()) email else "—",
                 fontSize = if (isTablet) 16.sp else 14.sp,
                 color = Color(0xFF2E2A3A).copy(alpha = 0.7f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ProfileSettingsCard(
+    name: String,
+    username: String,
+    onNameChange: (String) -> Unit,
+    onUsernameChange: (String) -> Unit,
+    onSaveProfile: () -> Unit,
+    isSaving: Boolean,
+    errorMessage: String?
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFD5D0E8)
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
+            OutlinedTextField(
+                value = name,
+                onValueChange = onNameChange,
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Name") },
+                leadingIcon = {
+                    Icon(imageVector = Icons.Default.Person, contentDescription = null)
+                },
+                enabled = !isSaving
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            OutlinedTextField(
+                value = username,
+                onValueChange = onUsernameChange,
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Username") },
+                leadingIcon = {
+                    Icon(imageVector = Icons.Default.Info, contentDescription = null)
+                },
+                enabled = !isSaving
+            )
+
+            AnimatedVisibility(visible = !errorMessage.isNullOrBlank()) {
+                Text(
+                    text = errorMessage.orEmpty(),
+                    color = Color(0xFFEF5350),
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(top = 12.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Button(
-                onClick = { /* TODO: Edit profile */ },
+                onClick = onSaveProfile,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(getResponsiveButtonHeight()),
                 shape = RoundedCornerShape(12.dp),
+                enabled = !isSaving,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF5249B6),
                     contentColor = OnDark
                 )
             ) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit",
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Edit Profile",
-                    fontWeight = FontWeight.Medium,
-                    fontSize = if (isTablet) 16.sp else 14.sp
-                )
+                if (isSaving) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .height(20.dp)
+                            .width(20.dp),
+                        strokeWidth = 2.dp,
+                        color = Color.White
+                    )
+                } else {
+                    Text(
+                        text = "Save Changes",
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun PreferencesSection() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFD5D0E8)
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(vertical = 8.dp)
-        ) {
-            var notificationsEnabled by remember { mutableStateOf(true) }
-            var darkModeEnabled by remember { mutableStateOf(true) }
-
-            SettingsListItem(
-                icon = Icons.Default.Notifications,
-                title = "Notifications",
-                trailing = {
-                    Switch(
-                        checked = notificationsEnabled,
-                        onCheckedChange = { notificationsEnabled = it }
-                    )
-                }
-            )
-
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                color = Color(0xFF2E2A3A).copy(alpha = 0.1f)
-            )
-
-            SettingsListItem(
-                icon = Icons.Default.DarkMode,
-                title = "Dark Mode",
-                trailing = {
-                    Switch(
-                        checked = darkModeEnabled,
-                        onCheckedChange = { darkModeEnabled = it }
-                    )
-                }
-            )
-
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                color = Color(0xFF2E2A3A).copy(alpha = 0.1f)
-            )
-
-            SettingsListItem(
-                icon = Icons.Default.Language,
-                title = "Language",
-                subtitle = "English",
-                trailing = {
-                    Icon(
-                        imageVector = Icons.Default.ChevronRight,
-                        contentDescription = "Navigate",
-                        tint = Color(0xFF2E2A3A).copy(alpha = 0.5f)
-                    )
-                },
-                onClick = { /* TODO: Language picker */ }
-            )
-        }
-    }
-}
-
-@Composable
-private fun SecuritySection() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFD5D0E8)
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(vertical = 8.dp)
-        ) {
-            var twoFactorEnabled by remember { mutableStateOf(false) }
-
-            SettingsListItem(
-                icon = Icons.Default.Lock,
-                title = "Change Password",
-                trailing = {
-                    Icon(
-                        imageVector = Icons.Default.ChevronRight,
-                        contentDescription = "Navigate",
-                        tint = Color(0xFF2E2A3A).copy(alpha = 0.5f)
-                    )
-                },
-                onClick = { /* TODO: Change password */ }
-            )
-
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                color = Color(0xFF2E2A3A).copy(alpha = 0.1f)
-            )
-
-            SettingsListItem(
-                icon = Icons.Default.Security,
-                title = "Two-Factor Authentication",
-                trailing = {
-                    Switch(
-                        checked = twoFactorEnabled,
-                        onCheckedChange = { twoFactorEnabled = it }
-                    )
-                }
-            )
-        }
-    }
-}
-
-@Composable
-private fun DangerZoneSection() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFD5D0E8).copy(alpha = 0.5f)
-        )
-    ) {
-        SettingsListItem(
-            icon = Icons.Default.Delete,
-            title = "Delete Account",
-            subtitle = "Permanently delete your account",
-            iconTint = Color(0xFFEF5350),
-            titleColor = Color(0xFFEF5350).copy(alpha = 0.5f),
-            enabled = false,
-            onClick = { /* TODO: Delete account */ }
-        )
-    }
-}
-
-@Composable
-private fun SettingsListItem(
-    icon: ImageVector,
-    title: String,
-    subtitle: String? = null,
-    trailing: @Composable (() -> Unit)? = null,
-    iconTint: Color = Color(0xFF2E2A3A),
-    titleColor: Color = Color(0xFF2E2A3A),
-    enabled: Boolean = true,
-    onClick: (() -> Unit)? = null
+private fun SecuritySettingsCard(
+    email: String,
+    currentPassword: String,
+    newPassword: String,
+    repeatPassword: String,
+    onCurrentPasswordChange: (String) -> Unit,
+    onNewPasswordChange: (String) -> Unit,
+    onRepeatPasswordChange: (String) -> Unit,
+    onChangePassword: () -> Unit,
+    isChangingPassword: Boolean,
+    errorMessage: String?
 ) {
-    val modifier = if (onClick != null && enabled) {
-        Modifier.fillMaxWidth()
-    } else {
-        Modifier.fillMaxWidth()
-    }
-
-    Surface(
-        modifier = modifier,
-        color = Color.Transparent,
-        onClick = onClick ?: {}
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFD5D0E8)
+        )
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(20.dp)
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                tint = if (enabled) iconTint else iconTint.copy(alpha = 0.4f),
-                modifier = Modifier.size(24.dp)
+            OutlinedTextField(
+                value = email,
+                onValueChange = {},
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Email") },
+                enabled = false
             )
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
+            PasswordField(
+                label = "Current Password",
+                value = currentPassword,
+                onValueChange = onCurrentPasswordChange,
+                enabled = !isChangingPassword
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            PasswordField(
+                label = "New Password",
+                value = newPassword,
+                onValueChange = onNewPasswordChange,
+                enabled = !isChangingPassword
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            PasswordField(
+                label = "Repeat Password",
+                value = repeatPassword,
+                onValueChange = onRepeatPasswordChange,
+                enabled = !isChangingPassword
+            )
+
+            AnimatedVisibility(visible = !errorMessage.isNullOrBlank()) {
                 Text(
-                    text = title,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = if (enabled) titleColor else titleColor.copy(alpha = 0.4f)
+                    text = errorMessage.orEmpty(),
+                    color = Color(0xFFEF5350),
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(top = 12.dp)
                 )
-                if (subtitle != null) {
-                    Spacer(modifier = Modifier.height(2.dp))
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = onChangePassword,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(getResponsiveButtonHeight()),
+                shape = RoundedCornerShape(12.dp),
+                enabled = !isChangingPassword,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF5249B6),
+                    contentColor = OnDark
+                )
+            ) {
+                if (isChangingPassword) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .height(20.dp)
+                            .width(20.dp),
+                        strokeWidth = 2.dp,
+                        color = Color.White
+                    )
+                } else {
                     Text(
-                        text = subtitle,
-                        fontSize = 12.sp,
-                        color = Color(0xFF2E2A3A).copy(alpha = if (enabled) 0.6f else 0.3f)
+                        text = "Change Password",
+                        fontWeight = FontWeight.Medium
                     )
                 }
             }
+        }
+    }
+}
 
-            if (trailing != null) {
-                Spacer(modifier = Modifier.width(8.dp))
-                trailing()
+@Composable
+private fun PasswordField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    enabled: Boolean
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text(label) },
+        visualTransformation = PasswordVisualTransformation(),
+        enabled = enabled
+    )
+}
+
+@Composable
+private fun DangerZoneCard(
+    isDeleting: Boolean,
+    errorMessage: String?,
+    onDeleteAccountClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFD5D0E8).copy(alpha = 0.7f)
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
+            Text(
+                text = "Delete permanently",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFFEF5350)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Esta acción es irreversible. Todos tus datos serán eliminados.",
+                fontSize = 13.sp,
+                color = Color(0xFF2E2A3A).copy(alpha = 0.7f)
+            )
+
+            AnimatedVisibility(visible = !errorMessage.isNullOrBlank()) {
+                Text(
+                    text = errorMessage.orEmpty(),
+                    color = Color(0xFFEF5350),
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(top = 12.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = onDeleteAccountClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(getResponsiveButtonHeight()),
+                shape = RoundedCornerShape(12.dp),
+                enabled = !isDeleting,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFEF5350),
+                    contentColor = Color.White
+                )
+            ) {
+                if (isDeleting) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .height(20.dp)
+                            .width(20.dp),
+                        strokeWidth = 2.dp,
+                        color = Color.White
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = null,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Text("Delete permanently")
+                }
             }
         }
     }
@@ -441,13 +708,105 @@ private fun SectionTitle(text: String) {
     )
 }
 
+@Composable
+private fun ConfirmDeleteDialog(
+    isProcessing: Boolean,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = {
+            if (!isProcessing) onDismiss()
+        },
+        title = {
+            Text(
+                text = "Eliminar cuenta",
+                fontWeight = FontWeight.SemiBold
+            )
+        },
+        text = {
+            Text(
+                text = "Esta acción no se puede deshacer. ¿Estás seguro de que querés eliminar tu cuenta de forma permanente?"
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+                enabled = !isProcessing
+            ) {
+                Text("Eliminar")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                enabled = !isProcessing
+            ) {
+                Text("Cancelar")
+            }
+        }
+    )
+}
+
+private fun extractInitials(text: String): String {
+    return text
+        .split(" ")
+        .filter { it.isNotBlank() }
+        .mapNotNull { it.firstOrNull()?.uppercase() }
+        .joinToString("")
+        .take(2)
+        .ifBlank { "??" }
+}
+
+@Composable
+private fun ErrorBanner(message: String) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = Color(0xFFEF5350).copy(alpha = 0.12f),
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp
+    ) {
+        Text(
+            text = message,
+            color = Color(0xFFEF5350),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+
 @Preview(showBackground = true, backgroundColor = 0xFF171A26)
 @Composable
 fun AccountSettingsScreenPreview() {
     BagItTheme {
         AccountSettingsScreen(
+            uiState = AccountSettingsUiState(
+                isLoading = false,
+                name = "John Doe",
+                username = "johnd",
+                email = "john@bagit.com"
+            ),
+            name = "John Doe",
+            username = "johnd",
+            currentPassword = "",
+            newPassword = "",
+            repeatPassword = "",
+            onNameChange = {},
+            onUsernameChange = {},
+            onCurrentPasswordChange = {},
+            onNewPasswordChange = {},
+            onRepeatPasswordChange = {},
+            onSaveProfile = {},
+            onChangePassword = {},
+            onDeleteAccountClick = {},
+            onConfirmDeleteAccount = {},
+            onDismissDeleteAccount = {},
             onBack = {},
-            onSignOut = {}
+            onSignOut = {},
+            snackbarHostState = SnackbarHostState(),
+            showDeleteDialog = false
         )
     }
 }

@@ -38,7 +38,12 @@ class UserRepository @Inject constructor(
         }
         return try {
             val apiError = gson.fromJson(errorBody, ApiError::class.java)
-            apiError.message ?: errorBody
+            val apiMessage = apiError.message
+            if (!apiMessage.isNullOrBlank()) {
+                apiMessage
+            } else {
+                errorBody
+            }
         } catch (e: Exception) {
             Log.w(TAG, "No se pudo parsear el error como JSON: $errorBody", e)
             errorBody
@@ -149,7 +154,7 @@ class UserRepository @Inject constructor(
         emit(Result.Loading)
         try {
             val response = userApiService.sendVerificationCode(email)
-            emit(Result.Success(response["code"] ?: ""))
+            emit(Result.Success(response["code"].orEmpty()))
         } catch (e: HttpException) {
             val errorBodyString = try {
                 e.response()?.errorBody()?.string()
@@ -173,7 +178,7 @@ class UserRepository @Inject constructor(
             Log.d(TAG, "resendVerificationCode() - Reenviando código a: $email")
             val response = userApiService.sendVerificationCode(email)
             Log.d(TAG, "resendVerificationCode() - Éxito: código reenviado a $email")
-            emit(Result.Success(response["code"] ?: ""))
+            emit(Result.Success(response["code"].orEmpty()))
         } catch (e: HttpException) {
             val errorBodyString = try {
                 e.response()?.errorBody()?.string()
@@ -217,6 +222,18 @@ class UserRepository @Inject constructor(
         emit(Result.Loading)
         try {
             userApiService.changePassword(request)
+            emit(Result.Success(Unit))
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            emit(Result.Error(e, e.message))
+        }
+    }
+
+    suspend fun deleteAccount(): Flow<Result<Unit>> = flow {
+        emit(Result.Loading)
+        try {
+            userApiService.deleteAccount()
+            clearAuthToken()
             emit(Result.Success(Unit))
         } catch (e: Exception) {
             if (e is CancellationException) throw e

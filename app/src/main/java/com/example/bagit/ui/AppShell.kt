@@ -12,7 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.bagit.ui.components.BottomDest
 import com.example.bagit.ui.components.BottomNavBar
-import com.example.bagit.ui.screens.AccountSettingsScreen
+import com.example.bagit.ui.screens.AccountSettingsRoute
 import com.example.bagit.ui.screens.FavoritesScreen
 import com.example.bagit.ui.screens.HomeScreen
 import com.example.bagit.ui.screens.ProfileRoute
@@ -96,11 +96,14 @@ fun AppShell(
             }
 
             composable("account_settings") {
-                AccountSettingsScreen(
+                AccountSettingsRoute(
                     onBack = {
                         navController.popBackStack()
                     },
                     onSignOut = {
+                        onLogout()
+                    },
+                    onAccountDeleted = {
                         onLogout()
                     }
                 )
