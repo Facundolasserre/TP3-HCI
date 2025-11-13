@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -14,8 +16,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -191,7 +196,8 @@ fun LoginScreen(
                             onUsernameChange = { username = it },
                             onPasswordChange = { password = it },
                             onForgotPassword = onForgotPassword,
-                            verticalSpacing = verticalSpacing
+                            verticalSpacing = verticalSpacing,
+                            onLoginAction = { viewModel.login(username, password) }
                         )
 
                         Spacer(modifier = Modifier.height(verticalSpacing))
@@ -288,7 +294,8 @@ private fun LoginFormContent(
             onUsernameChange = onUsernameChange,
             onPasswordChange = onPasswordChange,
             onForgotPassword = onForgotPassword,
-            verticalSpacing = verticalSpacing
+            verticalSpacing = verticalSpacing,
+            onLoginAction = onLoginClick
         )
 
         Spacer(modifier = Modifier.height(verticalSpacing))
@@ -343,13 +350,24 @@ private fun LoginFormFields(
     onUsernameChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onForgotPassword: () -> Unit,
-    verticalSpacing: Dp
+    verticalSpacing: Dp,
+    onLoginAction: () -> Unit = {}
 ) {
-    // ===== USERNAME =====
+    val focusManager = LocalFocusManager.current
+
+    // ===== EMAIL =====
     OutlinedTextField(
         value = username,
         onValueChange = onUsernameChange,
-        label = { Text("Username") },
+        label = { Text("Email") },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Email,
+            imeAction = ImeAction.Done
+        ),
+        keyboardActions = KeyboardActions(
+            onDone = { onLoginAction() }
+        ),
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = AccentPurple,
             unfocusedBorderColor = Gray,
@@ -371,7 +389,15 @@ private fun LoginFormFields(
         value = password,
         onValueChange = onPasswordChange,
         label = { Text("Password") },
+        singleLine = true,
         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Password,
+            imeAction = ImeAction.Done
+        ),
+        keyboardActions = KeyboardActions(
+            onDone = { onLoginAction() }
+        ),
         trailingIcon = {
             IconButton(onClick = { passwordVisible = !passwordVisible }) {
                 Icon(
