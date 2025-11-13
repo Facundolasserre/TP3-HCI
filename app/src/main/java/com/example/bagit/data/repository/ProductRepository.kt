@@ -2,6 +2,7 @@ package com.example.bagit.data.repository
 
 import com.example.bagit.data.model.*
 import com.example.bagit.data.remote.ProductApiService
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -18,6 +19,7 @@ class ProductRepository @Inject constructor(
             val product = productApiService.createProduct(request)
             emit(Result.Success(product))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }
@@ -35,6 +37,7 @@ class ProductRepository @Inject constructor(
             val response = productApiService.getProducts(name, categoryId, page, perPage, sortBy, order)
             emit(Result.Success(response))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }
@@ -45,6 +48,7 @@ class ProductRepository @Inject constructor(
             val product = productApiService.getProductById(id)
             emit(Result.Success(product))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }
@@ -55,6 +59,7 @@ class ProductRepository @Inject constructor(
             val product = productApiService.updateProduct(id, request)
             emit(Result.Success(product))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }

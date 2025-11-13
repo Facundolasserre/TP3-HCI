@@ -15,6 +15,7 @@ import com.example.bagit.ui.components.BottomNavBar
 import com.example.bagit.ui.screens.AccountSettingsScreen
 import com.example.bagit.ui.screens.FavoritesScreen
 import com.example.bagit.ui.screens.HomeScreen
+import com.example.bagit.ui.screens.ProfileRoute
 import com.example.bagit.lists.ListDetailScreen
 import com.example.bagit.lists.NewListScreen
 import com.example.bagit.members.ShareMembersScreen
@@ -28,14 +29,14 @@ fun AppShell(
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route ?: "home"
 
-    // ✅ Mostrar bottom bar SOLO en estas rutas (excluye account_settings)
-    val bottomBarRoutes = setOf("home", "favorites", "products")
+    // ✅ Mostrar bottom bar en estas rutas
+    val bottomBarRoutes = setOf("home", "favorites", "products", "profile")
     val showBottomBar = currentRoute in bottomBarRoutes
 
-    // Mapear ruta actual a BottomDest (si estás en account_settings no se muestra la bottom bar)
+    // Mapear ruta actual a BottomDest
     val selectedDest = when (currentRoute) {
         "favorites" -> BottomDest.Favorites
-        "account_settings" -> BottomDest.Profile
+        "profile" -> BottomDest.Profile
         else -> BottomDest.Home
     }
 
@@ -60,8 +61,7 @@ fun AppShell(
                                 }
                             }
                             BottomDest.Profile -> {
-                                // Al tocar "Profile" navegás a una pantalla FULL y la bottom bar desaparece
-                                navController.navigate("account_settings") {
+                                navController.navigate("profile") {
                                     launchSingleTop = true
                                 }
                             }
@@ -165,6 +165,17 @@ fun AppShell(
                 ProductsRoute(
                     onLogout = onLogout,
                     onNavigateToProducts = { /* ya estás en products */ }
+                )
+            }
+
+            composable("profile") {
+                ProfileRoute(
+                    onBack = {
+                        navController.popBackStack()
+                    },
+                    onSettingsAction = {
+                        navController.navigate("account_settings")
+                    }
                 )
             }
         }

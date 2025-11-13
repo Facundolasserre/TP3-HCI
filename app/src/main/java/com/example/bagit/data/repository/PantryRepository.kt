@@ -2,6 +2,7 @@ package com.example.bagit.data.repository
 
 import com.example.bagit.data.model.*
 import com.example.bagit.data.remote.PantryApiService
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -18,6 +19,7 @@ class PantryRepository @Inject constructor(
             val pantry = pantryApiService.createPantry(request)
             emit(Result.Success(pantry))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }
@@ -34,6 +36,7 @@ class PantryRepository @Inject constructor(
             val response = pantryApiService.getPantries(owner, page, perPage, sortBy, order)
             emit(Result.Success(response))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }
@@ -44,6 +47,7 @@ class PantryRepository @Inject constructor(
             val pantry = pantryApiService.getPantryById(id)
             emit(Result.Success(pantry))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }
@@ -54,6 +58,7 @@ class PantryRepository @Inject constructor(
             val pantry = pantryApiService.updatePantry(id, request)
             emit(Result.Success(pantry))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }
@@ -64,6 +69,7 @@ class PantryRepository @Inject constructor(
             pantryApiService.deletePantry(id)
             emit(Result.Success(Unit))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }
@@ -74,6 +80,7 @@ class PantryRepository @Inject constructor(
             val user = pantryApiService.sharePantry(id, ShareRequest(email))
             emit(Result.Success(user))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }

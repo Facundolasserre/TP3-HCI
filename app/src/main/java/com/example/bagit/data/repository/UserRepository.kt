@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.example.bagit.data.model.*
 import com.example.bagit.data.remote.UserApiService
 import com.google.gson.Gson
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -50,6 +51,7 @@ class UserRepository @Inject constructor(
             val response = userApiService.register(request)
             emit(Result.Success(response))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }
@@ -62,6 +64,7 @@ class UserRepository @Inject constructor(
             saveAuthToken(response.token)
             emit(Result.Success(response))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }
@@ -73,6 +76,7 @@ class UserRepository @Inject constructor(
             clearAuthToken()
             emit(Result.Success(Unit))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             // Incluso si falla, limpiamos el token local
             clearAuthToken()
             emit(Result.Error(e, e.message))
@@ -85,6 +89,7 @@ class UserRepository @Inject constructor(
             val user = userApiService.getProfile()
             emit(Result.Success(user))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }
@@ -95,6 +100,7 @@ class UserRepository @Inject constructor(
             val user = userApiService.updateProfile(request)
             emit(Result.Success(user))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }
@@ -133,6 +139,7 @@ class UserRepository @Inject constructor(
             Log.e(TAG, "verifyAccount() - Error body raw: $errorBodyString")
             emit(Result.Error(e, errorMessage))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             Log.e(TAG, "verifyAccount() - Error: ${e.message}", e)
             emit(Result.Error(e, e.message))
         }
@@ -154,6 +161,7 @@ class UserRepository @Inject constructor(
             Log.e(TAG, "sendVerificationCode() - Error HTTP ${e.code()}: $errorMessage")
             emit(Result.Error(e, errorMessage))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             Log.e(TAG, "sendVerificationCode() - Error: ${e.message}", e)
             emit(Result.Error(e, e.message))
         }
@@ -177,6 +185,7 @@ class UserRepository @Inject constructor(
             Log.e(TAG, "resendVerificationCode() - Error HTTP ${e.code()}: $errorMessage")
             emit(Result.Error(e, errorMessage))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             Log.e(TAG, "resendVerificationCode() - Error: ${e.message}", e)
             emit(Result.Error(e, e.message))
         }
@@ -188,6 +197,7 @@ class UserRepository @Inject constructor(
             userApiService.forgotPassword(email)
             emit(Result.Success(Unit))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }
@@ -198,6 +208,7 @@ class UserRepository @Inject constructor(
             userApiService.resetPassword(request)
             emit(Result.Success(Unit))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }
@@ -208,6 +219,7 @@ class UserRepository @Inject constructor(
             userApiService.changePassword(request)
             emit(Result.Success(Unit))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }

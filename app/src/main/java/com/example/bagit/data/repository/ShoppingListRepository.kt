@@ -2,6 +2,7 @@ package com.example.bagit.data.repository
 
 import com.example.bagit.data.model.*
 import com.example.bagit.data.remote.ShoppingListApiService
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -18,6 +19,7 @@ class ShoppingListRepository @Inject constructor(
             val list = shoppingListApiService.createShoppingList(request)
             emit(Result.Success(list))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }
@@ -36,6 +38,7 @@ class ShoppingListRepository @Inject constructor(
             val response = shoppingListApiService.getShoppingLists(name, owner, recurring, page, perPage, sortBy, order)
             emit(Result.Success(response))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }
@@ -46,6 +49,7 @@ class ShoppingListRepository @Inject constructor(
             val list = shoppingListApiService.getShoppingListById(id)
             emit(Result.Success(list))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }
@@ -56,6 +60,7 @@ class ShoppingListRepository @Inject constructor(
             val list = shoppingListApiService.updateShoppingList(id, request)
             emit(Result.Success(list))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }
@@ -66,6 +71,7 @@ class ShoppingListRepository @Inject constructor(
             shoppingListApiService.deleteShoppingList(id)
             emit(Result.Success(Unit))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }
@@ -76,6 +82,7 @@ class ShoppingListRepository @Inject constructor(
             val list = shoppingListApiService.purchaseShoppingList(id, PurchaseRequest(metadata))
             emit(Result.Success(list))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }
@@ -86,6 +93,7 @@ class ShoppingListRepository @Inject constructor(
             val items = shoppingListApiService.resetShoppingList(id)
             emit(Result.Success(items))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }
@@ -96,6 +104,7 @@ class ShoppingListRepository @Inject constructor(
             shoppingListApiService.moveToPantry(id)
             emit(Result.Success(Unit))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }
@@ -106,6 +115,7 @@ class ShoppingListRepository @Inject constructor(
             shoppingListApiService.shareShoppingList(id, ShareRequest(email))
             emit(Result.Success(Unit))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }
