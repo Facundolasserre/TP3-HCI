@@ -24,7 +24,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.bagit.ui.theme.CardBg
-import com.example.bagit.ui.theme.DarkNavyBlue
 import com.example.bagit.ui.theme.DrawerBg
 import com.example.bagit.ui.theme.OnDrawer
 
@@ -40,6 +39,8 @@ fun DrawerContent(
     onSignOut: () -> Unit,
     modifier: Modifier = Modifier,
     onNavigateToProducts: () -> Unit = {},
+    onNavigateToLists: () -> Unit = {},
+    onNavigateToHistory: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
     onToggleLanguage: () -> Unit = {}
 ) {
@@ -47,18 +48,19 @@ fun DrawerContent(
         modifier = modifier
             .fillMaxHeight()             // ocupa alto completo del viewport
             .fillMaxWidth()              // ocupa ancho completo
-            .background(DarkNavyBlue)    // fondo sólido (no transparente)
+            .background(DrawerBg)        // fondo sólido (no transparente)
+            .padding(horizontal = 24.dp, vertical = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Contenido scrollable (todo excepto el botón de logout)
         Column(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            horizontalAlignment = Alignment.Start
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Row superior: Settings (izq) y Language (der)
+            // Row superior: Language (izq) y Settings (der)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -67,22 +69,22 @@ fun DrawerContent(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
-                    onClick = onSettingsClick,
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = "Settings",
-                        tint = OnDrawer
-                    )
-                }
-                IconButton(
                     onClick = onToggleLanguage,
                     modifier = Modifier.size(48.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Language,
                         contentDescription = "Toggle Language",
+                        tint = OnDrawer
+                    )
+                }
+                IconButton(
+                    onClick = onSettingsClick,
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Settings",
                         tint = OnDrawer
                     )
                 }
@@ -127,7 +129,8 @@ fun DrawerContent(
 
             // Tarjeta de opciones
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = CardBg
@@ -145,7 +148,7 @@ fun DrawerContent(
                     DrawerMenuItem(
                         icon = Icons.Default.Edit,
                         text = "Edit Lists",
-                        onClick = { /* TODO: Navigate to edit lists */ }
+                        onClick = onNavigateToLists
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -153,28 +156,29 @@ fun DrawerContent(
                     DrawerMenuItem(
                         icon = Icons.Default.History,
                         text = "Shopping List History",
-                        onClick = { /* TODO: Navigate to history */ }
+                        onClick = onNavigateToHistory
                     )
                 }
             }
         }
 
         // Botón "Log out" pegado abajo (no afectado por el scroll)
+        Spacer(modifier = Modifier.height(32.dp))
         Button(
             onClick = onSignOut,
             shape = RoundedCornerShape(24.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = DrawerBg,
+                containerColor = CardBg,
                 contentColor = OnDrawer
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp)
-                .padding(16.dp)
+                .height(52.dp)
+                .navigationBarsPadding()
         ) {
             Text(
                 text = "Log out",
-                fontSize = 16.sp,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.Medium
             )
             Spacer(modifier = Modifier.width(8.dp))

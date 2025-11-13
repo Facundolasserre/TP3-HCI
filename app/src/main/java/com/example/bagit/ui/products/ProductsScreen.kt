@@ -16,67 +16,28 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.bagit.ui.components.BagItTopBar
-import com.example.bagit.ui.components.DrawerContent
 import com.example.bagit.ui.components.ProductCard
 import com.example.bagit.ui.theme.BagItTheme
 import com.example.bagit.ui.theme.DarkNavy
 import com.example.bagit.ui.theme.OnDark
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductsRoute(
     modifier: Modifier = Modifier,
-    onLogout: () -> Unit = {},
-    onNavigateToProducts: () -> Unit = {},
+    onOpenDrawer: () -> Unit = {},
     viewModel: ProductsViewModel = viewModel()
 ) {
-    val drawerState = rememberDrawerState(DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
-
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet(
-                drawerContainerColor = Color.Transparent,
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(0.85f)
-            ) {
-                DrawerContent(
-                    onSignOut = {
-                        scope.launch { drawerState.close() }
-                        onLogout()
-                    },
-                    onNavigateToProducts = {
-                        scope.launch { drawerState.close() }
-                        onNavigateToProducts()
-                    },
-                    onSettingsClick = {
-                        scope.launch { drawerState.close() }
-                        // TODO: Navigate to settings screen
-                    },
-                    onToggleLanguage = {
-                        // TODO: Implement language toggle
-                    }
-                )
-            }
-        },
-        gesturesEnabled = true
-    ) {
-        ProductsScreen(
-            uiState = viewModel.uiState,
-            filteredProducts = viewModel.getFilteredProducts(),
-            onSearchChange = viewModel::onSearchChange,
-            onCategorySelect = viewModel::onCategorySelect,
-            onEditProduct = viewModel::onEditProduct,
-            onDeleteProduct = viewModel::onDeleteProduct,
-            onOpenDrawer = {
-                scope.launch { drawerState.open() }
-            },
-            modifier = modifier
-        )
-    }
+    ProductsScreen(
+        uiState = viewModel.uiState,
+        filteredProducts = viewModel.getFilteredProducts(),
+        onSearchChange = viewModel::onSearchChange,
+        onCategorySelect = viewModel::onCategorySelect,
+        onEditProduct = viewModel::onEditProduct,
+        onDeleteProduct = viewModel::onDeleteProduct,
+        onOpenDrawer = onOpenDrawer,
+        modifier = modifier
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
