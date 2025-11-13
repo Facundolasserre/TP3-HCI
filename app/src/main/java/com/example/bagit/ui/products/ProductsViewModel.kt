@@ -4,137 +4,333 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import java.time.Instant
-
-// TODO: Conectar a API real cuando esté permitido (no modificar /api en este PR)
+import androidx.lifecycle.viewModelScope
+import com.example.bagit.data.model.CategoryId
+import com.example.bagit.data.model.Product
+import com.example.bagit.data.model.ProductRequest
+import com.example.bagit.data.repository.CategoryRepository
+import com.example.bagit.data.repository.ProductRepository
+import com.example.bagit.data.repository.Result
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * ProductsViewModel
  *
- * Maneja el estado de la pantalla de productos.
- * Actualmente usa datos mock locales.
+ * Maneja el estado de la pantalla de productos conectado a la API real.
+ * Soporta búsqueda con debounce, filtros, paginación y operaciones CRUD.
  */
-class ProductsViewModel : ViewModel() {
+@OptIn(FlowPreview::class)
+@HiltViewModel
+class ProductsViewModel @Inject constructor(
+    private val productRepository: ProductRepository,
+    private val categoryRepository: CategoryRepository
+) : ViewModel() {
 
-    var uiState by mutableStateOf(ProductsUiState())
+    var uiState by mutableStateOf<ProductsUiState>(ProductsUiState.Loading)
         private set
 
+    var dialogState by mutableStateOf(ProductDialogState())
+        private set
+
+    private val searchQueryFlow = MutableStateFlow("")
+    private var searchJob: Job? = null
+
     init {
-        loadMockProducts()
+        loadCategories()
+        loadProducts()
+        setupSearchDebounce()
     }
 
-    private fun loadMockProducts() {
-        val mockProducts = listOf(
-            ProductUi(
-                id = "1",
-                name = "Agua",
-                category = "LIQUIDO",
-                updatedAt = Instant.parse("2025-10-13T01:47:00Z")
-            ),
-            ProductUi(
-                id = "2",
-                name = "Gatorade",
-                category = "LIQUIDO",
-                updatedAt = Instant.parse("2025-10-13T01:47:00Z")
-            ),
-            ProductUi(
-                id = "3",
-                name = "Coca Cola",
-                category = "LIQUIDO",
-                updatedAt = Instant.parse("2025-10-12T15:30:00Z")
-            ),
-            ProductUi(
-                id = "4",
-                name = "Pan Integral",
-                category = "PANADERIA",
-                updatedAt = Instant.parse("2025-10-11T08:20:00Z")
-            ),
-            ProductUi(
-                id = "5",
-                name = "Leche Entera",
-                category = "LACTEO",
-                updatedAt = Instant.parse("2025-10-10T12:15:00Z")
-            ),
-            ProductUi(
-                id = "6",
-                name = "Manzanas",
-                category = "FRUTA",
-                updatedAt = Instant.parse("2025-10-09T18:45:00Z")
-            ),
-            ProductUi(
-                id = "7",
-                name = "Arroz",
-                category = "CEREAL",
-                updatedAt = Instant.parse("2025-10-08T10:30:00Z")
-            ),
-            ProductUi(
-                id = "8",
-                name = "Jabón",
-                category = "LIMPIEZA",
-                updatedAt = Instant.parse("2025-10-07T14:20:00Z")
-            )
-        )
-
-        uiState = uiState.copy(allProducts = mockProducts)
+    /**
+     * Configura el debounce para la búsqueda (500ms)
+     */
+    private fun setupSearchDebounce() {
+        viewModelScope.launch {
+            searchQueryFlow
+                .debounce(500)
+                .collect { query ->
+                    loadProducts(searchQuery = query)
+                }
+        }
     }
 
+    /**
+     * Carga las categorías desde la API
+     */
+    private fun loadCategories() {
+        viewModelScope.launch {
+            categoryRepository.getCategories(
+                page = 1,
+                perPage = 100, // Cargar todas las categorías
+                sortBy = "name",
+                order = "ASC"
+            ).collect { result ->
+                when (result) {
+                    is Result.Success -> {
+                        // Actualizar categorías en el estado Success si existe
+                        val currentState = uiState
+                        if (currentState is ProductsUiState.Success) {
+                            uiState = currentState.copy(categories = result.data.data)
+                        }
+                    }
+                    else -> {
+                        // Ignorar errores en la carga de categorías
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Carga productos con los filtros actuales
+     */
+    fun loadProducts(
+        searchQuery: String? = null,
+        categoryId: Long? = null,
+        page: Int? = null,
+        pageSize: Int? = null,
+        sortBy: String? = null,
+        order: String? = null
+    ) {
+        val currentState = uiState
+
+        // Determinar valores a usar
+        val query = searchQuery ?: (currentState as? ProductsUiState.Success)?.searchQuery ?: ""
+        val catId = categoryId ?: (currentState as? ProductsUiState.Success)?.selectedCategoryId
+        val pg = page ?: (currentState as? ProductsUiState.Success)?.currentPage ?: 1
+        val size = pageSize ?: (currentState as? ProductsUiState.Success)?.pageSize ?: 10
+        val sort = sortBy ?: (currentState as? ProductsUiState.Success)?.sortBy ?: "name"
+        val ord = order ?: (currentState as? ProductsUiState.Success)?.sortOrder ?: "ASC"
+
+        viewModelScope.launch {
+            productRepository.getProducts(
+                name = query.ifBlank { null },
+                categoryId = catId,
+                page = pg,
+                perPage = size,
+                sortBy = sort,
+                order = ord
+            ).collect { result ->
+                when (result) {
+                    is Result.Loading -> {
+                        if (currentState !is ProductsUiState.Success) {
+                            uiState = ProductsUiState.Loading
+                        } else {
+                            uiState = currentState.copy(isRefreshing = true)
+                        }
+                    }
+                    is Result.Success -> {
+                        val categories = (currentState as? ProductsUiState.Success)?.categories ?: emptyList()
+
+                        if (result.data.data.isEmpty() && pg == 1) {
+                            uiState = ProductsUiState.Empty
+                        } else {
+                            uiState = ProductsUiState.Success(
+                                products = result.data.data,
+                                pagination = result.data.pagination,
+                                categories = categories,
+                                searchQuery = query,
+                                selectedCategoryId = catId,
+                                pageSize = size,
+                                currentPage = pg,
+                                sortBy = sort,
+                                sortOrder = ord,
+                                isRefreshing = false
+                            )
+                        }
+                    }
+                    is Result.Error -> {
+                        uiState = ProductsUiState.Error(
+                            message = result.message ?: "Error al cargar productos",
+                            exception = result.exception
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Actualiza la búsqueda con debounce
+     */
     fun onSearchChange(query: String) {
-        uiState = uiState.copy(search = query)
+        searchQueryFlow.value = query
+
+        // Actualizar el estado inmediatamente para la UI
+        val currentState = uiState
+        if (currentState is ProductsUiState.Success) {
+            uiState = currentState.copy(searchQuery = query)
+        }
     }
 
-    fun onCategorySelect(category: String) {
-        uiState = uiState.copy(selectedCategory = category)
+    /**
+     * Cambia el filtro de categoría
+     */
+    fun onCategorySelect(categoryId: Long?) {
+        loadProducts(categoryId = categoryId, page = 1)
     }
 
+    /**
+     * Cambia el tamaño de página
+     */
     fun onPageSizeChange(size: Int) {
-        uiState = uiState.copy(pageSize = size)
+        loadProducts(pageSize = size, page = 1)
     }
 
+    /**
+     * Cambia de página
+     */
     fun onPageChange(page: Int) {
-        uiState = uiState.copy(page = page)
+        loadProducts(page = page)
     }
 
-    fun getFilteredProducts(): List<ProductUi> {
-        var filtered = uiState.allProducts
+    /**
+     * Refresca los productos (pull-to-refresh)
+     */
+    fun refreshProducts() {
+        val currentState = uiState
+        if (currentState is ProductsUiState.Success) {
+            uiState = currentState.copy(isRefreshing = true)
+        }
+        loadProducts(page = 1)
+    }
 
-        // Filter by search
-        if (uiState.search.isNotBlank()) {
-            filtered = filtered.filter {
-                it.name.contains(uiState.search, ignoreCase = true)
+    /**
+     * Muestra el diálogo de crear producto
+     */
+    fun showCreateDialog() {
+        dialogState = dialogState.copy(
+            showCreateDialog = true,
+            selectedProduct = null
+        )
+    }
+
+    /**
+     * Muestra el diálogo de editar producto
+     */
+    fun showEditDialog(product: Product) {
+        dialogState = dialogState.copy(
+            showEditDialog = true,
+            selectedProduct = product
+        )
+    }
+
+    /**
+     * Muestra el diálogo de eliminar producto
+     */
+    fun showDeleteDialog(product: Product) {
+        dialogState = dialogState.copy(
+            showDeleteDialog = true,
+            selectedProduct = product
+        )
+    }
+
+    /**
+     * Cierra todos los diálogos
+     */
+    fun dismissDialogs() {
+        dialogState = ProductDialogState()
+    }
+
+    /**
+     * Crea un nuevo producto
+     */
+    fun createProduct(name: String, categoryId: Long?, metadata: Map<String, Any>? = null) {
+        viewModelScope.launch {
+            dialogState = dialogState.copy(isSubmitting = true)
+
+            val request = ProductRequest(
+                name = name,
+                category = categoryId?.let { CategoryId(it) },
+                metadata = metadata
+            )
+
+            productRepository.createProduct(request).collect { result ->
+                when (result) {
+                    is Result.Success -> {
+                        dismissDialogs()
+                        refreshProducts()
+                    }
+                    is Result.Error -> {
+                        dialogState = dialogState.copy(isSubmitting = false)
+                        // TODO: Mostrar error en diálogo
+                    }
+                    is Result.Loading -> {
+                        // Ya está en isSubmitting = true
+                    }
+                }
             }
         }
+    }
 
-        // Filter by category
-        if (uiState.selectedCategory != "Todas las categorías") {
-            filtered = filtered.filter {
-                it.category.equals(uiState.selectedCategory, ignoreCase = true)
+    /**
+     * Actualiza un producto existente
+     */
+    fun updateProduct(productId: Long, name: String, categoryId: Long?, metadata: Map<String, Any>? = null) {
+        viewModelScope.launch {
+            dialogState = dialogState.copy(isSubmitting = true)
+
+            val request = ProductRequest(
+                name = name,
+                category = categoryId?.let { CategoryId(it) },
+                metadata = metadata
+            )
+
+            productRepository.updateProduct(productId, request).collect { result ->
+                when (result) {
+                    is Result.Success -> {
+                        dismissDialogs()
+                        refreshProducts()
+                    }
+                    is Result.Error -> {
+                        dialogState = dialogState.copy(isSubmitting = false)
+                        // TODO: Mostrar error en diálogo
+                    }
+                    is Result.Loading -> {
+                        // Ya está en isSubmitting = true
+                    }
+                }
             }
         }
-
-        return filtered
     }
 
-    fun onEditProduct(productId: String) {
-        // TODO: Navigate to edit screen when implemented
+    /**
+     * Elimina un producto
+     */
+    fun deleteProduct(productId: Long) {
+        viewModelScope.launch {
+            dialogState = dialogState.copy(isSubmitting = true)
+
+            productRepository.deleteProduct(productId).collect { result ->
+                when (result) {
+                    is Result.Success -> {
+                        dismissDialogs()
+                        refreshProducts()
+                    }
+                    is Result.Error -> {
+                        dialogState = dialogState.copy(isSubmitting = false)
+                        // TODO: Mostrar error en diálogo
+                    }
+                    is Result.Loading -> {
+                        // Ya está en isSubmitting = true
+                    }
+                }
+            }
+        }
     }
 
-    fun onDeleteProduct(productId: String) {
-        // TODO: Show confirmation dialog and delete when API is connected
+    /**
+     * Reintenta cargar productos después de un error
+     */
+    fun retry() {
+        loadProducts(page = 1)
     }
 }
-
-data class ProductsUiState(
-    val search: String = "",
-    val selectedCategory: String = "Todas las categorías",
-    val page: Int = 1,
-    val pageSize: Int = 10,
-    val allProducts: List<ProductUi> = emptyList()
-)
-
-data class ProductUi(
-    val id: String,
-    val name: String,
-    val category: String,
-    val updatedAt: Instant
-)
 

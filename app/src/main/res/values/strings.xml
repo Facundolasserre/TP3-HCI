@@ -1,3 +1,66 @@
 <resources>
     <string name="app_name">BagIt</string>
+
+    <!-- Products Screen -->
+    <string name="products_title">Products</string>
+    <string name="products_search_hint">Search products…</string>
+    <string name="products_create_button">Create product</string>
+    <string name="products_edit_button">Edit product</string>
+    <string name="products_delete_button">Delete product</string>
+    <string name="products_all_categories">All categories</string>
+    <string name="products_show_per_page">Show: %d</string>
+    <string name="products_page_info">Page %1$d of %2$d</string>
+    <string name="products_previous_page">Previous page</string>
+    <string name="products_next_page">Next page</string>
+    <string name="products_no_results">No products found</string>
+    <string name="products_empty_state">No products</string>
+    <string name="products_empty_hint">Press + to create one</string>
+    <string name="products_error_title">Error</string>
+    <string name="products_retry_button">Retry</string>
+    <string name="products_loading">Loading products…</string>
+
+    <!-- Product Dialog -->
+    <string name="product_dialog_create_title">Create product</string>
+    <string name="product_dialog_edit_title">Edit product</string>
+    <string name="product_dialog_name_label">Product name</string>
+    <string name="product_dialog_name_error">Name is required</string>
+    <string name="product_dialog_category_label">Category</string>
+    <string name="product_dialog_no_category">No category</string>
+    <string name="product_dialog_create_button">Create</string>
+    <string name="product_dialog_save_button">Save</string>
+    <string name="product_dialog_cancel_button">Cancel</string>
+
+    <!-- Delete Confirmation -->
+    <string name="product_delete_title">Delete product</string>
+    <string name="product_delete_message">Are you sure you want to delete the product \"%s\"?</string>
+    <string name="product_delete_confirm_button">Delete</string>
+    <string name="product_delete_cancel_button">Cancel</string>
+
+    <!-- Product Card -->
+    <string name="product_updated_at">Updated: %s</string>
+    <string name="product_edit_icon">Edit product</string>
+    <string name="product_delete_icon">Delete product</string>
+
+    <!-- Items per page -->
+    <string name="products_items_per_page">%d per page</string>
+
+    <!-- Category Selector -->
+    <string name="category_selector_search">Search category</string>
+    <string name="category_selector_search_placeholder">Type to search…</string>
+    <string name="category_selector_new_button">New category</string>
+    <string name="category_selector_no_results">No categories found</string>
+    <string name="category_selector_error">Error loading categories</string>
+    <string name="category_selector_retry">Retry</string>
+    <string name="category_selector_selected">Selected</string>
+
+    <!-- Create Category Dialog -->
+    <string name="create_category_title">Create new category</string>
+    <string name="create_category_name_label">Category name *</string>
+    <string name="create_category_name_placeholder">E.g.: Beverages</string>
+    <string name="create_category_name_required">Name is required</string>
+    <string name="create_category_max_length">Maximum 50 characters</string>
+    <string name="create_category_duplicate">Category with that name already exists</string>
+    <string name="create_category_error">Error creating category: %s</string>
+    <string name="create_category_button">Create</string>
+    <string name="create_category_cancel">Cancel</string>
 </resources>

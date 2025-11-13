@@ -39,6 +39,7 @@ fun ListDetailScreen(
     val listState by viewModel.currentListState
     val listItemsState by viewModel.listItemsState
     var showAddItemDialog by remember { mutableStateOf(false) }
+    var showEditItemDialog by remember { mutableStateOf<ListItem?>(null) }
     val showMenuState = remember { mutableStateOf(false) }
 
     // Load data
@@ -169,6 +170,9 @@ fun ListDetailScreen(
                             onTogglePurchased = { item ->
                                 viewModel.toggleItemPurchased(listId, item.id, !item.purchased)
                             },
+                            onEditItem = { item ->
+                                showEditItemDialog = item
+                            },
                             onDeleteItem = { item ->
                                 viewModel.deleteListItem(listId, item.id)
                             },
@@ -205,6 +209,17 @@ fun ListDetailScreen(
                 showAddItemDialog = false
             },
             viewModel = viewModel
+        )
+    }
+
+    showEditItemDialog?.let { item ->
+        EditItemDialog(
+            item = item,
+            onDismiss = { showEditItemDialog = null },
+            onSave = { quantity, unit ->
+                viewModel.updateListItem(listId, item.id, quantity, unit)
+                showEditItemDialog = null
+            }
         )
     }
 }
@@ -257,6 +272,7 @@ fun EmptyListContent(
 fun ListItemsContent(
     items: List<ListItem>,
     onTogglePurchased: (ListItem) -> Unit,
+    onEditItem: (ListItem) -> Unit,
     onDeleteItem: (ListItem) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -269,6 +285,7 @@ fun ListItemsContent(
             ListItemCard(
                 item = item,
                 onTogglePurchased = { onTogglePurchased(item) },
+                onEdit = { onEditItem(item) },
                 onDelete = { onDeleteItem(item) }
             )
         }
@@ -279,6 +296,7 @@ fun ListItemsContent(
 fun ListItemCard(
     item: ListItem,
     onTogglePurchased: () -> Unit,
+    onEdit: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -351,6 +369,19 @@ fun ListItemCard(
                         )
                     }
                 }
+            }
+
+            // Edit button
+            IconButton(
+                onClick = onEdit,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit",
+                    tint = Color(0xFF64B5F6),
+                    modifier = Modifier.size(20.dp)
+                )
             }
 
             // Delete button
@@ -537,21 +568,11 @@ fun AddItemDialog(
                     singleLine = true
                 )
 
-                OutlinedTextField(
-                    value = unit,
-                    onValueChange = { unit = it },
-                    label = { Text("Unit", color = OnDark.copy(alpha = 0.6f)) },
-                    modifier = Modifier.weight(1f),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFF1E1F2E),
-                        unfocusedContainerColor = Color(0xFF1E1F2E),
-                        focusedTextColor = OnDark,
-                        unfocusedTextColor = OnDark,
-                        focusedBorderColor = Color(0xFF5249B6),
-                        unfocusedBorderColor = Color(0xFF3D3F54),
-                        cursorColor = Color(0xFF5249B6)
-                    ),
-                    singleLine = true
+                UnitSelector(
+                    selectedUnit = unit,
+                    quantity = quantity.toDoubleOrNull() ?: 1.0,
+                    onUnitSelected = { unit = it },
+                    modifier = Modifier.weight(1f)
                 )
             }
 
@@ -570,7 +591,8 @@ fun AddItemDialog(
                     onClick = {
                         selectedProduct?.let { product ->
                             val qty = quantity.toDoubleOrNull() ?: 1.0
-                            onAddItem(product.id, qty, unit)
+                            val formattedUnit = formatUnit(unit, qty)
+                            onAddItem(product.id, qty, formattedUnit)
                         }
                     },
                     enabled = selectedProduct != null && quantity.toDoubleOrNull() != null,
@@ -590,6 +612,196 @@ private fun onRenameClick(listId: Long, listName: String) {
     // Implementar lógica para renombrar la lista
     // Aquí irá la navegación a un diálogo de renombre o pantalla de edición
     println("Renombrar lista: $listId - $listName")
+}
+
+/**
+ * Formatea la unidad según la cantidad.
+ * Si la unidad base es "unit", cambia a "Unit" o "Units" según la cantidad.
+ */
+fun formatUnit(baseUnit: String, quantity: Double): String {
+    return when (baseUnit.lowercase()) {
+        "unit" -> if (quantity == 1.0) "Unit" else "Units"
+        else -> baseUnit
+    }
+}
+
+/**
+ * Obtiene el nombre para mostrar de la unidad en el selector.
+ */
+fun getUnitDisplayName(baseUnit: String, quantity: Double): String {
+    return formatUnit(baseUnit, quantity)
+}
+
+/**
+ * Componente dropdown para seleccionar unidades.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun UnitSelector(
+    selectedUnit: String,
+    quantity: Double,
+    onUnitSelected: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val units = listOf("kg", "g", "unit")
+
+    val displayUnit = getUnitDisplayName(selectedUnit, quantity)
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = modifier
+    ) {
+        OutlinedTextField(
+            value = displayUnit,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Unit", color = OnDark.copy(alpha = 0.6f)) },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = Color(0xFF1E1F2E),
+                unfocusedContainerColor = Color(0xFF1E1F2E),
+                focusedTextColor = OnDark,
+                unfocusedTextColor = OnDark,
+                focusedBorderColor = Color(0xFF5249B6),
+                unfocusedBorderColor = Color(0xFF3D3F54)
+            ),
+            modifier = Modifier.menuAnchor()
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            units.forEach { unit ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = getUnitDisplayName(unit, quantity),
+                            color = OnDark
+                        )
+                    },
+                    onClick = {
+                        onUnitSelected(unit)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Diálogo para editar un item existente en la lista.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditItemDialog(
+    item: ListItem,
+    onDismiss: () -> Unit,
+    onSave: (quantity: Double, unit: String) -> Unit
+) {
+    var quantity by remember { mutableStateOf(item.quantity.toString()) }
+    var unit by remember { mutableStateOf(item.unit.lowercase()) }
+
+    Dialog(
+        onDismissRequest = onDismiss
+    ) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color(0xFF2A2D3E)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+            ) {
+                Text(
+                    text = "Edit Item",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = OnDark
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Product name (read-only)
+                Text(
+                    text = "Product",
+                    fontSize = 12.sp,
+                    color = OnDark.copy(alpha = 0.6f)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = item.product.name,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = OnDark
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Quantity and unit
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedTextField(
+                        value = quantity,
+                        onValueChange = { quantity = it },
+                        label = { Text("Quantity", color = OnDark.copy(alpha = 0.6f)) },
+                        modifier = Modifier.weight(1f),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = Color(0xFF1E1F2E),
+                            unfocusedContainerColor = Color(0xFF1E1F2E),
+                            focusedTextColor = OnDark,
+                            unfocusedTextColor = OnDark,
+                            focusedBorderColor = Color(0xFF5249B6),
+                            unfocusedBorderColor = Color(0xFF3D3F54),
+                            cursorColor = Color(0xFF5249B6)
+                        ),
+                        singleLine = true
+                    )
+
+                    UnitSelector(
+                        selectedUnit = unit,
+                        quantity = quantity.toDoubleOrNull() ?: 1.0,
+                        onUnitSelected = { unit = it },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Cancel", color = OnDark.copy(alpha = 0.7f))
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(
+                        onClick = {
+                            val qty = quantity.toDoubleOrNull() ?: item.quantity
+                            val formattedUnit = formatUnit(unit, qty)
+                            onSave(qty, formattedUnit)
+                        },
+                        enabled = quantity.toDoubleOrNull() != null,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF5249B6)
+                        )
+                    ) {
+                        Text("Save")
+                    }
+                }
+            }
+        }
+    }
 }
 
 

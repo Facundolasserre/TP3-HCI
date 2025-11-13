@@ -17,14 +17,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.bagit.ui.products.ProductUi
+import com.example.bagit.data.model.Category
+import com.example.bagit.data.model.Product
 import java.text.SimpleDateFormat
-import java.time.Instant
 import java.util.*
 
 @Composable
 fun ProductCard(
-    product: ProductUi,
+    product: Product,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
@@ -91,7 +91,7 @@ fun ProductCard(
                 color = Color(0xFF4A4E5E)
             ) {
                 Text(
-                    text = product.category,
+                    text = product.category.name,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
@@ -131,21 +131,37 @@ fun ProductCard(
     }
 }
 
-private fun formatDate(instant: Instant): String {
-    val date = Date(instant.toEpochMilli())
-    val format = SimpleDateFormat("d 'de' MMM 'de' yyyy, hh:mm a", Locale("es", "ES"))
-    return format.format(date)
+private fun formatDate(dateString: String): String {
+    return try {
+        // Formato de entrada: "2025-10-13 01:47:00"
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        val date = inputFormat.parse(dateString)
+
+        // Formato de salida localizado
+        val outputFormat = SimpleDateFormat("d 'de' MMM 'de' yyyy, hh:mm a", Locale.getDefault())
+        outputFormat.format(date ?: Date())
+    } catch (e: Exception) {
+        dateString // Devolver el string original si falla el parseo
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun ProductCardPreview() {
     ProductCard(
-        product = ProductUi(
-            id = "1",
+        product = Product(
+            id = 1L,
             name = "Agua",
-            category = "LIQUIDO",
-            updatedAt = Instant.parse("2025-10-13T01:47:00Z")
+            category = Category(
+                id = 1L,
+                name = "LIQUIDO",
+                metadata = null,
+                createdAt = "2025-10-13 01:47:00",
+                updatedAt = "2025-10-13 01:47:00"
+            ),
+            metadata = null,
+            createdAt = "2025-10-13 01:47:00",
+            updatedAt = "2025-10-13 01:47:00"
         ),
         onEdit = {},
         onDelete = {}
