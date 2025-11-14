@@ -32,7 +32,7 @@ import com.example.bagit.lists.ListDetailScreen
 import com.example.bagit.lists.NewListScreen
 import com.example.bagit.members.ShareMembersScreen
 import com.example.bagit.ui.products.ProductsRoute
-import com.example.bagit.ui.screens.ShoppingHistoryScreen
+import com.example.bagit.ui.screens.ShoppingListHistoryScreen
 import com.example.bagit.ui.theme.DrawerBg
 import com.example.bagit.ui.theme.OnDrawer
 import kotlinx.coroutines.launch
