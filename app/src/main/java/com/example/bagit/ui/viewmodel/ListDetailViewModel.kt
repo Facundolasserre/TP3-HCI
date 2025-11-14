@@ -11,8 +11,6 @@ import com.example.bagit.data.repository.ListItemRepository
 import com.example.bagit.data.repository.ProductRepository
 import com.example.bagit.data.repository.CategoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import android.util.Log
@@ -217,14 +215,118 @@ class ListDetailViewModel @Inject constructor(
     }
 
     /**
-     * Crea un nuevo producto y lo agrega automáticamente a la lista
-     * 
-     * Manejo seguro de Flow sin violar la transparencia de excepciones:
-     * - Usa collect con flag para detener después del primer resultado no-Loading
-     * - NO usa take() que puede causar cancelaciones prematuras y AbortFlowException
-     * - catch maneja excepciones sin re-emitir (solo actualiza estado)
-     * - Actualiza el estado inmediatamente cuando hay éxito
-     * 
+     * Crea un nuevo producto sin agregarlo a ninguna lista.
+     * Maneja correctamente el caso 409 (producto ya existe) buscando el producto existente.
+     * Previene múltiples llamadas simultáneas.
+     *
+     * Útil para el flujo donde el usuario primero crea el producto y luego
+     * ingresa cantidad/unidad antes de agregarlo.
+     *
+     * @param name Nombre del producto
+     * @param categoryId ID de la categoría (opcional)
+     * @param metadata Metadata adicional (opcional)
+     */
+    fun createProduct(
+        name: String,
+        categoryId: Long?,
+        metadata: Map<String, Any>? = null
+    ) {
+        // Prevenir múltiples llamadas simultáneas
+        if (_isCreatingProduct.value) {
+            Log.d("ListDetailViewModel", "⚠️ Ya hay una creación en progreso, ignorando")
+            return
+        }
+
+        viewModelScope.launch {
+            Log.d("ListDetailViewModel", "🟢 INICIO: createProduct - name='$name'")
+            _isCreatingProduct.value = true
+            _errorMessage.value = null
+            _createProductState.value = Result.Loading
+
+            // Crear el producto o resolver el existente si hay 409
+            val request = ProductRequest(
+                name = name,
+                category = categoryId?.let { CategoryId(it) },
+                metadata = metadata
+            )
+
+            var createdProduct: Product? = null
+
+            try {
+                // Intentar crear el producto
+                productRepository.createProduct(request).collect { result ->
+                    when (result) {
+                        is Result.Success -> {
+                            Log.d("ListDetailViewModel", "✅ Producto creado: ${result.data.name} (id=${result.data.id})")
+                            createdProduct = result.data
+                            _isCreatingProduct.value = false
+                            _createProductState.value = Result.Success(result.data)
+                        }
+                        is Result.Error -> {
+                            if (result.isConflict) {
+                                // Producto ya existe (409) - buscar el existente
+                                Log.d("ListDetailViewModel", "⚠️ Producto ya existe (409), buscando...")
+
+                                productRepository.findProductByName(name).collect { findResult ->
+                                    when (findResult) {
+                                        is Result.Success -> {
+                                            if (findResult.data != null) {
+                                                Log.d("ListDetailViewModel", "✅ Producto existente encontrado: ${findResult.data.name} (id=${findResult.data.id})")
+                                                createdProduct = findResult.data
+                                                _isCreatingProduct.value = false
+                                                _createProductState.value = Result.Success(findResult.data)
+                                            } else {
+                                                Log.e("ListDetailViewModel", "❌ No se pudo encontrar el producto existente")
+                                                _isCreatingProduct.value = false
+                                                _errorMessage.value = "El producto existe pero no se pudo encontrar"
+                                                _createProductState.value = null
+                                            }
+                                        }
+                                        is Result.Error -> {
+                                            Log.e("ListDetailViewModel", "❌ Error buscando producto: ${findResult.message}")
+                                            _isCreatingProduct.value = false
+                                            _errorMessage.value = "Error buscando el producto existente"
+                                            _createProductState.value = null
+                                        }
+                                        is Result.Loading -> {
+                                            // Esperar
+                                        }
+                                    }
+                                }
+                            } else {
+                                // Otro tipo de error
+                                Log.e("ListDetailViewModel", "❌ Error creando producto: ${result.message}")
+                                _isCreatingProduct.value = false
+                                _errorMessage.value = result.message ?: "Error al crear el producto"
+                                _createProductState.value = null
+                            }
+                        }
+                        is Result.Loading -> {
+                            // Esperar
+                        }
+                    }
+                }
+            } catch (e: CancellationException) {
+                Log.d("ListDetailViewModel", "⚠️ Operación cancelada")
+                throw e
+            } catch (e: Exception) {
+                Log.e("ListDetailViewModel", "❌ Excepción inesperada: ${e.message}", e)
+                _isCreatingProduct.value = false
+                _errorMessage.value = e.message ?: "Error inesperado"
+                _createProductState.value = null
+            }
+
+            if (createdProduct != null) {
+                Log.d("ListDetailViewModel", "🟢 COMPLETADO: Producto creado/encontrado exitosamente")
+            }
+        }
+    }
+
+    /**
+     * Crea un nuevo producto y lo agrega automáticamente a la lista.
+     * Maneja correctamente el caso 409 (producto ya existe) buscando el producto existente.
+     * Previene múltiples llamadas simultáneas.
+     *
      * @param listId ID de la lista a la que se agregará el producto
      * @param name Nombre del producto
      * @param categoryId ID de la categoría (opcional)
@@ -240,168 +342,135 @@ class ListDetailViewModel @Inject constructor(
         unit: String,
         metadata: Map<String, Any>? = null
     ) {
+        // Prevenir múltiples llamadas simultáneas
+        if (_isCreatingProduct.value) {
+            Log.d("ListDetailViewModel", "⚠️ Ya hay una creación en progreso, ignorando")
+            return
+        }
+
         viewModelScope.launch {
-            Log.d("ListDetailViewModel", "🟢 INICIO: createProductAndAddToList - name=$name, listId=$listId")
+            Log.d("ListDetailViewModel", "🟢 INICIO: createProductAndAddToList - name='$name', listId=$listId")
             _isCreatingProduct.value = true
             _errorMessage.value = null
             _createProductState.value = Result.Loading
 
-            // Paso 1: Crear el producto
+            // Paso 1: Crear el producto o resolver el existente si hay 409
             val request = ProductRequest(
                 name = name,
                 category = categoryId?.let { CategoryId(it) },
                 metadata = null
             )
 
-            // CRÍTICO: Usamos first() con filtro para obtener el primer resultado no-Loading
-            // first() puede lanzar AbortFlowException cuando encuentra el resultado, pero eso es normal
-            // El catch maneja excepciones reales sin re-emitir
-            var createResult: Result<Product>? = null
-            
+            var productToAdd: Product? = null
+
             try {
-                // Usar first() con filtro para obtener el primer resultado que no sea Loading
-                // Esto es más eficiente que collect y evita problemas de cancelación
-                createResult = productRepository.createProduct(request)
-                    .catch { throwable ->
-                        // CRÍTICO: catch NO debe re-emitir, solo manejar la excepción
-                        // Si es CancellationException (incluye AbortFlowException de first()), re-lanzar
-                        if (throwable is CancellationException) {
-                            Log.d("ListDetailViewModel", "⚠️ Operación cancelada (puede ser AbortFlowException normal de first())")
-                            throw throwable // Re-lanzar para cancelación correcta
+                // Intentar crear el producto
+                productRepository.createProduct(request).collect { result ->
+                    when (result) {
+                        is Result.Success -> {
+                            Log.d("ListDetailViewModel", "✅ Producto creado: ${result.data.name} (id=${result.data.id})")
+                            productToAdd = result.data
                         }
-                        
-                        // Solo manejar excepciones reales, actualizar estado sin re-emitir
-                        Log.e("ListDetailViewModel", "❌ Error en creación de producto: ${throwable.message}")
-                        _isCreatingProduct.value = false
-                        val exception = throwable as? Exception ?: Exception(throwable.message, throwable)
-                        _errorMessage.value = exception.message ?: "Error al crear el producto"
-                        _createProductState.value = null
-                        // NO re-emitir, solo actualizar estado local
-                    }
-                    .first { it !is Result.Loading } // Obtener primer resultado no-Loading
-                
-                // Procesar el resultado obtenido
-                when (createResult) {
-                    is Result.Success -> {
-                        Log.d("ListDetailViewModel", "✅ Producto creado exitosamente: ${createResult.data.name} (id=${createResult.data.id})")
-                        _createProductState.value = createResult
-                    }
-                    is Result.Error -> {
-                        Log.e("ListDetailViewModel", "❌ Error en resultado: ${createResult.message}")
-                        _isCreatingProduct.value = false
-                        _errorMessage.value = createResult.message ?: "Error al crear el producto"
-                        _createProductState.value = null
-                    }
-                    is Result.Loading -> {
-                        // No debería llegar aquí por el filtro first()
-                        Log.w("ListDetailViewModel", "⚠️ Resultado inesperado: Loading")
+                        is Result.Error -> {
+                            if (result.isConflict) {
+                                // Producto ya existe (409) - buscar el existente
+                                Log.d("ListDetailViewModel", "⚠️ Producto ya existe (409), buscando...")
+
+                                productRepository.findProductByName(name).collect { findResult ->
+                                    when (findResult) {
+                                        is Result.Success -> {
+                                            if (findResult.data != null) {
+                                                Log.d("ListDetailViewModel", "✅ Producto existente encontrado: ${findResult.data.name} (id=${findResult.data.id})")
+                                                productToAdd = findResult.data
+                                            } else {
+                                                Log.e("ListDetailViewModel", "❌ No se pudo encontrar el producto existente")
+                                                _isCreatingProduct.value = false
+                                                _errorMessage.value = "El producto existe pero no se pudo encontrar"
+                                                _createProductState.value = null
+                                            }
+                                        }
+                                        is Result.Error -> {
+                                            Log.e("ListDetailViewModel", "❌ Error buscando producto: ${findResult.message}")
+                                            _isCreatingProduct.value = false
+                                            _errorMessage.value = "Error buscando el producto existente"
+                                            _createProductState.value = null
+                                        }
+                                        is Result.Loading -> {
+                                            // Esperar
+                                        }
+                                    }
+                                }
+                            } else {
+                                // Otro tipo de error
+                                Log.e("ListDetailViewModel", "❌ Error creando producto: ${result.message}")
+                                _isCreatingProduct.value = false
+                                _errorMessage.value = result.message ?: "Error al crear el producto"
+                                _createProductState.value = null
+                            }
+                        }
+                        is Result.Loading -> {
+                            // Esperar
+                        }
                     }
                 }
             } catch (e: CancellationException) {
-                // CancellationException incluye AbortFlowException (que es interna)
-                // AbortFlowException es normal cuando first() encuentra el resultado
-                // No es un error, solo significa que first() completó su trabajo
-                // Verificamos si tenemos un resultado antes de considerar esto un error
-                if (createResult != null) {
-                    Log.d("ListDetailViewModel", "ℹ️ CancellationException capturada (normal, probablemente AbortFlowException de first())")
-                    // Continuar con el resultado que ya tenemos
-                } else {
-                    // Si no hay resultado, es una cancelación real
-                    Log.d("ListDetailViewModel", "⚠️ Operación cancelada sin resultado")
-                    throw e // Re-lanzar para cancelación correcta
-                }
+                Log.d("ListDetailViewModel", "⚠️ Operación cancelada")
+                throw e
             } catch (e: Exception) {
-                Log.e("ListDetailViewModel", "❌ Excepción inesperada: ${e.message}")
+                Log.e("ListDetailViewModel", "❌ Excepción inesperada: ${e.message}", e)
                 _isCreatingProduct.value = false
                 _errorMessage.value = e.message ?: "Error inesperado"
                 _createProductState.value = null
                 return@launch
             }
 
-            // Si hubo error en la creación, no continuar
-            if (createResult !is Result.Success) {
-                Log.d("ListDetailViewModel", "🛑 Deteniendo: error en creación de producto")
+            // Verificar que tengamos un producto
+            if (productToAdd == null) {
+                Log.d("ListDetailViewModel", "🛑 No se pudo obtener el producto, abortando")
                 return@launch
             }
 
-            val createdProduct = (createResult as Result.Success<Product>).data
-            Log.d("ListDetailViewModel", "➡️ Continuando: agregando producto ${createdProduct.id} a lista $listId")
+            Log.d("ListDetailViewModel", "➡️ Agregando producto ${productToAdd!!.id} a lista $listId")
 
             // Paso 2: Agregar el producto a la lista
-            // Mismo patrón seguro: first() con filtro
-            var addResult: Result<ListItem>? = null
-            
             try {
-                addResult = listItemRepository.addListItem(
+                listItemRepository.addListItem(
                     listId = listId,
                     request = ListItemRequest(
-                        product = ProductId(createdProduct.id),
+                        product = ProductId(productToAdd!!.id),
                         quantity = quantity,
                         unit = unit,
                         metadata = metadata
                     )
-                )
-                    .catch { throwable ->
-                        // CRÍTICO: catch NO debe re-emitir, solo manejar la excepción
-                        // Si es CancellationException (incluye AbortFlowException de first()), re-lanzar
-                        if (throwable is CancellationException) {
-                            Log.d("ListDetailViewModel", "⚠️ Operación cancelada (puede ser AbortFlowException normal de first())")
-                            throw throwable
+                ).collect { result ->
+                    when (result) {
+                        is Result.Success -> {
+                            Log.d("ListDetailViewModel", "✅ Item agregado a la lista exitosamente")
+                            _isCreatingProduct.value = false
+                            _createProductState.value = Result.Success(productToAdd!!)
+
+                            // Recargar la lista
+                            Log.d("ListDetailViewModel", "🔄 Recargando lista de items...")
+                            reloadCurrentList()
+
+                            Log.d("ListDetailViewModel", "🟢 COMPLETADO: Flujo exitoso")
                         }
-                        
-                        Log.e("ListDetailViewModel", "❌ Error al agregar a lista: ${throwable.message}")
-                        _isCreatingProduct.value = false
-                        val exception = throwable as? Exception ?: Exception(throwable.message, throwable)
-                        _errorMessage.value = exception.message ?: "Error al agregar el producto a la lista"
-                        _createProductState.value = null
-                        // NO re-emitir, solo actualizar estado local
-                    }
-                    .first { it !is Result.Loading } // Obtener primer resultado no-Loading
-                
-                // Procesar el resultado obtenido
-                when (addResult) {
-                    is Result.Success -> {
-                        Log.d("ListDetailViewModel", "✅ Producto agregado a lista exitosamente")
-                        _isCreatingProduct.value = false
-                        // ACTUALIZACIÓN INMEDIATA: recargar la lista de items
-                        Log.d("ListDetailViewModel", "🔄 Recargando lista de items...")
-                        reloadCurrentList()
-                        // Mantener éxito para que la UI sepa que se completó
-                        _createProductState.value = Result.Success(createdProduct)
-                        Log.d("ListDetailViewModel", "🟢 COMPLETADO: Producto creado y agregado exitosamente")
-                    }
-                    is Result.Error -> {
-                        Log.e("ListDetailViewModel", "❌ Error en resultado de agregar: ${addResult.message}")
-                        _isCreatingProduct.value = false
-                        _errorMessage.value = addResult.message ?: "Error al agregar el producto a la lista"
-                        _createProductState.value = null
-                    }
-                    is Result.Loading -> {
-                        // No debería llegar aquí por el filtro first()
-                        Log.w("ListDetailViewModel", "⚠️ Resultado inesperado: Loading")
+                        is Result.Error -> {
+                            Log.e("ListDetailViewModel", "❌ Error agregando a lista: ${result.message}")
+                            _isCreatingProduct.value = false
+                            _errorMessage.value = result.message ?: "Error al agregar el producto a la lista"
+                            _createProductState.value = null
+                        }
+                        is Result.Loading -> {
+                            // Esperar
+                        }
                     }
                 }
             } catch (e: CancellationException) {
-                // CancellationException incluye AbortFlowException (que es interna)
-                // AbortFlowException es normal cuando first() encuentra el resultado
-                // Verificamos si tenemos un resultado antes de considerar esto un error
-                if (addResult != null) {
-                    Log.d("ListDetailViewModel", "ℹ️ CancellationException capturada (normal, probablemente AbortFlowException de first())")
-                    // Continuar con el resultado que ya tenemos
-                    if (addResult is Result.Success) {
-                        _isCreatingProduct.value = false
-                        Log.d("ListDetailViewModel", "🔄 Recargando lista de items...")
-                        reloadCurrentList()
-                        _createProductState.value = Result.Success(createdProduct)
-                        Log.d("ListDetailViewModel", "🟢 COMPLETADO: Producto creado y agregado exitosamente")
-                    }
-                } else {
-                    // Si no hay resultado, es una cancelación real
-                    Log.d("ListDetailViewModel", "⚠️ Operación cancelada sin resultado")
-                    throw e // Re-lanzar para cancelación correcta
-                }
+                Log.d("ListDetailViewModel", "⚠️ Operación cancelada")
+                throw e
             } catch (e: Exception) {
-                Log.e("ListDetailViewModel", "❌ Excepción inesperada al agregar: ${e.message}")
+                Log.e("ListDetailViewModel", "❌ Excepción al agregar item: ${e.message}", e)
                 _isCreatingProduct.value = false
                 _errorMessage.value = e.message ?: "Error inesperado"
                 _createProductState.value = null
@@ -413,6 +482,16 @@ class ListDetailViewModel @Inject constructor(
      * Limpia el mensaje de error
      */
     fun clearError() {
+        _errorMessage.value = null
+    }
+
+    /**
+     * Resetea el estado de creación de producto.
+     * Útil cuando el usuario cierra el diálogo o cancela la operación.
+     */
+    fun resetCreateProductState() {
+        _createProductState.value = null
+        _isCreatingProduct.value = false
         _errorMessage.value = null
     }
 }

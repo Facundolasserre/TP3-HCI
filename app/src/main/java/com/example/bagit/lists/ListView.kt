@@ -543,19 +543,33 @@ fun AddItemDialog(
 
     val createProductState by viewModel.createProductState
     
-    // Cerrar el diálogo principal cuando se completa la creación del producto exitosamente
+    // Cuando se crea el producto exitosamente, seleccionarlo y cerrar solo el diálogo de creación
     LaunchedEffect(createProductState) {
         if (createProductState is Result.Success && !isCreatingProduct) {
-            // Pequeño delay para que el usuario vea el éxito
-            delay(300)
+            val createdProduct = (createProductState as Result.Success<Product>).data
+
+            // Seleccionar el producto creado
+            selectedProduct = createdProduct
+            searchQuery = createdProduct.name
+
+            // Cerrar solo el diálogo de creación de producto
             showCreateProductDialog = false
-            onDismiss() // Cerrar el diálogo principal también
+
+            // Resetear el estado para futuras creaciones
+            viewModel.resetCreateProductState()
         }
     }
 
     LaunchedEffect(searchQuery) {
         if (searchQuery.isNotBlank()) {
             viewModel.searchProducts(searchQuery)
+        }
+    }
+
+    // Resetear estado cuando se cierra el diálogo principal
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.resetCreateProductState()
         }
     }
 
@@ -828,17 +842,15 @@ fun AddItemDialog(
             onDismiss = { 
                 if (!isCreatingProduct) {
                     showCreateProductDialog = false
+                    viewModel.resetCreateProductState()
                 }
             },
             onConfirm = { name, categoryId, metadata ->
-                val qty = quantity.toDoubleOrNull() ?: 1.0
-                val formattedUnit = formatUnit(unit, qty)
-                viewModel.createProductAndAddToList(
-                    listId = listId,
+                // Solo crear el producto, no agregarlo a la lista aún
+                // El usuario ingresará cantidad/unidad después
+                viewModel.createProduct(
                     name = name,
                     categoryId = categoryId,
-                    quantity = qty,
-                    unit = formattedUnit,
                     metadata = metadata
                 )
             }
