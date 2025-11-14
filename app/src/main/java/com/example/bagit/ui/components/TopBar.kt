@@ -1,7 +1,7 @@
 package com.example.bagit.ui.components
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
@@ -49,7 +49,7 @@ fun BagItTopBar(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(end = 8.dp),
+                    .padding(end = 8.dp, top = 4.dp, bottom = 4.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
                 if (titleWhenNoSearch != null && searchQuery.isEmpty()) {
@@ -68,8 +68,8 @@ fun BagItTopBar(
                         placeholder = {
                             Text(
                                 text = "Search",
-                                color = OnDark.copy(alpha = 0.55f),
-                                fontSize = 14.sp
+                                color = OnDark.copy(alpha = 0.6f),
+                                fontSize = 16.sp
                             )
                         },
                         trailingIcon = {
@@ -81,13 +81,14 @@ fun BagItTopBar(
                                 )
                             }
                         },
-                        shape = CircleShape,
+                        shape = RoundedCornerShape(28.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(44.dp), // un poco más baja para equilibrar tipografía
+                            .height(56.dp),
                         textStyle = LocalTextStyle.current.copy(
                             color = OnDark,
-                            fontSize = 14.sp
+                            fontSize = 16.sp,
+                            lineHeight = 20.sp
                         ),
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = searchBg,
@@ -99,10 +100,10 @@ fun BagItTopBar(
                             cursorColor = OnDark,
                             focusedTextColor = OnDark,
                             unfocusedTextColor = OnDark,
-                            focusedPlaceholderColor = OnDark.copy(alpha = 0.55f),
-                            unfocusedPlaceholderColor = OnDark.copy(alpha = 0.55f),
+                            focusedPlaceholderColor = OnDark.copy(alpha = 0.6f),
+                            unfocusedPlaceholderColor = OnDark.copy(alpha = 0.6f),
                             focusedTrailingIconColor = OnDark.copy(alpha = 0.75f),
-                            unfocusedTrailingIconColor = OnDark.copy(alpha = 0.55f)
+                            unfocusedTrailingIconColor = OnDark.copy(alpha = 0.6f)
                         )
                     )
                 }
