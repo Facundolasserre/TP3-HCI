@@ -268,8 +268,11 @@ fun AppShell(
                 }
 
                 composable("shopping_history") {
-                    ShoppingHistoryScreen(
-                        onBack = { navController.popBackStack() }
+                    ShoppingListHistoryScreen(
+                        onNavigateToList = { listId ->
+                            navController.navigate("list_detail/$listId")
+                        },
+                        onOpenDrawer = openDrawer
                     )
                 }
             }

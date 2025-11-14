@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -18,6 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -767,7 +770,12 @@ fun AddItemDialog(
             ) {
                 OutlinedTextField(
                     value = quantity,
-                    onValueChange = { quantity = it },
+                    onValueChange = { newValue ->
+                        // Solo permitir números y punto decimal
+                        if (newValue.isEmpty() || newValue.matches(Regex("^\\d*\\.?\\d*$"))) {
+                            quantity = newValue
+                        }
+                    },
                     label = { Text(stringResource(R.string.list_quantity_label), color = OnDark.copy(alpha = 0.6f)) },
                     modifier = Modifier.weight(1f),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -778,6 +786,10 @@ fun AddItemDialog(
                         focusedBorderColor = Color(0xFF5249B6),
                         unfocusedBorderColor = Color(0xFF3D3F54),
                         cursorColor = Color(0xFF5249B6)
+                    ),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Decimal,
+                        imeAction = ImeAction.Done
                     ),
                     singleLine = true
                 )
@@ -811,7 +823,10 @@ fun AddItemDialog(
                     },
                     enabled = selectedProduct != null && quantity.toDoubleOrNull() != null,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF5249B6)
+                        containerColor = Color(0xFF5249B6),
+                        contentColor = Color.White,
+                        disabledContainerColor = Color(0xFF5249B6),
+                        disabledContentColor = Color.White.copy(alpha = 0.6f)
                     )
                 ) {
                     Text(stringResource(R.string.list_add))
@@ -924,20 +939,27 @@ fun UnitSelector(
 
         ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.background(Color(0xFF2A2D3E))
         ) {
             units.forEach { unit ->
                 DropdownMenuItem(
                     text = {
                         Text(
                             text = getUnitDisplayName(unit, quantity),
-                            color = OnDark
+                            color = OnDark,
+                            fontSize = 14.sp
                         )
                     },
                     onClick = {
                         onUnitSelected(unit)
                         expanded = false
-                    }
+                    },
+                    colors = MenuDefaults.itemColors(
+                        textColor = OnDark,
+                        leadingIconColor = OnDark,
+                        trailingIconColor = OnDark
+                    )
                 )
             }
         }
@@ -973,6 +995,7 @@ fun EditItemDialog(
                     text = "Edit Item",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
+
                     color = OnDark
                 )
 
@@ -1001,7 +1024,12 @@ fun EditItemDialog(
                 ) {
                     OutlinedTextField(
                         value = quantity,
-                        onValueChange = { quantity = it },
+                        onValueChange = { newValue ->
+                            // Solo permitir números y punto decimal
+                            if (newValue.isEmpty() || newValue.matches(Regex("^\\d*\\.?\\d*$"))) {
+                                quantity = newValue
+                            }
+                        },
                         label = { Text(stringResource(R.string.list_quantity_label), color = OnDark.copy(alpha = 0.6f)) },
                         modifier = Modifier.weight(1f),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -1012,6 +1040,10 @@ fun EditItemDialog(
                             focusedBorderColor = Color(0xFF5249B6),
                             unfocusedBorderColor = Color(0xFF3D3F54),
                             cursorColor = Color(0xFF5249B6)
+                        ),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Decimal,
+                            imeAction = ImeAction.Done
                         ),
                         singleLine = true
                     )

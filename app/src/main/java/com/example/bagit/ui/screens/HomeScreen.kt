@@ -48,10 +48,18 @@ fun HomeScreen(
 
     // Load shopping lists
     val listsState by viewModel.listsState
+    val completedListsMap by viewModel.completedListsMap
 
     // Búsqueda inicial
     LaunchedEffect(Unit) {
         viewModel.getShoppingLists()
+    }
+
+    // Verificar completitud de listas cuando cambian
+    LaunchedEffect(listsState) {
+        if (listsState is com.example.bagit.data.repository.Result.Success) {
+            viewModel.checkAllListsCompletion()
+        }
     }
 
     // Búsqueda cuando cambia el query
@@ -109,7 +117,12 @@ fun HomeScreen(
                     }
                 }
                 is com.example.bagit.data.repository.Result.Success -> {
-                    if (state.data.data.isEmpty()) {
+                    // Filtrar solo listas NO completadas (para "Edit Lists")
+                    val activeLists = state.data.data.filter { list ->
+                        !viewModel.isListCompleted(list.id)
+                    }
+
+                    if (activeLists.isEmpty()) {
                         if (isTablet && isLandscape) {
                             EmptyStateLandscape(
                                 illustrationSize = illustrationSize,
@@ -128,7 +141,7 @@ fun HomeScreen(
                         }
                     } else {
                         ShoppingListsContent(
-                            lists = state.data.data,
+                            lists = activeLists,
                             onListClick = onNavigateToList,
                             onAddList = onNavigateToNewList,
                             onToggleFavorite = { listId, isFavorite ->

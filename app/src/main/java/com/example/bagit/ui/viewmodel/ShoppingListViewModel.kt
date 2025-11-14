@@ -27,6 +27,10 @@ class ShoppingListViewModel @Inject constructor(
     private val _listItemsState = mutableStateOf<Result<PaginatedResponse<ListItem>>?>(null)
     val listItemsState: State<Result<PaginatedResponse<ListItem>>?> = _listItemsState
 
+    // Mapa para rastrear qué listas están completadas (todos los items comprados)
+    private val _completedListsMap = mutableStateOf<Map<Long, Boolean>>(emptyMap())
+    val completedListsMap: State<Map<Long, Boolean>> = _completedListsMap
+
     fun getShoppingLists(
         name: String? = null,
         owner: Boolean? = null,
@@ -283,6 +287,58 @@ class ShoppingListViewModel @Inject constructor(
             is Number -> favoriteValue.toInt() != 0
             else -> false
         }
+    }
+
+    /**
+     * Verifica si una lista está completada (todos los items comprados).
+     * Actualiza el mapa de listas completadas.
+     */
+    fun checkListCompletion(listId: Long) {
+        viewModelScope.launch {
+            listItemRepository.getListItems(
+                listId = listId,
+                purchased = null,
+                page = 1,
+                perPage = 1000 // Obtener todos los items
+            ).collect { result ->
+                when (result) {
+                    is Result.Success -> {
+                        val items = result.data.data
+                        // Una lista está completada si:
+                        // 1. Tiene al menos un item
+                        // 2. Todos los items están comprados
+                        val isCompleted = items.isNotEmpty() && items.all { it.purchased }
+
+                        // Actualizar el mapa
+                        val currentMap = _completedListsMap.value.toMutableMap()
+                        currentMap[listId] = isCompleted
+                        _completedListsMap.value = currentMap
+                    }
+                    else -> {
+                        // En caso de error o loading, no cambiar el estado
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Verifica el estado de completitud de todas las listas actuales
+     */
+    fun checkAllListsCompletion() {
+        val currentLists = _listsState.value
+        if (currentLists is Result.Success) {
+            currentLists.data.data.forEach { list ->
+                checkListCompletion(list.id)
+            }
+        }
+    }
+
+    /**
+     * Determina si una lista está completada basándose en el mapa
+     */
+    fun isListCompleted(listId: Long): Boolean {
+        return _completedListsMap.value[listId] ?: false
     }
 }
 
