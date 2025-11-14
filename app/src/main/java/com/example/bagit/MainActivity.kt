@@ -22,6 +22,7 @@ import com.example.bagit.auth.ui.VerifyAccountScreen
 import com.example.bagit.ui.AppShell
 import com.example.bagit.ui.theme.BagItTheme
 import com.example.bagit.ui.viewmodel.AuthViewModel
+import com.example.bagit.ui.viewmodel.ProfileViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -115,12 +116,17 @@ class MainActivity : ComponentActivity() {
 
                         // ---------- HOME (with AppShell for bottom navigation) ----------
                         composable("home") {
+                            val profileViewModel: ProfileViewModel = hiltViewModel()
+                            val profileUiState by profileViewModel.uiState.collectAsState()
+                            val userName = profileUiState.user?.name ?: ""
+
                             AppShell(
                                 onLogout = {
                                     navController.navigate("login") {
                                         popUpTo("home") { inclusive = true }
                                     }
-                                }
+                                },
+                                userName = userName
                             )
                         }
                     }

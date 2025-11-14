@@ -531,8 +531,7 @@ fun HomeScreenDrawerOpenPreview() {
                 ) {
                     DrawerContent(
                         onSignOut = { },
-                        onSettingsClick = { },
-                        onToggleLanguage = { }
+                        onSettingsClick = { }
                     )
                 }
             }

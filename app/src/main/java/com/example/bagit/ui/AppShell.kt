@@ -40,7 +40,8 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppShell(
-    onLogout: () -> Unit = {}
+    onLogout: () -> Unit = {},
+    userName: String = ""
 ) {
     val navController = rememberNavController()
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
@@ -86,6 +87,7 @@ fun AppShell(
                     onSignOut = {
                         closeDrawerAnd { onLogout() }
                     },
+                    userName = userName,
                     onNavigateToProducts = {
                         closeDrawerAnd {
                             navController.navigate("products") {
@@ -116,9 +118,6 @@ fun AppShell(
                                 launchSingleTop = true
                             }
                         }
-                    },
-                    onToggleLanguage = {
-                        scope.launch { drawerState.close() }
                     }
                 )
             }

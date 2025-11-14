@@ -11,14 +11,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -26,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import com.example.bagit.R
 import com.example.bagit.ui.theme.CardBg
+import com.example.bagit.ui.theme.Cream
 import com.example.bagit.ui.theme.DrawerBg
 import com.example.bagit.ui.theme.OnDrawer
 
@@ -40,11 +40,11 @@ import com.example.bagit.ui.theme.OnDrawer
 fun DrawerContent(
     onSignOut: () -> Unit,
     modifier: Modifier = Modifier,
+    userName: String = "",
     onNavigateToProducts: () -> Unit = {},
     onNavigateToLists: () -> Unit = {},
     onNavigateToHistory: () -> Unit = {},
-    onSettingsClick: () -> Unit = {},
-    onToggleLanguage: () -> Unit = {}
+    onSettingsClick: () -> Unit = {}
 ) {
     Column(
         modifier = modifier
@@ -62,24 +62,14 @@ fun DrawerContent(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Row superior: Language (izq) y Settings (der)
+            // Row superior: Settings (der)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(
-                    onClick = onToggleLanguage,
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Language,
-                        contentDescription = stringResource(R.string.drawer_toggle_language),
-                        tint = OnDrawer
-                    )
-                }
                 IconButton(
                     onClick = onSettingsClick,
                     modifier = Modifier.size(48.dp)
@@ -102,17 +92,17 @@ fun DrawerContent(
                 Surface(
                     modifier = Modifier.size(80.dp),
                     shape = CircleShape,
-                    color = DrawerBg
+                    color = Cream
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = stringResource(R.string.drawer_user_avatar),
-                            tint = OnDrawer,
-                            modifier = Modifier.size(40.dp)
+                        Text(
+                            text = generateInitials(userName),
+                            fontSize = 32.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF2E2A3A)
                         )
                     }
                 }
@@ -120,7 +110,7 @@ fun DrawerContent(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "John",
+                    text = userName.ifEmpty { "User" },
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = OnDrawer
@@ -140,17 +130,17 @@ fun DrawerContent(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     DrawerMenuItem(
-                        icon = Icons.Default.ShoppingCart,
-                        text = stringResource(R.string.drawer_products),
-                        onClick = onNavigateToProducts
+                        icon = Icons.Default.Home,
+                        text = stringResource(R.string.drawer_edit_lists),
+                        onClick = onNavigateToLists
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
                     DrawerMenuItem(
-                        icon = Icons.Default.Home,
-                        text = stringResource(R.string.drawer_edit_lists),
-                        onClick = onNavigateToLists
+                        icon = Icons.Default.ShoppingCart,
+                        text = stringResource(R.string.drawer_products),
+                        onClick = onNavigateToProducts
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -221,3 +211,26 @@ private fun DrawerMenuItem(
         )
     }
 }
+
+/**
+ * Genera las iniciales a partir del nombre del usuario.
+ * Sigue la misma lógica que en ProfileScreen:
+ * - Toma la primera letra del nombre y del apellido
+ * - Las convierte a mayúsculas
+ * - Retorna máximo 2 caracteres
+ * Ejemplos:
+ * - "Pedro Pérez" → "PP"
+ * - "Juan" → "J"
+ * - "" → "??"
+ */
+private fun generateInitials(fullName: String): String {
+    return fullName
+        .trim()
+        .split("\\s+".toRegex())
+        .filter { it.isNotBlank() }
+        .mapNotNull { it.firstOrNull()?.uppercase() }
+        .joinToString("")
+        .take(2)
+        .ifBlank { "??" }
+}
+
