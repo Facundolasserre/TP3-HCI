@@ -29,6 +29,13 @@ class ListDetailViewModel @Inject constructor(
     private val _productsState = mutableStateOf<Result<PaginatedResponse<Product>>?>(null)
     val productsState: State<Result<PaginatedResponse<Product>>?> = _productsState
 
+    // Mantener el estado de búsqueda actual para reloads
+    private var currentListId: Long? = null
+    private var currentSearchQuery: String? = null
+
+    private val _searchFallbackActive = mutableStateOf(false)
+    val searchFallbackActive: State<Boolean> = _searchFallbackActive
+
     fun loadList(listId: Long) {
         viewModelScope.launch {
             shoppingListRepository.getShoppingListById(listId).collect { result ->
@@ -37,16 +44,52 @@ class ListDetailViewModel @Inject constructor(
         }
     }
 
-    fun loadListItems(listId: Long, purchased: Boolean? = null) {
+    fun loadListItems(listId: Long, purchased: Boolean? = null, search: String? = null) {
+        // Guardar el estado actual para reloads
+        currentListId = listId
+        currentSearchQuery = search
+        _searchFallbackActive.value = false // reset flag on new attempt
         viewModelScope.launch {
             listItemRepository.getListItems(
                 listId = listId,
                 purchased = purchased,
                 page = 1,
-                perPage = 100 // Load all items for now
+                perPage = 100, // Load all items for now
+                search = search
             ).collect { result ->
-                _listItemsState.value = result
+                when (result) {
+                    is Result.Success -> {
+                        _listItemsState.value = result
+                    }
+                    is Result.Error -> {
+                        // Si falla y había búsqueda, intentar fallback sin search una sola vez
+                        if (search != null && !_searchFallbackActive.value) {
+                            _searchFallbackActive.value = true
+                            listItemRepository.getListItems(
+                                listId = listId,
+                                purchased = purchased,
+                                page = 1,
+                                perPage = 100,
+                                search = null
+                            ).collect { fallbackResult ->
+                                _listItemsState.value = fallbackResult
+                            }
+                        } else {
+                            _listItemsState.value = result
+                        }
+                    }
+                    is Result.Loading -> {
+                        _listItemsState.value = result
+                    }
+                }
             }
+        }
+    }
+
+    // Método privado para recargar manteniendo la búsqueda actual
+    private fun reloadCurrentList() {
+        currentListId?.let { listId ->
+            loadListItems(listId, search = currentSearchQuery)
         }
     }
 
@@ -81,8 +124,8 @@ class ListDetailViewModel @Inject constructor(
                 )
             ).collect { result ->
                 if (result is Result.Success) {
-                    // Reload list items
-                    loadListItems(listId)
+                    // Reload list items manteniendo la búsqueda
+                    reloadCurrentList()
                 }
             }
         }
@@ -96,8 +139,8 @@ class ListDetailViewModel @Inject constructor(
                 purchased = purchased
             ).collect { result ->
                 if (result is Result.Success) {
-                    // Reload list items
-                    loadListItems(listId)
+                    // Reload list items manteniendo la búsqueda
+                    reloadCurrentList()
                 }
             }
         }
@@ -107,8 +150,8 @@ class ListDetailViewModel @Inject constructor(
         viewModelScope.launch {
             listItemRepository.deleteListItem(listId, itemId).collect { result ->
                 if (result is Result.Success) {
-                    // Reload list items
-                    loadListItems(listId)
+                    // Reload list items manteniendo la búsqueda
+                    reloadCurrentList()
                 }
             }
         }
@@ -132,11 +175,10 @@ class ListDetailViewModel @Inject constructor(
                 )
             ).collect { result ->
                 if (result is Result.Success) {
-                    // Reload list items
-                    loadListItems(listId)
+                    // Reload list items manteniendo la búsqueda
+                    reloadCurrentList()
                 }
             }
         }
     }
 }
-

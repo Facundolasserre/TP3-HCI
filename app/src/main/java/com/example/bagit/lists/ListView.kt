@@ -41,8 +41,9 @@ fun ListDetailScreen(
     var showAddItemDialog by remember { mutableStateOf(false) }
     var showEditItemDialog by remember { mutableStateOf<ListItem?>(null) }
     val showMenuState = remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
 
-    // Load data
+    // Load list info only once
     LaunchedEffect(listId) {
         viewModel.loadList(listId)
         viewModel.loadListItems(listId)
@@ -141,61 +142,156 @@ fun ListDetailScreen(
         },
         containerColor = DarkNavy
     ) { paddingValues ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(DarkNavy)
                 .padding(paddingValues)
         ) {
-            when (val itemsState = listItemsState) {
-                is Result.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = Color(0xFF5249B6))
+            // Barra de búsqueda
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                placeholder = {
+                    Text(
+                        "Search products...",
+                        color = OnDark.copy(alpha = 0.5f),
+                        fontSize = 16.sp
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search",
+                        tint = OnDark.copy(alpha = 0.6f)
+                    )
+                },
+                trailingIcon = {
+                    if (searchQuery.isNotBlank()) {
+                        IconButton(onClick = { searchQuery = "" }) {
+                            Icon(
+                                imageVector = Icons.Default.Clear,
+                                contentDescription = "Clear",
+                                tint = OnDark.copy(alpha = 0.6f)
+                            )
+                        }
                     }
-                }
-                is Result.Success -> {
-                    if (itemsState.data.data.isEmpty()) {
-                        EmptyListContent(
-                            onAddItem = { showAddItemDialog = true },
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(contentPadding)
-                        )
-                    } else {
-                        ListItemsContent(
-                            items = itemsState.data.data,
-                            onTogglePurchased = { item ->
-                                viewModel.toggleItemPurchased(listId, item.id, !item.purchased)
-                            },
-                            onEditItem = { item ->
-                                showEditItemDialog = item
-                            },
-                            onDeleteItem = { item ->
-                                viewModel.deleteListItem(listId, item.id)
-                            },
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = contentPadding)
-                        )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFF2A2D3E),
+                    unfocusedContainerColor = Color(0xFF2A2D3E),
+                    focusedTextColor = OnDark,
+                    unfocusedTextColor = OnDark,
+                    focusedBorderColor = Color(0xFF5249B6),
+                    unfocusedBorderColor = Color(0xFF3D3F54),
+                    cursorColor = Color(0xFF5249B6)
+                ),
+                shape = RoundedCornerShape(16.dp),
+                singleLine = true
+            )
+
+            // Contenido de la lista
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f)
+            ) {
+                when (val itemsState = listItemsState) {
+                    is Result.Loading -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = Color(0xFF5249B6))
+                        }
                     }
-                }
-                is Result.Error -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = itemsState.message ?: "Error loading items",
-                            color = Color.Red,
-                            modifier = Modifier.padding(16.dp)
-                        )
+                    is Result.Success -> {
+                        val allItems = itemsState.data.data
+                        val effectiveQuery = searchQuery.trim()
+                        val shownItems = if (effectiveQuery.length >= 2) {
+                            allItems.filter { it.product.name.contains(effectiveQuery, ignoreCase = true) }
+                        } else allItems
+
+                        if (shownItems.isEmpty()) {
+                            if (effectiveQuery.isBlank()) {
+                                EmptyListContent(
+                                    onAddItem = { showAddItemDialog = true },
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(contentPadding)
+                                )
+                            } else {
+                                // No results for search
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Search,
+                                            contentDescription = null,
+                                            tint = OnDark.copy(alpha = 0.3f),
+                                            modifier = Modifier.size(80.dp)
+                                        )
+                                        Spacer(modifier = Modifier.height(16.dp))
+                                        Text(
+                                            text = "No products found",
+                                            fontSize = 18.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = OnDark.copy(alpha = 0.6f)
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = "Try a different search term",
+                                            fontSize = 14.sp,
+                                            color = OnDark.copy(alpha = 0.4f)
+                                        )
+                                    }
+                                }
+                            }
+                        } else {
+                            ListItemsContent(
+                                items = shownItems,
+                                onTogglePurchased = { item ->
+                                    viewModel.toggleItemPurchased(listId, item.id, !item.purchased)
+                                },
+                                onEditItem = { item -> showEditItemDialog = item },
+                                onDeleteItem = { item -> viewModel.deleteListItem(listId, item.id) },
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = contentPadding)
+                            )
+                        }
                     }
-                }
-                null -> {
-                    // Initial state
+                    is Result.Error -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = itemsState.message ?: "Error loading items",
+                                    color = Color.Red,
+                                    modifier = Modifier.padding(16.dp)
+                                )
+                                if (searchQuery.isNotBlank()) {
+                                    Text(
+                                        text = "Probá borrar o cambiar el término de búsqueda.",
+                                        color = OnDark.copy(alpha = 0.6f),
+                                        fontSize = 12.sp
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    null -> {
+                        // Initial state
+                    }
                 }
             }
         }
@@ -803,6 +899,3 @@ fun EditItemDialog(
         }
     }
 }
-
-
-

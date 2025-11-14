@@ -45,8 +45,18 @@ fun HomeScreen(
     // Load shopping lists
     val listsState by viewModel.listsState
 
+    // Búsqueda inicial
     LaunchedEffect(Unit) {
         viewModel.getShoppingLists()
+    }
+
+    // Búsqueda cuando cambia el query
+    LaunchedEffect(searchQuery) {
+        if (searchQuery.isBlank()) {
+            viewModel.getShoppingLists()
+        } else {
+            viewModel.getShoppingLists(name = searchQuery)
+        }
     }
 
     val isLandscape = isLandscape()
@@ -73,10 +83,7 @@ fun HomeScreen(
                 onMenuClick = onOpenDrawer,
                 searchQuery = searchQuery,
                 onSearchQueryChange = { searchQuery = it },
-                onSearchSubmit = {
-                    // ejemplo: viewModel.onSearch(searchQuery)
-                }
-                // titleWhenNoSearch = null // mantener la pill siempre
+                onSearchSubmit = { /* Búsqueda en tiempo real */ }
             )
         },
         containerColor = DarkNavy
