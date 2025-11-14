@@ -4,6 +4,7 @@ import com.example.bagit.data.model.*
 import com.example.bagit.data.remote.ShoppingListApiService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -136,6 +137,90 @@ class ShoppingListRepository @Inject constructor(
             shoppingListApiService.revokeShareShoppingList(id, userId)
             emit(Result.Success(Unit))
         } catch (e: Exception) {
+            emit(Result.Error(e, e.message))
+        }
+    }
+
+    suspend fun setFavorite(listId: Long, isFavorite: Boolean): Flow<Result<ShoppingList>> = flow {
+        emit(Result.Loading)
+        try {
+            // Primero obtener la lista actual para preservar su metadata
+            val currentListResult = getShoppingListById(listId).first { it !is Result.Loading }
+            
+            if (currentListResult !is Result.Success) {
+                emit(Result.Error(Exception("List not found"), "List not found"))
+                return@flow
+            }
+
+            val currentList = currentListResult.data
+
+            // Actualizar metadata preservando los valores existentes
+            val currentMetadata = currentList.metadata?.toMutableMap() ?: mutableMapOf()
+            currentMetadata["favorite"] = isFavorite
+
+            val request = ShoppingListRequest(
+                name = currentList.name,
+                description = currentList.description ?: "",
+                recurring = currentList.recurring,
+                metadata = currentMetadata
+            )
+
+            val updatedList = shoppingListApiService.updateShoppingList(listId, request)
+            emit(Result.Success(updatedList))
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            emit(Result.Error(e, e.message))
+        }
+    }
+
+    suspend fun getFavoriteLists(
+        page: Int = 1,
+        perPage: Int = 100,
+        sortBy: String = "name",
+        order: String = "ASC"
+    ): Flow<Result<PaginatedResponse<ShoppingList>>> = flow {
+        emit(Result.Loading)
+        try {
+            // Obtener todas las listas y filtrar por favoritas en el cliente
+            // ya que la API no tiene un endpoint específico para favoritos
+            val response = shoppingListApiService.getShoppingLists(
+                name = null,
+                owner = null,
+                recurring = null,
+                page = page,
+                perPage = perPage,
+                sortBy = sortBy,
+                order = order
+            )
+            
+            // Filtrar listas favoritas
+            val favoriteLists = response.data.filter { list ->
+                val metadata = list.metadata
+                val favoriteValue = metadata?.get("favorite")
+                when (favoriteValue) {
+                    is Boolean -> favoriteValue
+                    is String -> favoriteValue.equals("true", ignoreCase = true)
+                    is Number -> favoriteValue.toInt() != 0
+                    else -> false
+                }
+            }
+
+            // Crear una respuesta paginada con solo las favoritas
+            val favoriteResponse = PaginatedResponse(
+                data = favoriteLists,
+                pagination = Pagination(
+                    total = favoriteLists.size,
+                    page = response.pagination.page,
+                    perPage = response.pagination.perPage,
+                    totalPages = if (favoriteLists.isEmpty()) 0 else 1,
+                    hasNext = false,
+                    hasPrev = false
+                )
+            )
+            
+            emit(Result.Success(favoriteResponse))
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
             emit(Result.Error(e, e.message))
         }
     }

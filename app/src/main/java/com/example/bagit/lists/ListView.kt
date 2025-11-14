@@ -10,6 +10,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.delay
 import com.example.bagit.data.model.ListItem
 import com.example.bagit.data.model.Product
 import com.example.bagit.data.repository.Result
@@ -299,6 +303,7 @@ fun ListDetailScreen(
 
     if (showAddItemDialog) {
         AddItemDialog(
+            listId = listId,
             onDismiss = { showAddItemDialog = false },
             onAddItem = { productId, quantity, unit ->
                 viewModel.addListItem(listId, productId, quantity, unit)
@@ -499,6 +504,7 @@ fun ListItemCard(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddItemDialog(
+    listId: Long,
     onDismiss: () -> Unit,
     onAddItem: (productId: Long, quantity: Double, unit: String) -> Unit,
     viewModel: ListDetailViewModel
@@ -507,8 +513,43 @@ fun AddItemDialog(
     var quantity by remember { mutableStateOf("1") }
     var unit by remember { mutableStateOf("kg") }
     var selectedProduct by remember { mutableStateOf<Product?>(null) }
+    var showCreateProductDialog by remember { mutableStateOf(false) }
 
     val productsState by viewModel.productsState
+    val categoriesState by viewModel.categoriesState
+    val isCreatingProduct by viewModel.isCreatingProduct
+    val errorMessage by viewModel.errorMessage
+
+    // Cargar categorías cuando se abre el diálogo de crear producto
+    LaunchedEffect(showCreateProductDialog) {
+        if (showCreateProductDialog) {
+            viewModel.loadCategories()
+        }
+    }
+
+    // Mostrar snackbar de error si hay uno
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let { message ->
+            snackbarHostState.showSnackbar(
+                message = message,
+                duration = SnackbarDuration.Long
+            )
+            viewModel.clearError()
+        }
+    }
+
+    val createProductState by viewModel.createProductState
+    
+    // Cerrar el diálogo principal cuando se completa la creación del producto exitosamente
+    LaunchedEffect(createProductState) {
+        if (createProductState is Result.Success && !isCreatingProduct) {
+            // Pequeño delay para que el usuario vea el éxito
+            delay(300)
+            showCreateProductDialog = false
+            onDismiss() // Cerrar el diálogo principal también
+        }
+    }
 
     LaunchedEffect(searchQuery) {
         if (searchQuery.isNotBlank()) {
@@ -523,11 +564,12 @@ fun AddItemDialog(
             shape = RoundedCornerShape(16.dp),
             color = Color(0xFF2A2D3E)
         ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp)
-        ) {
+            Box {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp)
+                ) {
             Text(
                 text = "Add Item",
                 fontSize = 20.sp,
@@ -579,14 +621,29 @@ fun AddItemDialog(
                         }
                         is Result.Success -> {
                             if (state.data.data.isEmpty()) {
-                                Box(
+                                Column(
                                     modifier = Modifier.fillMaxWidth().padding(16.dp),
-                                    contentAlignment = Alignment.Center
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
                                     Text(
                                         text = "No products found",
                                         color = OnDark.copy(alpha = 0.5f)
                                     )
+                                    Button(
+                                        onClick = { showCreateProductDialog = true },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color(0xFF5249B6)
+                                        )
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Add,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text("Create new product")
+                                    }
                                 }
                             } else {
                                 LazyColumn {
@@ -621,6 +678,34 @@ fun AddItemDialog(
                                             }
                                         }
                                     }
+                                    // Agregar ítem al final para crear nuevo producto
+                                    item {
+                                        Divider(
+                                            modifier = Modifier.padding(vertical = 8.dp),
+                                            color = OnDark.copy(alpha = 0.2f)
+                                        )
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clickable { showCreateProductDialog = true }
+                                                .padding(12.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Add,
+                                                contentDescription = "Create new product",
+                                                tint = Color(0xFF5249B6),
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(12.dp))
+                                            Text(
+                                                text = "Create new product",
+                                                color = Color(0xFF5249B6),
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -637,6 +722,23 @@ fun AddItemDialog(
                         }
                         null -> {}
                     }
+                }
+            } else {
+                // Mostrar botón para crear producto cuando no hay búsqueda
+                Button(
+                    onClick = { showCreateProductDialog = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF5249B6)
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Create new product")
                 }
             }
 
@@ -699,8 +801,46 @@ fun AddItemDialog(
                     Text("Add")
                 }
             }
+                }
+                
+                // Snackbar para errores
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                )
+            }
         }
+    }
+
+    // Diálogo para crear producto
+    if (showCreateProductDialog) {
+        val categories = when (val state = categoriesState) {
+            is Result.Success -> state.data.data
+            else -> emptyList()
         }
+        
+        com.example.bagit.ui.products.CreateEditProductDialog(
+            product = null,
+            categories = categories,
+            isSubmitting = isCreatingProduct,
+            onDismiss = { 
+                if (!isCreatingProduct) {
+                    showCreateProductDialog = false
+                }
+            },
+            onConfirm = { name, categoryId, metadata ->
+                val qty = quantity.toDoubleOrNull() ?: 1.0
+                val formattedUnit = formatUnit(unit, qty)
+                viewModel.createProductAndAddToList(
+                    listId = listId,
+                    name = name,
+                    categoryId = categoryId,
+                    quantity = qty,
+                    unit = formattedUnit,
+                    metadata = metadata
+                )
+            }
+        )
     }
 }
 

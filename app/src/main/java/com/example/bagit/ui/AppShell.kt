@@ -173,7 +173,12 @@ fun AppShell(
                 }
 
                 composable("favorites") {
-                    FavoritesScreen()
+                    FavoritesScreen(
+                        onNavigateToList = { listId ->
+                            navController.navigate("list_detail/$listId")
+                        },
+                        onOpenDrawer = openDrawer
+                    )
                 }
 
                 composable("account_settings") {

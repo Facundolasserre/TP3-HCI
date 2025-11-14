@@ -10,7 +10,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -127,6 +129,10 @@ fun HomeScreen(
                             lists = state.data.data,
                             onListClick = onNavigateToList,
                             onAddList = onNavigateToNewList,
+                            onToggleFavorite = { listId, isFavorite ->
+                                viewModel.toggleFavorite(listId, isFavorite)
+                            },
+                            isFavorite = { list -> viewModel.isFavorite(list) },
                             modifier = Modifier.fillMaxSize()
                         )
                     }
@@ -331,6 +337,8 @@ fun ShoppingListsContent(
     lists: List<com.example.bagit.data.model.ShoppingList>,
     onListClick: (Long) -> Unit,
     onAddList: () -> Unit,
+    onToggleFavorite: (Long, Boolean) -> Unit,
+    isFavorite: (com.example.bagit.data.model.ShoppingList) -> Boolean,
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier) {
@@ -342,7 +350,9 @@ fun ShoppingListsContent(
             items(lists, key = { it.id }) { list ->
                 ShoppingListCard(
                     list = list,
-                    onClick = { onListClick(list.id) }
+                    onClick = { onListClick(list.id) },
+                    onToggleFavorite = onToggleFavorite,
+                    isFavorite = isFavorite(list)
                 )
             }
         }
@@ -364,6 +374,8 @@ fun ShoppingListsContent(
 fun ShoppingListCard(
     list: com.example.bagit.data.model.ShoppingList,
     onClick: () -> Unit,
+    onToggleFavorite: (Long, Boolean) -> Unit,
+    isFavorite: Boolean,
     modifier: Modifier = Modifier
 ) {
     val metadata = list.metadata
@@ -445,6 +457,22 @@ fun ShoppingListCard(
                         maxLines = 1
                     )
                 }
+            }
+
+            // Star icon (favorite toggle)
+            IconButton(
+                onClick = {
+                    // Prevenir que el click en la estrella dispare la navegación
+                    onToggleFavorite(list.id, isFavorite)
+                },
+                modifier = Modifier.size(40.dp)
+            ) {
+                Icon(
+                    imageVector = if (isFavorite) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                    contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
+                    tint = if (isFavorite) Color(0xFFFFC107) else OnDark.copy(alpha = 0.5f),
+                    modifier = Modifier.size(24.dp)
+                )
             }
 
             // Arrow icon

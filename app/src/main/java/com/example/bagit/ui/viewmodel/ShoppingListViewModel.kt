@@ -201,5 +201,88 @@ class ShoppingListViewModel @Inject constructor(
             }
         }
     }
+
+    // Favorites
+    fun toggleFavorite(listId: Long, currentIsFavorite: Boolean) {
+        viewModelScope.launch {
+            // Actualización optimista: actualizar el estado local primero
+            val currentLists = _listsState.value
+            if (currentLists is Result.Success) {
+                val updatedLists = currentLists.data.data.map { list ->
+                    if (list.id == listId) {
+                        val updatedMetadata = list.metadata?.toMutableMap() ?: mutableMapOf()
+                        updatedMetadata["favorite"] = !currentIsFavorite
+                        list.copy(metadata = updatedMetadata)
+                    } else {
+                        list
+                    }
+                }
+                _listsState.value = Result.Success(
+                    currentLists.data.copy(data = updatedLists)
+                )
+            }
+
+            // Llamar a la API
+            shoppingListRepository.setFavorite(listId, !currentIsFavorite).collect { result ->
+                when (result) {
+                    is Result.Success -> {
+                        // Actualizar con la respuesta del servidor
+                        val currentListsState = _listsState.value
+                        if (currentListsState is Result.Success) {
+                            val updatedLists = currentListsState.data.data.map { list ->
+                                if (list.id == listId) result.data else list
+                            }
+                            _listsState.value = Result.Success(
+                                currentListsState.data.copy(data = updatedLists)
+                            )
+                        }
+                    }
+                    is Result.Error -> {
+                        // Revertir cambio optimista en caso de error
+                        val currentListsState = _listsState.value
+                        if (currentListsState is Result.Success) {
+                            val revertedLists = currentListsState.data.data.map { list ->
+                                if (list.id == listId) {
+                                    val revertedMetadata = list.metadata?.toMutableMap() ?: mutableMapOf()
+                                    revertedMetadata["favorite"] = currentIsFavorite
+                                    list.copy(metadata = revertedMetadata)
+                                } else {
+                                    list
+                                }
+                            }
+                            _listsState.value = Result.Success(
+                                currentListsState.data.copy(data = revertedLists)
+                            )
+                        }
+                        // TODO: Mostrar mensaje de error al usuario (snackbar)
+                    }
+                    is Result.Loading -> {
+                        // Ya manejado con actualización optimista
+                    }
+                }
+            }
+        }
+    }
+
+    fun getFavoriteLists() {
+        viewModelScope.launch {
+            shoppingListRepository.getFavoriteLists(page = 1, perPage = 100)
+                .collect { result ->
+                    _listsState.value = result
+                }
+        }
+    }
+
+    // Helper function to check if a list is favorite
+    fun isFavorite(list: ShoppingList): Boolean {
+        val metadata = list.metadata
+        val favoriteValue = metadata?.get("favorite")
+        return when (favoriteValue) {
+            is Boolean -> favoriteValue
+            is String -> favoriteValue.equals("true", ignoreCase = true)
+            is Number -> favoriteValue.toInt() != 0
+            else -> false
+        }
+    }
 }
 
