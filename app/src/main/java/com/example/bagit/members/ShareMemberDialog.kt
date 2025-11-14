@@ -7,14 +7,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -22,8 +23,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.bagit.data.model.MemberRole
-import com.example.bagit.ui.theme.OnDark
+import com.example.bagit.ui.theme.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShareMemberDialog(
     listName: String,
@@ -65,110 +67,207 @@ fun ShareMemberDialog(
                 .background(Color.Black.copy(alpha = 0.6f)),
             contentAlignment = Alignment.Center
         ) {
+            // Card principal del diálogo con sombra y bordes redondeados
             Card(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
+                    .widthIn(max = 420.dp)
                     .wrapContentHeight()
-                    .background(
-                        color = Color(0xFF4B3F7E),
+                    .shadow(
+                        elevation = 8.dp,
                         shape = RoundedCornerShape(24.dp)
                     ),
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFF4B3F7E)
+                    containerColor = LightPurple
                 )
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(20.dp)
+                        .padding(horizontal = 32.dp, vertical = 28.dp)
                         .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
-                    // Header with title and close button
-                    Row(
+                    // Título: Share List
+                    Text(
+                        text = "Share List",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = OnDark,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // ========== SECCIÓN EMAIL ==========
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = "Share $listName",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.SemiBold,
+                            text = "Email Address",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
                             color = OnDark
                         )
-                        IconButton(
-                            onClick = onClose,
-                            modifier = Modifier.size(24.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Close",
-                                tint = OnDark,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
+                        OutlinedTextField(
+                            value = email,
+                            onValueChange = { email = it },
+                            enabled = !isLoading,
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = { 
+                                Text(
+                                    "Email address", 
+                                    color = OnDark.copy(alpha = 0.6f)
+                                ) 
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Email,
+                                    contentDescription = "Email",
+                                    tint = OnDark.copy(alpha = 0.7f),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = Color(0xFF3D3566),
+                                unfocusedContainerColor = Color(0xFF3D3566),
+                                focusedTextColor = OnDark,
+                                unfocusedTextColor = OnDark,
+                                focusedBorderColor = AccentPurple,
+                                unfocusedBorderColor = Color(0xFF5A4E8E),
+                                cursorColor = AccentPurple
+                            ),
+                            singleLine = true
+                        )
                     }
 
-                    // Email TextField
-                    OutlinedTextField(
-                        value = email,
-                        onValueChange = { email = it },
-                        enabled = !isLoading,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp),
-                        placeholder = { Text("Email", color = OnDark.copy(alpha = 0.6f)) },
-                        shape = RoundedCornerShape(12.dp),
-                        trailingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = "Search",
-                                tint = OnDark.copy(alpha = 0.6f),
-                                modifier = Modifier.size(20.dp)
-                            )
-                        },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = Color(0xFF3D3566),
-                            unfocusedContainerColor = Color(0xFF3D3566),
-                            focusedTextColor = OnDark,
-                            unfocusedTextColor = OnDark,
-                            focusedBorderColor = Color(0xFF7B68EE),
-                            unfocusedBorderColor = Color(0xFF5A4E8E),
-                            cursorColor = Color(0xFF7B68EE)
-                        ),
-                        singleLine = true
-                    )
+                    // ========== SECCIÓN ROLE ==========
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Role",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = OnDark
+                        )
+                        
+                        // Dropdown para seleccionar rol
+                        Box(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            ExposedDropdownMenuBox(
+                                expanded = showRoleDropdown,
+                                onExpandedChange = { showRoleDropdown = !showRoleDropdown }
+                            ) {
+                                OutlinedTextField(
+                                    value = selectedRole.name,
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    enabled = !isLoading,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .menuAnchor(),
+                                    trailingIcon = {
+                                        ExposedDropdownMenuDefaults.TrailingIcon(
+                                            expanded = showRoleDropdown
+                                        )
+                                    },
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedContainerColor = Color(0xFF3D3566),
+                                        unfocusedContainerColor = Color(0xFF3D3566),
+                                        focusedTextColor = OnDark,
+                                        unfocusedTextColor = OnDark,
+                                        focusedBorderColor = AccentPurple,
+                                        unfocusedBorderColor = Color(0xFF5A4E8E),
+                                        disabledTextColor = OnDark,
+                                        disabledBorderColor = Color(0xFF5A4E8E).copy(alpha = 0.5f)
+                                    )
+                                )
+                                
+                                ExposedDropdownMenu(
+                                    expanded = showRoleDropdown,
+                                    onDismissRequest = { showRoleDropdown = false },
+                                    modifier = Modifier.background(Color(0xFF3D3566))
+                                ) {
+                                    MemberRole.entries.forEach { role ->
+                                        DropdownMenuItem(
+                                            text = {
+                                                Text(
+                                                    text = role.name,
+                                                    color = OnDark
+                                                )
+                                            },
+                                            onClick = {
+                                                selectedRole = role
+                                                showRoleDropdown = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Leyenda descriptiva del rol
+                        Text(
+                            text = "Members can view and edit the list.",
+                            fontSize = 12.sp,
+                            color = OnDark.copy(alpha = 0.7f),
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
+                    }
 
-                    // Message TextField
-                    OutlinedTextField(
-                        value = message,
-                        onValueChange = { message = it },
-                        enabled = !isLoading,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 100.dp),
-                        placeholder = { Text("Share list with a message", color = OnDark.copy(alpha = 0.6f)) },
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = Color(0xFF3D3566),
-                            unfocusedContainerColor = Color(0xFF3D3566),
-                            focusedTextColor = OnDark,
-                            unfocusedTextColor = OnDark,
-                            focusedBorderColor = Color(0xFF7B68EE),
-                            unfocusedBorderColor = Color(0xFF5A4E8E),
-                            cursorColor = Color(0xFF7B68EE)
-                        ),
-                        minLines = 4
-                    )
+                    // ========== SECCIÓN MESSAGE ==========
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Message",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = OnDark
+                        )
+                        OutlinedTextField(
+                            value = message,
+                            onValueChange = { message = it },
+                            enabled = !isLoading,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 100.dp),
+                            placeholder = { 
+                                Text(
+                                    "Add a message (optional)", 
+                                    color = OnDark.copy(alpha = 0.6f)
+                                ) 
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = Color(0xFF3D3566),
+                                unfocusedContainerColor = Color(0xFF3D3566),
+                                focusedTextColor = OnDark,
+                                unfocusedTextColor = OnDark,
+                                focusedBorderColor = AccentPurple,
+                                unfocusedBorderColor = Color(0xFF5A4E8E),
+                                cursorColor = AccentPurple
+                            ),
+                            minLines = 4
+                        )
+                    }
                     
-                    // Error message
+                    // Mensaje de error
                     if (error != null) {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(
                                 containerColor = Color(0xFF5F2C2C)
-                            )
+                            ),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
                             Text(
                                 text = error,
@@ -179,127 +278,46 @@ fun ShareMemberDialog(
                         }
                     }
 
-                    // Member Roles Section
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = "Member Roles",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = OnDark
-                        )
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                        // Dropdown Menu for Roles
-                        Box(
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Button(
-                                onClick = { showRoleDropdown = !showRoleDropdown },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(8.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF3D3566)
-                                )
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = selectedRole.name,
-                                        fontSize = 14.sp,
-                                        color = OnDark
-                                    )
-                                    Icon(
-                                        imageVector = if (showRoleDropdown)
-                                            Icons.Default.KeyboardArrowUp
-                                        else
-                                            Icons.Default.KeyboardArrowDown,
-                                        contentDescription = "Toggle dropdown",
-                                        tint = OnDark,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
-                            }
-
-                            // Dropdown Menu
-                            DropdownMenu(
-                                expanded = showRoleDropdown,
-                                onDismissRequest = { showRoleDropdown = false },
-                                modifier = Modifier.fillMaxWidth(0.9f)
-                            ) {
-                                MemberRole.entries.forEach { role ->
-                                    DropdownMenuItem(
-                                        text = {
-                                            Text(
-                                                text = role.name,
-                                                color = OnDark
-                                            )
-                                        },
-                                        onClick = {
-                                            selectedRole = role
-                                            showRoleDropdown = false
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    // Action Buttons
+                    // ========== BOTONES INFERIORES ==========
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(44.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Copy Link Button
+                        // Botón Cancel (outlined)
                         OutlinedButton(
-                            onClick = onCopyLink,
+                            onClick = onClose,
                             enabled = !isLoading,
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight(),
-                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.outlinedButtonColors(
-                                containerColor = Color(0xFF3D3566),
                                 contentColor = OnDark
                             )
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Link,
-                                contentDescription = "Copy link",
-                                tint = OnDark,
-                                modifier = Modifier
-                                    .size(18.dp)
-                                    .padding(end = 6.dp)
-                            )
                             Text(
-                                text = "Copy link",
-                                fontSize = 12.sp,
+                                text = "Cancel",
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium
                             )
                         }
 
-                        // Send Button
+                        // Botón Send (primary con ícono)
                         Button(
                             onClick = {
                                 if (email.isNotBlank()) {
                                     onSend(email, message, selectedRole)
-                                    // Los campos se resetean cuando el dialog se cierra
                                 }
                             },
                             enabled = !isLoading && email.isNotBlank(),
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight(),
-                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF7B68EE),
-                                disabledContainerColor = Color(0xFF5A5080)
+                                containerColor = AccentPurple,
+                                disabledContainerColor = Color(0xFF5A5080),
+                                contentColor = OnDark,
+                                disabledContentColor = OnDark.copy(alpha = 0.6f)
                             )
                         ) {
                             if (isLoading) {
@@ -309,12 +327,19 @@ fun ShareMemberDialog(
                                     strokeWidth = 2.dp
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Send,
+                                    contentDescription = "Send",
+                                    modifier = Modifier.size(18.dp),
+                                    tint = OnDark
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
                             }
                             Text(
                                 text = if (isLoading) "Enviando..." else "Send",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = OnDark
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium
                             )
                         }
                     }
