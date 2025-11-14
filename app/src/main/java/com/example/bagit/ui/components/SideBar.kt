@@ -9,8 +9,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
@@ -148,7 +148,7 @@ fun DrawerContent(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     DrawerMenuItem(
-                        icon = Icons.Default.Edit,
+                        icon = Icons.Default.Home,
                         text = stringResource(R.string.drawer_edit_lists),
                         onClick = onNavigateToLists
                     )

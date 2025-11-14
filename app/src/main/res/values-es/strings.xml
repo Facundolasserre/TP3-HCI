@@ -165,8 +165,8 @@
     <string name="drawer_settings">Configuración</string>
     <string name="drawer_user_avatar">Avatar de usuario</string>
     <string name="drawer_products">Productos</string>
-    <string name="drawer_edit_lists">Editar Listas</string>
-    <string name="drawer_shopping_history">Historial de Listas</string>
+    <string name="drawer_edit_lists">Home</string>
+    <string name="drawer_shopping_history">Historial de Compras</string>
     <string name="drawer_log_out">Cerrar sesión</string>
     <string name="drawer_log_out_icon">Cerrar sesión</string>
 
