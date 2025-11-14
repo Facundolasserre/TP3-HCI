@@ -12,7 +12,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.bagit.R
 import com.example.bagit.data.repository.Result
 import com.example.bagit.ui.components.BagItTopBar
 import com.example.bagit.ui.theme.BagItTheme
@@ -184,7 +186,7 @@ private fun ErrorState(
                 contentColor = DarkNavy
             )
         ) {
-            Text("Retry")
+            Text(stringResource(R.string.favorites_retry))
         }
     }
 }

@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import com.example.bagit.R
 import com.example.bagit.ui.theme.*
 
@@ -45,7 +46,7 @@ fun ResetPasswordScreen(
         IconButton(onClick = onBack, modifier = Modifier.padding(16.dp)) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
+                contentDescription = stringResource(R.string.reset_password_back),
                 tint = White
             )
         }
@@ -75,7 +76,7 @@ fun ResetPasswordScreen(
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.logo_hci),
-                        contentDescription = "App icon",
+                        contentDescription = stringResource(R.string.reset_password_app_icon),
                         modifier = Modifier.fillMaxSize(0.75f)
                     )
                 }
@@ -83,7 +84,7 @@ fun ResetPasswordScreen(
                 Spacer(Modifier.height(16.dp))
 
                 Text(
-                    text = "Reset Password",
+                    text = stringResource(R.string.reset_password_title),
                     color = White,
                     fontSize = 26.sp,
                     fontWeight = FontWeight.Bold,
@@ -96,7 +97,7 @@ fun ResetPasswordScreen(
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-                    placeholder = { Text("Please enter your email address", color = Gray) },
+                    placeholder = { Text(stringResource(R.string.reset_password_email_placeholder), color = Gray) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Email,
@@ -138,7 +139,7 @@ fun ResetPasswordScreen(
                     ),
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
                 ) {
-                    Text("Reset", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.reset_password_button), fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

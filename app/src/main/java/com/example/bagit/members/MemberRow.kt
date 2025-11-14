@@ -15,6 +15,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.bagit.R
 import com.example.bagit.data.model.Member
 import com.example.bagit.data.model.MemberRole
 import com.example.bagit.ui.theme.OnDark
@@ -195,7 +197,7 @@ fun MemberRow(
                                         modifier = Modifier.size(18.dp),
                                         tint = OnDark
                                     )
-                                    Text("Edit")
+                                    Text(stringResource(R.string.share_members_edit))
                                 }
                             },
                             onClick = {
@@ -218,7 +220,7 @@ fun MemberRow(
                                             modifier = Modifier.size(18.dp),
                                             tint = OnDark
                                         )
-                                        Text("Make Owner")
+                                        Text(stringResource(R.string.share_members_make_owner))
                                     }
                                 },
                                 onClick = {
@@ -240,7 +242,7 @@ fun MemberRow(
                                             modifier = Modifier.size(18.dp),
                                             tint = OnDark
                                         )
-                                        Text("Make Member")
+                                        Text(stringResource(R.string.share_members_make_member))
                                     }
                                 },
                                 onClick = {

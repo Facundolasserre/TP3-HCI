@@ -16,8 +16,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import android.util.Log
+import com.example.bagit.R
 import com.example.bagit.ui.theme.BagItTheme
 import com.example.bagit.ui.theme.DarkNavy
 import com.example.bagit.ui.theme.OnDark
@@ -197,12 +199,12 @@ fun SearchBar(
         modifier = modifier
             .fillMaxWidth()
             .height(48.dp),
-        placeholder = { Text("Search member", color = OnDark.copy(alpha = 0.5f)) },
+        placeholder = { Text(stringResource(R.string.share_members_search_placeholder), color = OnDark.copy(alpha = 0.5f)) },
         shape = RoundedCornerShape(12.dp),
         trailingIcon = {
             Icon(
                 imageVector = Icons.Default.Search,
-                contentDescription = "Search",
+                contentDescription = stringResource(R.string.share_members_search_icon),
                 tint = OnDark.copy(alpha = 0.6f),
                 modifier = Modifier.size(20.dp)
             )

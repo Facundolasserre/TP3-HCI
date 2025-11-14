@@ -21,9 +21,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.delay
+import com.example.bagit.R
 import com.example.bagit.data.model.ListItem
 import com.example.bagit.data.model.Product
 import com.example.bagit.data.repository.Result
@@ -70,7 +72,7 @@ fun ListDetailScreen(
                         }
                         else -> {
                             Text(
-                                text = "List",
+                                text = stringResource(R.string.list_title),
                                 fontWeight = FontWeight.SemiBold,
                                 color = OnDark
                             )
@@ -81,7 +83,7 @@ fun ListDetailScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.list_back),
                             tint = OnDark
                         )
                     }
@@ -91,7 +93,7 @@ fun ListDetailScreen(
                         IconButton(onClick = { showMenuState.value = true }) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
-                                contentDescription = "More options",
+                                contentDescription = stringResource(R.string.list_more_options),
                                 tint = OnDark
                             )
                         }
@@ -100,7 +102,7 @@ fun ListDetailScreen(
                             onDismissRequest = { showMenuState.value = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Renombrar") },
+                                text = { Text(stringResource(R.string.list_rename)) },
                                 onClick = {
                                     when (val state = listState) {
                                         is Result.Success -> {
@@ -112,7 +114,7 @@ fun ListDetailScreen(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Compartir lista") },
+                                text = { Text(stringResource(R.string.list_share)) },
                                 onClick = {
                                     when (val state = listState) {
                                         is Result.Success -> {
@@ -141,7 +143,7 @@ fun ListDetailScreen(
                 contentColor = Color.White,
                 modifier = Modifier.navigationBarsPadding()
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Item")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.list_add_item_icon))
             }
         },
         containerColor = DarkNavy
@@ -350,7 +352,7 @@ fun EmptyListContent(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "Tap the + button to add items",
+            text = stringResource(R.string.list_empty_hint),
             fontSize = 14.sp,
             color = OnDark.copy(alpha = 0.5f)
         )
@@ -364,7 +366,7 @@ fun EmptyListContent(
         ) {
             Icon(Icons.Default.Add, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Add Item")
+            Text(stringResource(R.string.list_add_item))
         }
     }
 }
@@ -421,7 +423,7 @@ fun ListItemCard(
             ) {
                 Icon(
                     imageVector = if (item.purchased) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
-                    contentDescription = if (item.purchased) "Purchased" else "Not purchased",
+                    contentDescription = if (item.purchased) stringResource(R.string.list_purchased) else stringResource(R.string.list_not_purchased),
                     tint = if (item.purchased) Color(0xFF4CAF50) else OnDark.copy(alpha = 0.3f),
                     modifier = Modifier.size(28.dp)
                 )
@@ -571,7 +573,7 @@ fun AddItemDialog(
                         .padding(24.dp)
                 ) {
             Text(
-                text = "Add Item",
+                text = stringResource(R.string.list_add_item),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = OnDark
@@ -583,7 +585,7 @@ fun AddItemDialog(
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                label = { Text("Search product", color = OnDark.copy(alpha = 0.6f)) },
+                label = { Text(stringResource(R.string.list_search_product), color = OnDark.copy(alpha = 0.6f)) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Color(0xFF1E1F2E),
@@ -627,7 +629,7 @@ fun AddItemDialog(
                                     verticalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
                                     Text(
-                                        text = "No products found",
+                                        text = stringResource(R.string.list_no_products_found),
                                         color = OnDark.copy(alpha = 0.5f)
                                     )
                                     Button(
@@ -642,7 +644,7 @@ fun AddItemDialog(
                                             modifier = Modifier.size(18.dp)
                                         )
                                         Spacer(modifier = Modifier.width(8.dp))
-                                        Text("Create new product")
+                                        Text(stringResource(R.string.list_create_product))
                                     }
                                 }
                             } else {
@@ -738,7 +740,7 @@ fun AddItemDialog(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Create new product")
+                    Text(stringResource(R.string.list_create_product))
                 }
             }
 
@@ -752,7 +754,7 @@ fun AddItemDialog(
                 OutlinedTextField(
                     value = quantity,
                     onValueChange = { quantity = it },
-                    label = { Text("Quantity", color = OnDark.copy(alpha = 0.6f)) },
+                    label = { Text(stringResource(R.string.list_quantity_label), color = OnDark.copy(alpha = 0.6f)) },
                     modifier = Modifier.weight(1f),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = Color(0xFF1E1F2E),
@@ -782,7 +784,7 @@ fun AddItemDialog(
                 horizontalArrangement = Arrangement.End
             ) {
                 TextButton(onClick = onDismiss) {
-                    Text("Cancel", color = OnDark.copy(alpha = 0.7f))
+                    Text(stringResource(R.string.list_cancel), color = OnDark.copy(alpha = 0.7f))
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
@@ -798,7 +800,7 @@ fun AddItemDialog(
                         containerColor = Color(0xFF5249B6)
                     )
                 ) {
-                    Text("Add")
+                    Text(stringResource(R.string.list_add))
                 }
             }
                 }
@@ -893,7 +895,7 @@ fun UnitSelector(
             value = displayUnit,
             onValueChange = {},
             readOnly = true,
-            label = { Text("Unit", color = OnDark.copy(alpha = 0.6f)) },
+            label = { Text(stringResource(R.string.list_unit_label), color = OnDark.copy(alpha = 0.6f)) },
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             },
@@ -988,7 +990,7 @@ fun EditItemDialog(
                     OutlinedTextField(
                         value = quantity,
                         onValueChange = { quantity = it },
-                        label = { Text("Quantity", color = OnDark.copy(alpha = 0.6f)) },
+                        label = { Text(stringResource(R.string.list_quantity_label), color = OnDark.copy(alpha = 0.6f)) },
                         modifier = Modifier.weight(1f),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedContainerColor = Color(0xFF1E1F2E),
@@ -1018,7 +1020,7 @@ fun EditItemDialog(
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("Cancel", color = OnDark.copy(alpha = 0.7f))
+                        Text(stringResource(R.string.list_cancel), color = OnDark.copy(alpha = 0.7f))
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
@@ -1032,7 +1034,7 @@ fun EditItemDialog(
                             containerColor = Color(0xFF5249B6)
                         )
                     ) {
-                        Text("Save")
+                        Text(stringResource(R.string.list_save))
                     }
                 }
             }

@@ -23,6 +23,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.bagit.R
 import com.example.bagit.ui.theme.CardBg
 import com.example.bagit.ui.theme.DrawerBg
 import com.example.bagit.ui.theme.OnDrawer
@@ -74,7 +76,7 @@ fun DrawerContent(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Language,
-                        contentDescription = "Toggle Language",
+                        contentDescription = stringResource(R.string.drawer_toggle_language),
                         tint = OnDrawer
                     )
                 }
@@ -84,7 +86,7 @@ fun DrawerContent(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Settings,
-                        contentDescription = "Settings",
+                        contentDescription = stringResource(R.string.drawer_settings),
                         tint = OnDrawer
                     )
                 }
@@ -108,7 +110,7 @@ fun DrawerContent(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Person,
-                            contentDescription = "User avatar",
+                            contentDescription = stringResource(R.string.drawer_user_avatar),
                             tint = OnDrawer,
                             modifier = Modifier.size(40.dp)
                         )
@@ -139,7 +141,7 @@ fun DrawerContent(
                 Column(modifier = Modifier.padding(16.dp)) {
                     DrawerMenuItem(
                         icon = Icons.Default.ShoppingCart,
-                        text = "Productos",
+                        text = stringResource(R.string.drawer_products),
                         onClick = onNavigateToProducts
                     )
 
@@ -147,7 +149,7 @@ fun DrawerContent(
 
                     DrawerMenuItem(
                         icon = Icons.Default.Edit,
-                        text = "Edit Lists",
+                        text = stringResource(R.string.drawer_edit_lists),
                         onClick = onNavigateToLists
                     )
 
@@ -155,7 +157,7 @@ fun DrawerContent(
 
                     DrawerMenuItem(
                         icon = Icons.Default.History,
-                        text = "Shopping List History",
+                        text = stringResource(R.string.drawer_shopping_history),
                         onClick = onNavigateToHistory
                     )
                 }
@@ -177,14 +179,14 @@ fun DrawerContent(
                 .navigationBarsPadding()
         ) {
             Text(
-                text = "Log out",
+                text = stringResource(R.string.drawer_log_out),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium
             )
             Spacer(modifier = Modifier.width(8.dp))
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                contentDescription = "Log out"
+                contentDescription = stringResource(R.string.drawer_log_out_icon)
             )
         }
     }

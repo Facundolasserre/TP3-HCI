@@ -17,7 +17,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.bagit.R
 import com.example.bagit.data.model.Category
 
 /**
@@ -67,12 +69,12 @@ fun CategorySelector(
                 (uiState as CategorySelectorUiState.Success).searchQuery
             } else "",
             onValueChange = viewModel::onSearchQueryChanged,
-            label = { Text("Buscar categoría") },
-            placeholder = { Text("Escribe para buscar...") },
+            label = { Text(stringResource(R.string.category_selector_search)) },
+            placeholder = { Text(stringResource(R.string.category_selector_search_placeholder)) },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = "Buscar",
+                    contentDescription = stringResource(R.string.category_selector_search_icon),
                     tint = Color(0xFFB0B0B0)
                 )
             },
@@ -94,11 +96,11 @@ fun CategorySelector(
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
-                contentDescription = "Agregar",
+                contentDescription = stringResource(R.string.category_selector_add_icon),
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Nueva categoría", fontSize = 14.sp)
+            Text(stringResource(R.string.category_selector_new_button), fontSize = 14.sp)
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -148,7 +150,7 @@ fun CategorySelector(
                                 fontSize = 14.sp
                             )
                             TextButton(onClick = { viewModel.retry() }) {
-                                Text("Reintentar")
+                                Text(stringResource(R.string.category_selector_retry))
                             }
                         }
                     }
@@ -159,7 +161,7 @@ fun CategorySelector(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "No se encontraron categorías",
+                            text = stringResource(R.string.category_selector_no_results),
                             color = Color(0xFF9E9E9E),
                             fontSize = 14.sp
                         )
@@ -231,7 +233,7 @@ private fun CategoryItem(
         if (isSelected) {
             Icon(
                 imageVector = Icons.Default.Check,
-                contentDescription = "Seleccionado",
+                contentDescription = stringResource(R.string.category_selector_selected),
                 tint = Color(0xFFA594FF),
                 modifier = Modifier.size(20.dp)
             )
@@ -269,7 +271,7 @@ fun CreateCategoryDialog(
         onDismissRequest = { if (!isSubmitting) onDismiss() },
         title = {
             Text(
-                text = "Create new category",
+                text = stringResource(R.string.create_category_title),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -289,8 +291,8 @@ fun CreateCategoryDialog(
                             }
                         }
                     },
-                    label = { Text("Category name *") },
-                    placeholder = { Text("Ej: Bebidas") },
+                    label = { Text(stringResource(R.string.create_category_name_label)) },
+                    placeholder = { Text(stringResource(R.string.create_category_name_placeholder)) },
                     isError = showError || errorMessage != null,
                     supportingText = {
                         when {
@@ -299,11 +301,11 @@ fun CreateCategoryDialog(
                                 color = Color(0xFFFF6B6B)
                             )
                             showError -> Text(
-                                text = "El nombre es requerido",
+                                text = stringResource(R.string.create_category_name_required),
                                 color = Color(0xFFFF6B6B)
                             )
                             else -> Text(
-                                text = "Máximo 50 caracteres",
+                                text = stringResource(R.string.create_category_max_length),
                                 color = Color(0xFF9E9E9E)
                             )
                         }
@@ -333,7 +335,7 @@ fun CreateCategoryDialog(
                 enabled = !isSubmitting
             ) {
                 Text(
-                    text = "Create",
+                    text = stringResource(R.string.create_category_button),
                     color = Color(0xFFA594FF)
                 )
             }
@@ -343,7 +345,7 @@ fun CreateCategoryDialog(
                 onClick = onDismiss,
                 enabled = !isSubmitting
             ) {
-                Text("Cancel")
+                Text(stringResource(R.string.create_category_cancel))
             }
         },
         containerColor = Color(0xFF2A2D3A),

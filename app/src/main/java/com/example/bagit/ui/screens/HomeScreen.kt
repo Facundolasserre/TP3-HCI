@@ -24,7 +24,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.core.graphics.toColorInt
+import com.example.bagit.R
 import com.example.bagit.ui.components.BagItTopBar
 import com.example.bagit.ui.components.DrawerContent
 import com.example.bagit.ui.theme.BagItTheme
@@ -181,7 +183,7 @@ private fun EmptyStateLandscape(
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.ShoppingCart,
-                        contentDescription = "Empty cart",
+                        contentDescription = stringResource(R.string.home_empty_cart_icon),
                         tint = Color(0xFF2E2A3A),
                         modifier = Modifier.size(iconSize)
                     )
@@ -197,7 +199,7 @@ private fun EmptyStateLandscape(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "No lists yet,\nstart now!",
+                text = stringResource(R.string.home_empty_title),
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
                 color = OnDark,
@@ -218,12 +220,12 @@ private fun EmptyStateLandscape(
                     .height(getResponsiveButtonHeight())
             ) {
                 Text(
-                    text = "Add List",
+                    text = stringResource(R.string.home_add_list_button),
                     style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
                     fontWeight = FontWeight.SemiBold
                 )
                 Spacer(modifier = Modifier.width(12.dp))
-                Icon(imageVector = Icons.Filled.Add, contentDescription = "Add")
+                Icon(imageVector = Icons.Filled.Add, contentDescription = stringResource(R.string.home_add_list_icon))
             }
         }
     }
@@ -256,7 +258,7 @@ private fun EmptyStatePortrait(
             ) {
                 Icon(
                     imageVector = Icons.Outlined.ShoppingCart,
-                    contentDescription = "Empty cart",
+                    contentDescription = stringResource(R.string.home_empty_cart_icon),
                     tint = Color(0xFF2E2A3A),
                     modifier = Modifier.size(iconSize)
                 )
@@ -266,7 +268,7 @@ private fun EmptyStatePortrait(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "No lists yet,\nstart now!",
+            text = stringResource(R.string.home_empty_title),
             style = MaterialTheme.typography.headlineLarge.copy(
                 fontSize = if (isTablet) 36.sp else 28.sp
             ),
@@ -290,14 +292,14 @@ private fun EmptyStatePortrait(
                 .height(getResponsiveButtonHeight())
         ) {
             Text(
-                text = "Add List",
+                text = stringResource(R.string.home_add_list_button),
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontSize = if (isTablet) 18.sp else 16.sp
                 ),
                 fontWeight = FontWeight.SemiBold
             )
             Spacer(modifier = Modifier.width(12.dp))
-            Icon(imageVector = Icons.Filled.Add, contentDescription = "Add")
+            Icon(imageVector = Icons.Filled.Add, contentDescription = stringResource(R.string.home_add_list_icon))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -315,7 +317,7 @@ private fun ErrorState(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Error loading lists",
+            text = stringResource(R.string.home_error_loading),
             color = Color.Red,
             fontWeight = FontWeight.Medium
         )
@@ -327,7 +329,7 @@ private fun ErrorState(
                 contentColor = DarkNavy
             )
         ) {
-            Text("Retry")
+            Text(stringResource(R.string.home_retry_button))
         }
     }
 }
@@ -365,7 +367,7 @@ fun ShoppingListsContent(
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
         ) {
-            Icon(Icons.Filled.Add, contentDescription = "Add List")
+            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.home_add_list_icon))
         }
     }
 }
@@ -451,7 +453,7 @@ fun ShoppingListCard(
                 if (list.sharedWith?.isNotEmpty() == true) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "${list.owner.name} ${list.owner.surname} te compartió esta lista",
+                        text = stringResource(R.string.home_list_shared_by, list.owner.name, list.owner.surname),
                         fontSize = 12.sp,
                         color = OnDark.copy(alpha = 0.5f),
                         maxLines = 1
@@ -469,7 +471,7 @@ fun ShoppingListCard(
             ) {
                 Icon(
                     imageVector = if (isFavorite) Icons.Filled.Star else Icons.Outlined.StarBorder,
-                    contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
+                    contentDescription = if (isFavorite) stringResource(R.string.home_remove_from_favorites) else stringResource(R.string.home_add_to_favorites),
                     tint = if (isFavorite) Color(0xFFFFC107) else OnDark.copy(alpha = 0.5f),
                     modifier = Modifier.size(24.dp)
                 )
@@ -478,7 +480,7 @@ fun ShoppingListCard(
             // Arrow icon
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = "Open list",
+                contentDescription = stringResource(R.string.home_open_list),
                 tint = OnDark.copy(alpha = 0.5f)
             )
         }
@@ -555,7 +557,7 @@ fun HomeScreenDrawerOpenPreview() {
                             ) {
                                 Icon(
                                     imageVector = Icons.Outlined.ShoppingCart,
-                                    contentDescription = "Empty cart",
+                                    contentDescription = stringResource(R.string.home_empty_cart_icon),
                                     tint = Color(0xFF2E2A3A),
                                     modifier = Modifier.size(140.dp)
                                 )
@@ -565,7 +567,7 @@ fun HomeScreenDrawerOpenPreview() {
                         Spacer(modifier = Modifier.height(24.dp))
 
                         Text(
-                            text = "No lists yet,\nstart now!",
+                            text = stringResource(R.string.home_empty_title),
                             style = MaterialTheme.typography.headlineLarge,
                             fontWeight = FontWeight.Bold,
                             color = OnDark,
@@ -587,12 +589,12 @@ fun HomeScreenDrawerOpenPreview() {
                             .fillMaxWidth()
                     ) {
                         Text(
-                            text = "Add List",
+                            text = stringResource(R.string.home_add_list_button),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold
                         )
                         Spacer(modifier = Modifier.width(12.dp))
-                        Icon(imageVector = Icons.Filled.Add, contentDescription = "Add")
+                        Icon(imageVector = Icons.Filled.Add, contentDescription = stringResource(R.string.home_add_list_icon))
                     }
                 }
             }

@@ -20,7 +20,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.bagit.R
 import com.example.bagit.ui.components.BagItTopBar
 import com.example.bagit.ui.components.ProductCard
 import com.example.bagit.ui.theme.DarkNavy
@@ -53,7 +55,7 @@ fun ProductsRoute(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Crear producto"
+                    contentDescription = stringResource(R.string.products_create_icon)
                 )
             }
         },
@@ -165,7 +167,7 @@ private fun ErrorState(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = "Error",
+                    text = stringResource(R.string.products_error_title),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -182,7 +184,7 @@ private fun ErrorState(
                         containerColor = Color(0xFF5249B6)
                     )
                 ) {
-                    Text("Reintentar")
+                    Text(stringResource(R.string.products_retry_button))
                 }
             }
         }
@@ -200,13 +202,13 @@ private fun EmptyState() {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "No hay productos",
+                text = stringResource(R.string.products_empty_state),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium,
                 color = Color(0xFF9E9E9E)
             )
             Text(
-                text = "Presiona + para crear uno",
+                text = stringResource(R.string.products_empty_hint),
                 fontSize = 14.sp,
                 color = Color(0xFF7E7E7E)
             )
@@ -228,7 +230,7 @@ private fun SuccessState(
     var showPageSizeDropdown by remember { mutableStateOf(false) }
 
     val selectedCategoryName = state.categories.find { it.id == state.selectedCategoryId }?.name
-        ?: "Todas las categorías"
+        ?: stringResource(R.string.products_all_categories)
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -252,7 +254,7 @@ private fun SuccessState(
                     onClick = { onCategorySelect(null) },
                     label = {
                         Text(
-                            text = "Todas",
+                            text = stringResource(R.string.products_all_categories_chip),
                             fontSize = 14.sp
                         )
                     },
@@ -303,7 +305,7 @@ private fun SuccessState(
                         ),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("$selectedCategoryName ▾", fontSize = 12.sp)
+                        Text("${selectedCategoryName} ▾", fontSize = 12.sp)
                     }
 
                     DropdownMenu(
@@ -311,7 +313,7 @@ private fun SuccessState(
                         onDismissRequest = { showCategoryDropdown = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Todas las categorías") },
+                            text = { Text(stringResource(R.string.products_all_categories)) },
                             onClick = {
                                 onCategorySelect(null)
                                 showCategoryDropdown = false
@@ -339,7 +341,7 @@ private fun SuccessState(
                             contentColor = OnDark
                         )
                     ) {
-                        Text("Mostrar: ${state.pageSize} ▾", fontSize = 12.sp)
+                        Text(stringResource(R.string.products_show_per_page, state.pageSize) + " ▾", fontSize = 12.sp)
                     }
 
                     DropdownMenu(
@@ -348,7 +350,7 @@ private fun SuccessState(
                     ) {
                         listOf(10, 20, 50).forEach { size ->
                             DropdownMenuItem(
-                                text = { Text("$size por página") },
+                                text = { Text(stringResource(R.string.products_per_page_dropdown, size)) },
                                 onClick = {
                                     onPageSizeChange(size)
                                     showPageSizeDropdown = false
@@ -412,14 +414,14 @@ private fun PaginationBar(
             ) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Página anterior",
+                    contentDescription = stringResource(R.string.products_previous_page),
                     tint = if (hasPrev) Color.White else Color(0xFF5E5E5E)
                 )
             }
 
             // Indicador de página
             Text(
-                text = "Página $currentPage de $totalPages",
+                text = stringResource(R.string.products_page_info, currentPage, totalPages),
                 color = Color.White,
                 fontSize = 14.sp
             )
@@ -431,7 +433,7 @@ private fun PaginationBar(
             ) {
                 Icon(
                     imageVector = Icons.Default.ArrowForward,
-                    contentDescription = "Página siguiente",
+                    contentDescription = stringResource(R.string.products_next_page),
                     tint = if (hasNext) Color.White else Color(0xFF5E5E5E)
                 )
             }
@@ -448,10 +450,10 @@ private fun ConfirmDeleteDialog(
 ) {
     AlertDialog(
         onDismissRequest = { if (!isDeleting) onDismiss() },
-        title = { Text("Eliminar producto") },
+        title = { Text(stringResource(R.string.product_delete_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("¿Está seguro de que desea eliminar el producto \"$productName\"?")
+                Text(stringResource(R.string.product_delete_message, productName))
                 if (isDeleting) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
@@ -465,7 +467,7 @@ private fun ConfirmDeleteDialog(
                     contentColor = Color(0xFFFF6B6B)
                 )
             ) {
-                Text("Eliminar")
+                Text(stringResource(R.string.product_delete_confirm_button))
             }
         },
         dismissButton = {
@@ -473,7 +475,7 @@ private fun ConfirmDeleteDialog(
                 onClick = onDismiss,
                 enabled = !isDeleting
             ) {
-                Text("Cancelar")
+                Text(stringResource(R.string.product_delete_cancel_button))
             }
         }
     )

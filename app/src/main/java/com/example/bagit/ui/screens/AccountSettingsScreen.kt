@@ -61,7 +61,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.bagit.R
 import com.example.bagit.ui.theme.BagItTheme
 import com.example.bagit.ui.theme.Cream
 import com.example.bagit.ui.theme.DarkNavy
@@ -86,6 +89,7 @@ fun AccountSettingsRoute(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     var nameInput by rememberSaveable { mutableStateOf("") }
     var usernameInput by rememberSaveable { mutableStateOf("") }
@@ -120,7 +124,7 @@ fun AccountSettingsRoute(
                 }
 
                 AccountSettingsEvent.AccountDeleted -> {
-                    snackbarHostState.showSnackbar("Cuenta eliminada correctamente")
+                    snackbarHostState.showSnackbar(context.getString(R.string.account_settings_account_deleted))
                     onAccountDeleted()
                 }
             }
@@ -203,7 +207,7 @@ private fun AccountSettingsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Account",
+                        text = stringResource(R.string.account_settings_title),
                         fontWeight = FontWeight.SemiBold,
                         color = OnDark
                     )
@@ -212,7 +216,7 @@ private fun AccountSettingsScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Atrás",
+                            contentDescription = stringResource(R.string.account_settings_back),
                             tint = OnDark
                         )
                     }
@@ -263,7 +267,7 @@ private fun AccountSettingsScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                SectionTitle(text = "Profile")
+                SectionTitle(text = stringResource(R.string.account_settings_profile_section))
                 Spacer(modifier = Modifier.height(8.dp))
                 ProfileSettingsCard(
                     name = name,
@@ -277,7 +281,7 @@ private fun AccountSettingsScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                SectionTitle(text = "Account Security")
+                SectionTitle(text = stringResource(R.string.account_settings_security_section))
                 Spacer(modifier = Modifier.height(8.dp))
                 SecuritySettingsCard(
                     email = uiState.email,
@@ -294,7 +298,7 @@ private fun AccountSettingsScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                SectionTitle(text = "Privacy & Data")
+                SectionTitle(text = stringResource(R.string.account_settings_privacy_section))
                 Spacer(modifier = Modifier.height(8.dp))
                 DangerZoneCard(
                     isDeleting = uiState.isDeletingAccount,
@@ -317,12 +321,12 @@ private fun AccountSettingsScreen(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                        contentDescription = "Cerrar sesión",
+                        contentDescription = stringResource(R.string.account_settings_sign_out),
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Sign Out",
+                        text = stringResource(R.string.account_settings_sign_out),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -441,7 +445,7 @@ private fun ProfileSettingsCard(
                 value = name,
                 onValueChange = onNameChange,
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Name") },
+                label = { Text(stringResource(R.string.account_settings_name_label)) },
                 leadingIcon = {
                     Icon(imageVector = Icons.Default.Person, contentDescription = null)
                 },
@@ -454,7 +458,7 @@ private fun ProfileSettingsCard(
                 value = username,
                 onValueChange = onUsernameChange,
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Username") },
+                label = { Text(stringResource(R.string.account_settings_username_label)) },
                 leadingIcon = {
                     Icon(imageVector = Icons.Default.Info, contentDescription = null)
                 },
@@ -494,7 +498,7 @@ private fun ProfileSettingsCard(
                     )
                 } else {
                     Text(
-                        text = "Save Changes",
+                        text = stringResource(R.string.account_settings_save_changes),
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -532,14 +536,14 @@ private fun SecuritySettingsCard(
                 value = email,
                 onValueChange = {},
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Email") },
+                label = { Text(stringResource(R.string.account_settings_email_label)) },
                 enabled = false
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             PasswordField(
-                label = "Current Password",
+                label = stringResource(R.string.account_settings_current_password),
                 value = currentPassword,
                 onValueChange = onCurrentPasswordChange,
                 enabled = !isChangingPassword
@@ -548,7 +552,7 @@ private fun SecuritySettingsCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             PasswordField(
-                label = "New Password",
+                label = stringResource(R.string.account_settings_new_password),
                 value = newPassword,
                 onValueChange = onNewPasswordChange,
                 enabled = !isChangingPassword
@@ -557,7 +561,7 @@ private fun SecuritySettingsCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             PasswordField(
-                label = "Repeat Password",
+                label = stringResource(R.string.account_settings_repeat_password),
                 value = repeatPassword,
                 onValueChange = onRepeatPasswordChange,
                 enabled = !isChangingPassword
@@ -596,7 +600,7 @@ private fun SecuritySettingsCard(
                     )
                 } else {
                     Text(
-                        text = "Change Password",
+                        text = stringResource(R.string.account_settings_change_password),
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -641,14 +645,14 @@ private fun DangerZoneCard(
                 .padding(20.dp)
         ) {
             Text(
-                text = "Delete permanently",
+                text = stringResource(R.string.account_settings_delete_title),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color(0xFFEF5350)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Esta acción es irreversible. Todos tus datos serán eliminados.",
+                text = stringResource(R.string.account_settings_delete_description),
                 fontSize = 13.sp,
                 color = Color(0xFF2E2A3A).copy(alpha = 0.7f)
             )
@@ -690,7 +694,7 @@ private fun DangerZoneCard(
                         contentDescription = null,
                         modifier = Modifier.padding(end = 8.dp)
                     )
-                    Text("Delete permanently")
+                    Text(stringResource(R.string.account_settings_delete_button))
                 }
             }
         }
@@ -720,13 +724,13 @@ private fun ConfirmDeleteDialog(
         },
         title = {
             Text(
-                text = "Eliminar cuenta",
+                text = stringResource(R.string.account_settings_delete_dialog_title),
                 fontWeight = FontWeight.SemiBold
             )
         },
         text = {
             Text(
-                text = "Esta acción no se puede deshacer. ¿Estás seguro de que querés eliminar tu cuenta de forma permanente?"
+                text = stringResource(R.string.account_settings_delete_dialog_message)
             )
         },
         confirmButton = {
@@ -734,7 +738,7 @@ private fun ConfirmDeleteDialog(
                 onClick = onConfirm,
                 enabled = !isProcessing
             ) {
-                Text("Eliminar")
+                Text(stringResource(R.string.account_settings_delete_dialog_confirm))
             }
         },
         dismissButton = {
@@ -742,7 +746,7 @@ private fun ConfirmDeleteDialog(
                 onClick = onDismiss,
                 enabled = !isProcessing
             ) {
-                Text("Cancelar")
+                Text(stringResource(R.string.account_settings_delete_dialog_cancel))
             }
         }
     )

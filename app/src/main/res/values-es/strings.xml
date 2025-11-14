@@ -18,6 +18,9 @@
     <string name="products_error_title">Error</string>
     <string name="products_retry_button">Reintentar</string>
     <string name="products_loading">Cargando productos…</string>
+    <string name="products_create_icon">Crear producto</string>
+    <string name="products_all_categories_chip">Todas</string>
+    <string name="products_per_page_dropdown">%d por página</string>
 
     <!-- Product Dialog -->
     <string name="product_dialog_create_title">Crear producto</string>
@@ -52,6 +55,8 @@
     <string name="category_selector_error">Error al cargar categorías</string>
     <string name="category_selector_retry">Reintentar</string>
     <string name="category_selector_selected">Seleccionado</string>
+    <string name="category_selector_search_icon">Buscar</string>
+    <string name="category_selector_add_icon">Agregar</string>
 
     <!-- Create Category Dialog -->
     <string name="create_category_title">Crear nueva categoría</string>
@@ -63,5 +68,209 @@
     <string name="create_category_error">Error al crear categoría: %s</string>
     <string name="create_category_button">Crear</string>
     <string name="create_category_cancel">Cancelar</string>
+
+    <!-- Share Member Dialog -->
+    <string name="share_list_title">Compartir Lista</string>
+    <string name="share_list_email_label">Dirección de Email</string>
+    <string name="share_list_email_placeholder">Dirección de email</string>
+    <string name="share_list_email_icon">Email</string>
+    <string name="share_list_role_label">Rol</string>
+    <string name="share_list_role_description">Los miembros pueden ver y editar la lista.</string>
+    <string name="share_list_message_label">Mensaje</string>
+    <string name="share_list_message_placeholder">Agregar un mensaje (opcional)</string>
+    <string name="share_list_cancel_button">Cancelar</string>
+    <string name="share_list_send_button">Enviar</string>
+    <string name="share_list_sending">Enviando…</string>
+    <string name="share_list_send_icon">Enviar</string>
+
+    <!-- Login Screen -->
+    <string name="login_welcome">Bienvenido de nuevo</string>
+    <string name="login_email_label">Email</string>
+    <string name="login_password_label">Contraseña</string>
+    <string name="login_forgot_password">¿Olvidaste tu contraseña?</string>
+    <string name="login_button">Iniciar sesión</string>
+    <string name="login_loading">Iniciando sesión…</string>
+    <string name="login_no_account">¿No tienes una cuenta? </string>
+    <string name="login_sign_up">Registrarse</string>
+    <string name="login_show_password">Mostrar contraseña</string>
+    <string name="login_hide_password">Ocultar contraseña</string>
+    <string name="login_logo_description">Logo BagIt</string>
+
+    <!-- Home Screen -->
+    <string name="home_empty_title">Aún no hay listas,\n¡comienza ahora!</string>
+    <string name="home_add_list_button">Agregar Lista</string>
+    <string name="home_add_list_icon">Agregar</string>
+    <string name="home_empty_cart_icon">Carrito vacío</string>
+    <string name="home_error_loading">Error al cargar listas</string>
+    <string name="home_retry_button">Reintentar</string>
+    <string name="home_list_shared_by">%1$s %2$s te compartió esta lista</string>
+    <string name="home_open_list">Abrir lista</string>
+    <string name="home_add_to_favorites">Agregar a favoritos</string>
+    <string name="home_remove_from_favorites">Quitar de favoritos</string>
+
+    <!-- Profile Screen -->
+    <string name="profile_title">Perfil</string>
+    <string name="profile_back">Atrás</string>
+    <string name="profile_settings">Configuración</string>
+    <string name="profile_member_since">Comprador organizado desde %s</string>
+    <string name="profile_active_lists">Listas activas</string>
+    <string name="profile_pantries">Despensas</string>
+    <string name="profile_products">Productos</string>
+    <string name="profile_notifications">Notificaciones</string>
+    <string name="profile_email_notifications">Notificaciones por Email</string>
+    <string name="profile_push_notifications">Notificaciones Push</string>
+    <string name="profile_price_alerts">Alertas de Precio</string>
+    <string name="profile_dietary_preferences">Preferencias Alimentarias</string>
+    <string name="profile_dietary_preferences_hint">Configura tus preferencias alimentarias (vegano, sin gluten, etc.)</string>
+    <string name="profile_vegan">Vegano</string>
+    <string name="profile_gluten_free">Sin gluten</string>
+    <string name="profile_add_preference">Agregar</string>
+    <string name="profile_favorite_stores">Tiendas Favoritas</string>
+    <string name="profile_add_store">Agregar</string>
+    <string name="profile_add_store_icon">Agregar tienda favorita</string>
+    <string name="profile_no_favorite_stores">Sin tiendas favoritas aún</string>
+    <string name="profile_remove_store_icon">Eliminar tienda favorita</string>
+    <string name="profile_add_store_dialog_title">Agregar tienda favorita</string>
+    <string name="profile_add_store_dialog_label">Nombre de la tienda</string>
+    <string name="profile_add_store_dialog_error">Ingresá un nombre válido</string>
+    <string name="profile_add_store_dialog_confirm">Agregar</string>
+    <string name="profile_add_store_dialog_cancel">Cancelar</string>
+
+    <!-- Account Settings Screen -->
+    <string name="account_settings_title">Cuenta</string>
+    <string name="account_settings_back">Atrás</string>
+    <string name="account_settings_profile_section">Perfil</string>
+    <string name="account_settings_name_label">Nombre</string>
+    <string name="account_settings_username_label">Usuario</string>
+    <string name="account_settings_save_changes">Guardar Cambios</string>
+    <string name="account_settings_security_section">Seguridad de la Cuenta</string>
+    <string name="account_settings_email_label">Email</string>
+    <string name="account_settings_current_password">Contraseña Actual</string>
+    <string name="account_settings_new_password">Nueva Contraseña</string>
+    <string name="account_settings_repeat_password">Repetir Contraseña</string>
+    <string name="account_settings_change_password">Cambiar Contraseña</string>
+    <string name="account_settings_privacy_section">Privacidad y Datos</string>
+    <string name="account_settings_delete_title">Eliminar permanentemente</string>
+    <string name="account_settings_delete_description">Esta acción es irreversible. Todos tus datos serán eliminados.</string>
+    <string name="account_settings_delete_button">Eliminar permanentemente</string>
+    <string name="account_settings_sign_out">Cerrar Sesión</string>
+    <string name="account_settings_delete_dialog_title">Eliminar cuenta</string>
+    <string name="account_settings_delete_dialog_message">Esta acción no se puede deshacer. ¿Estás seguro de que querés eliminar tu cuenta de forma permanente?</string>
+    <string name="account_settings_delete_dialog_confirm">Eliminar</string>
+    <string name="account_settings_delete_dialog_cancel">Cancelar</string>
+    <string name="account_settings_account_deleted">Cuenta eliminada correctamente</string>
+
+    <!-- Drawer -->
+    <string name="drawer_toggle_language">Cambiar Idioma</string>
+    <string name="drawer_settings">Configuración</string>
+    <string name="drawer_user_avatar">Avatar de usuario</string>
+    <string name="drawer_products">Productos</string>
+    <string name="drawer_edit_lists">Editar Listas</string>
+    <string name="drawer_shopping_history">Historial de Listas</string>
+    <string name="drawer_log_out">Cerrar sesión</string>
+    <string name="drawer_log_out_icon">Cerrar sesión</string>
+
+    <!-- List View -->
+    <string name="list_title">Lista</string>
+    <string name="list_back">Atrás</string>
+    <string name="list_more_options">Más opciones</string>
+    <string name="list_rename">Renombrar</string>
+    <string name="list_share">Compartir lista</string>
+    <string name="list_add_item">Agregar Item</string>
+    <string name="list_add_item_icon">Agregar Item</string>
+    <string name="list_empty_hint">Toca el botón + para agregar items</string>
+    <string name="list_search_product">Buscar producto</string>
+    <string name="list_create_product">Crear nuevo producto</string>
+    <string name="list_no_products_found">No se encontraron productos</string>
+    <string name="list_quantity_label">Cantidad</string>
+    <string name="list_cancel">Cancelar</string>
+    <string name="list_add">Agregar</string>
+    <string name="list_unit_label">Unidad</string>
+    <string name="list_save">Guardar</string>
+    <string name="list_purchased">Comprado</string>
+    <string name="list_not_purchased">No comprado</string>
+
+    <!-- New List Screen -->
+    <string name="new_list_title">Nueva Lista</string>
+    <string name="new_list_back">Atrás</string>
+    <string name="new_list_name_label">Nombre de la Lista</string>
+    <string name="new_list_name_placeholder">ej., Supermercado</string>
+    <string name="new_list_category_label">Categoría</string>
+    <string name="new_list_notes_label">Notas (opcional)</string>
+    <string name="new_list_notes_placeholder">Agregar notas sobre esta lista…</string>
+    <string name="new_list_cancel">Cancelar</string>
+    <string name="new_list_create">Crear Lista</string>
+
+    <!-- Reset Password Screen -->
+    <string name="reset_password_title">Restablecer Contraseña</string>
+    <string name="reset_password_back">Atrás</string>
+    <string name="reset_password_app_icon">Icono de la app</string>
+    <string name="reset_password_email_placeholder">Por favor ingresa tu dirección de email</string>
+    <string name="reset_password_button">Restablecer</string>
+
+    <!-- New User Screen -->
+    <string name="new_user_back">Atrás</string>
+    <string name="new_user_logo">Logo BagIt</string>
+    <string name="new_user_welcome">Bienvenido a BagIt</string>
+    <string name="new_user_name_placeholder">Nombre</string>
+    <string name="new_user_surname_placeholder">Apellido</string>
+    <string name="new_user_email_placeholder">Email</string>
+    <string name="new_user_password_placeholder">Contraseña</string>
+    <string name="new_user_repeat_password_placeholder">Repetir contraseña</string>
+    <string name="new_user_register_button">Registrarse</string>
+    <string name="new_user_show_password">Mostrar contraseña</string>
+    <string name="new_user_hide_password">Ocultar contraseña</string>
+    <string name="new_user_error_name_required">El nombre es requerido</string>
+    <string name="new_user_error_surname_required">El apellido es requerido</string>
+    <string name="new_user_error_invalid_email">Email inválido</string>
+    <string name="new_user_error_password_length">La contraseña debe tener al menos 6 caracteres</string>
+    <string name="new_user_error_passwords_dont_match">Las contraseñas no coinciden</string>
+    <string name="new_user_error_connection">No se puede conectar al servidor. Verifica que la API esté corriendo.</string>
+    <string name="new_user_error_email_exists">Este email ya está registrado. Intenta con otro email.</string>
+    <string name="new_user_error_invalid_data">Datos inválidos. Verifica que todos los campos sean correctos.</string>
+    <string name="new_user_error_server">Error en el servidor. Intenta de nuevo más tarde.</string>
+    <string name="new_user_error_register">Error al registrar: %1$s</string>
+
+    <!-- Verify Account Screen -->
+    <string name="verify_account_title">Verificar Cuenta</string>
+    <string name="verify_account_app_icon">Icono de la app</string>
+    <string name="verify_account_subtitle">Ingresa el código de verificación enviado a %1$s</string>
+    <string name="verify_account_code_placeholder">Ingresa el código de 16 caracteres</string>
+    <string name="verify_account_button">Verificar</string>
+    <string name="verify_account_back">Atrás</string>
+    <string name="verify_account_resend_code">Reenviar código</string>
+    <string name="verify_account_back_to_login">Volver al login</string>
+    <string name="verify_account_success">¡Cuenta verificada! Iniciando sesión…</string>
+    <string name="verify_account_error_code">Código incorrecto. Verifica el código enviado a tu email.</string>
+    <string name="verify_account_error_login">Cuenta verificada pero error al iniciar sesión. Por favor inicia sesión manualmente.</string>
+    <string name="verify_account_resend_success">✓ Código reenviado correctamente a %1$s</string>
+    <string name="verify_account_resend_error">Error: %1$s</string>
+    <string name="verify_account_resend_error_default">Error al reenviar código</string>
+
+    <!-- Share Members Screen -->
+    <string name="share_members_back">Atrás</string>
+    <string name="share_members_add_member">Agregar miembro</string>
+    <string name="share_members_more_options">Más opciones</string>
+    <string name="share_members_search_placeholder">Buscar miembro</string>
+    <string name="share_members_search_icon">Buscar</string>
+    <string name="share_members_edit">Editar</string>
+    <string name="share_members_make_owner">Hacer Propietario</string>
+    <string name="share_members_make_member">Hacer Miembro</string>
+    <string name="share_members_rename_list">Renombrar lista</string>
+    <string name="share_members_share_list">Compartir lista</string>
+
+    <!-- Favorites Screen -->
+    <string name="favorites_retry">Reintentar</string>
+
+    <!-- Common -->
+    <string name="common_error">Error</string>
+    <string name="common_retry">Reintentar</string>
+    <string name="common_cancel">Cancelar</string>
+    <string name="common_save">Guardar</string>
+    <string name="common_delete">Eliminar</string>
+    <string name="common_edit">Editar</string>
+    <string name="common_add">Agregar</string>
+    <string name="common_loading">Cargando…</string>
+    <string name="common_back">Atrás</string>
 </resources>
 

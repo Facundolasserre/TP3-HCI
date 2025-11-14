@@ -24,7 +24,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.bagit.R
 import com.example.bagit.ui.theme.BagItTheme
 import com.example.bagit.ui.theme.Cream
 import com.example.bagit.ui.theme.DarkNavy
@@ -80,8 +82,9 @@ fun ProfileScreen(
     val maxContentWidth = getMaxContentWidth()
 
     val userName = uiState.user?.let(::formatUserName) ?: "— —"
-    val memberSince = uiState.user?.createdAt?.let(::formatMemberSince)
-        ?: "Comprador organizado desde —"
+    val memberSince = uiState.user?.createdAt?.let { date ->
+        stringResource(R.string.profile_member_since, date)
+    } ?: stringResource(R.string.profile_member_since, "—")
     val email = uiState.user?.email ?: "—"
     val initials = uiState.user?.let(::extractInitials) ?: "??"
 
@@ -93,7 +96,7 @@ fun ProfileScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Perfil",
+                        text = stringResource(R.string.profile_title),
                         fontWeight = FontWeight.SemiBold,
                         color = OnDark
                     )
@@ -102,7 +105,7 @@ fun ProfileScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Atrás",
+                            contentDescription = stringResource(R.string.profile_back),
                             tint = OnDark
                         )
                     }
@@ -112,7 +115,7 @@ fun ProfileScreen(
                         IconButton(onClick = onSettingsAction) {
                             Icon(
                                 imageVector = Icons.Default.Settings,
-                                contentDescription = "Configuración",
+                                contentDescription = stringResource(R.string.profile_settings),
                                 tint = OnDark
                             )
                         }
@@ -323,17 +326,17 @@ private fun MetricsRow(
     ) {
         MetricCard(
             number = activeLists.toString(),
-            label = "Listas activas",
+            label = stringResource(R.string.profile_active_lists),
             modifier = Modifier.weight(1f)
         )
         MetricCard(
             number = pantries.toString(),
-            label = "Despensas",
+            label = stringResource(R.string.profile_pantries),
             modifier = Modifier.weight(1f)
         )
         MetricCard(
             number = products.toString(),
-            label = "Productos",
+            label = stringResource(R.string.profile_products),
             modifier = Modifier.weight(1f)
         )
     }
@@ -404,7 +407,7 @@ private fun NotificationsSection(
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
-                text = "Notificaciones",
+                text = stringResource(R.string.profile_notifications),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color(0xFF2E2A3A),
@@ -412,7 +415,7 @@ private fun NotificationsSection(
             )
 
             NotificationToggleRow(
-                label = "Notificaciones por Email",
+                label = stringResource(R.string.profile_email_notifications),
                 isChecked = emailNotificationsEnabled,
                 onCheckedChange = onEmailNotificationsChanged,
                 enabled = updatingPreference != NotificationPreference.EMAIL
@@ -424,7 +427,7 @@ private fun NotificationsSection(
             )
 
             NotificationToggleRow(
-                label = "Notificaciones Push",
+                label = stringResource(R.string.profile_push_notifications),
                 isChecked = pushNotificationsEnabled,
                 onCheckedChange = onPushNotificationsChanged,
                 enabled = updatingPreference != NotificationPreference.PUSH
@@ -436,7 +439,7 @@ private fun NotificationsSection(
             )
 
             NotificationToggleRow(
-                label = "Alertas de Precio",
+                label = stringResource(R.string.profile_price_alerts),
                 isChecked = priceAlertsEnabled,
                 onCheckedChange = onPriceAlertsChanged,
                 enabled = updatingPreference != NotificationPreference.PRICE_ALERTS
@@ -514,7 +517,7 @@ private fun DietaryPreferencesSection() {
                 .padding(16.dp)
         ) {
             Text(
-                text = "Preferencias Alimentarias",
+                text = stringResource(R.string.profile_dietary_preferences),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color(0xFF2E2A3A),
@@ -524,7 +527,7 @@ private fun DietaryPreferencesSection() {
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "Configura tus preferencias alimentarias (vegano, sin gluten, etc.)",
+                text = stringResource(R.string.profile_dietary_preferences_hint),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Normal,
                 color = Color(0xFF2E2A3A).copy(alpha = 0.7f),
@@ -544,19 +547,19 @@ private fun DietaryPreferencesSection() {
                 AssistChip(
                     onClick = { },
                     label = {
-                        Text("Vegano", fontSize = 11.sp)
+                        Text(stringResource(R.string.profile_vegan), fontSize = 11.sp)
                     }
                 )
                 AssistChip(
                     onClick = { },
                     label = {
-                        Text("Sin gluten", fontSize = 11.sp)
+                        Text(stringResource(R.string.profile_gluten_free), fontSize = 11.sp)
                     }
                 )
                 AssistChip(
                     onClick = { },
                     label = {
-                        Text("Agregar", fontSize = 11.sp)
+                        Text(stringResource(R.string.profile_add_preference), fontSize = 11.sp)
                     },
                     leadingIcon = {
                         Icon(Icons.Default.Add, contentDescription = null, Modifier.size(16.dp))
@@ -595,7 +598,7 @@ private fun FavoriteStoresSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Tiendas Favoritas",
+                    text = stringResource(R.string.profile_favorite_stores),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color(0xFF2E2A3A),
@@ -608,13 +611,13 @@ private fun FavoriteStoresSection(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = "Agregar tienda favorita",
+                        contentDescription = stringResource(R.string.profile_add_store_icon),
                         modifier = Modifier.size(16.dp),
                         tint = Color(0xFF5249B6)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Agregar",
+                        text = stringResource(R.string.profile_add_store),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
                         color = Color(0xFF5249B6)
@@ -634,7 +637,7 @@ private fun FavoriteStoresSection(
 
             if (stores.isEmpty()) {
                 Text(
-                    text = "Sin tiendas favoritas aún",
+                    text = stringResource(R.string.profile_no_favorite_stores),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Normal,
                     color = Color(0xFF2E2A3A).copy(alpha = 0.7f),
@@ -700,7 +703,7 @@ private fun FavoriteStoreItem(
         ) {
             Icon(
                 imageVector = Icons.Default.Delete,
-                contentDescription = "Eliminar tienda favorita",
+                contentDescription = stringResource(R.string.profile_remove_store_icon),
                 tint = Color(0xFFEF5350).copy(alpha = if (enabled) 0.8f else 0.4f)
             )
         }
@@ -737,7 +740,7 @@ private fun AddFavoriteStoreDialog(
                 },
                 enabled = !isProcessing
             ) {
-                Text("Agregar")
+                Text(stringResource(R.string.profile_add_store_dialog_confirm))
             }
         },
         dismissButton = {
@@ -748,12 +751,12 @@ private fun AddFavoriteStoreDialog(
                 },
                 enabled = !isProcessing
             ) {
-                Text("Cancelar")
+                Text(stringResource(R.string.profile_add_store_dialog_cancel))
             }
         },
         title = {
             Text(
-                text = "Agregar tienda favorita",
+                text = stringResource(R.string.profile_add_store_dialog_title),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -768,7 +771,7 @@ private fun AddFavoriteStoreDialog(
                             showInputError = false
                         }
                     },
-                    label = { Text("Nombre de la tienda") },
+                    label = { Text(stringResource(R.string.profile_add_store_dialog_label)) },
                     singleLine = true,
                     enabled = !isProcessing,
                     isError = showInputError
@@ -776,7 +779,7 @@ private fun AddFavoriteStoreDialog(
                 if (showInputError) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Ingresá un nombre válido",
+                        text = stringResource(R.string.profile_add_store_dialog_error),
                         color = Color(0xFFEF5350),
                         fontSize = 12.sp
                     )
@@ -832,6 +835,6 @@ private fun formatMemberSince(createdAt: String): String {
     } catch (e: Exception) {
         createdAt.take(10).ifBlank { "—" }
     }
-    return "Comprador organizado desde $dateText"
+    return dateText
 }
 

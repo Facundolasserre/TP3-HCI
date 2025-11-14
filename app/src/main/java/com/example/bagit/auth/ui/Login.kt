@@ -29,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.bagit.R
 import com.example.bagit.data.repository.Result
@@ -108,7 +109,7 @@ fun LoginScreen(
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.logo_hci),
-                        contentDescription = "Logo BagIt",
+                        contentDescription = stringResource(R.string.login_logo_description),
                         modifier = Modifier.size(logoSize)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
@@ -175,7 +176,7 @@ fun LoginScreen(
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.logo_hci),
-                            contentDescription = "Logo BagIt",
+                            contentDescription = stringResource(R.string.login_logo_description),
                             modifier = Modifier.size(logoSize)
                         )
 
@@ -219,7 +220,7 @@ fun LoginScreen(
                                 )
                             }
                             Text(
-                                text = if (loginState is Result.Loading) "Iniciando sesión..." else "Login",
+                                text = if (loginState is Result.Loading) stringResource(R.string.login_loading) else stringResource(R.string.login_button),
                                 color = Black,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = if (isTablet) 20.sp else 18.sp
@@ -232,12 +233,12 @@ fun LoginScreen(
 
                 Row {
                     Text(
-                        text = "Don't have an account? ",
+                        text = stringResource(R.string.login_no_account),
                         color = White,
                         fontSize = if (isTablet) 16.sp else 14.sp
                     )
                     Text(
-                        text = "Sign Up",
+                        text = stringResource(R.string.login_sign_up),
                         color = AccentPurple,
                         textDecoration = TextDecoration.Underline,
                         fontSize = if (isTablet) 16.sp else 14.sp,
@@ -280,7 +281,7 @@ private fun LoginFormContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Welcome Back",
+            text = stringResource(R.string.login_welcome),
             color = White,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold
@@ -317,7 +318,7 @@ private fun LoginFormContent(
                 )
             }
             Text(
-                text = if (isLoading) "Iniciando sesión..." else "Login",
+                text = if (isLoading) stringResource(R.string.login_loading) else stringResource(R.string.login_button),
                 color = Black,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
@@ -328,12 +329,12 @@ private fun LoginFormContent(
 
         Row {
             Text(
-                text = "Don't have an account? ",
+                text = stringResource(R.string.login_no_account),
                 color = White,
                 fontSize = 14.sp
             )
             Text(
-                text = "Sign Up",
+                text = stringResource(R.string.login_sign_up),
                 color = AccentPurple,
                 textDecoration = TextDecoration.Underline,
                 fontSize = 14.sp,
@@ -359,7 +360,7 @@ private fun LoginFormFields(
     OutlinedTextField(
         value = username,
         onValueChange = onUsernameChange,
-        label = { Text("Email") },
+        label = { Text(stringResource(R.string.login_email_label)) },
         singleLine = true,
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Email,
@@ -388,7 +389,7 @@ private fun LoginFormFields(
     OutlinedTextField(
         value = password,
         onValueChange = onPasswordChange,
-        label = { Text("Password") },
+        label = { Text(stringResource(R.string.login_password_label)) },
         singleLine = true,
         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         keyboardOptions = KeyboardOptions(
@@ -402,7 +403,7 @@ private fun LoginFormFields(
             IconButton(onClick = { passwordVisible = !passwordVisible }) {
                 Icon(
                     imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                    contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                    contentDescription = if (passwordVisible) stringResource(R.string.login_hide_password) else stringResource(R.string.login_show_password),
                     tint = Gray
                 )
             }
@@ -422,7 +423,7 @@ private fun LoginFormFields(
     Spacer(modifier = Modifier.height(8.dp))
 
     Text(
-        text = "Forgot Password?",
+        text = stringResource(R.string.login_forgot_password),
         color = Gray,
         textAlign = TextAlign.End,
         modifier = Modifier

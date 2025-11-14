@@ -23,6 +23,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.bagit.R
 import com.example.bagit.data.repository.Result
@@ -50,6 +51,8 @@ fun NewUserScreen(
 
     val registerState by viewModel.registerState
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+    
     // Observar el estado de registro
     LaunchedEffect(registerState) {
         when (registerState) {
@@ -60,16 +63,16 @@ fun NewUserScreen(
                     error.message?.contains("Failed to connect") == true ||
                             error.message?.contains("Unable to resolve host") == true ||
                             error.message?.contains("timeout") == true ->
-                        "No se puede conectar al servidor. Verifica que la API esté corriendo."
+                        context.getString(R.string.new_user_error_connection)
                     error.message?.contains("already exists") == true ||
                             error.message?.contains("duplicate") == true ||
                             error.message?.contains("409") == true ->
-                        "Este email ya está registrado. Intenta con otro email."
+                        context.getString(R.string.new_user_error_email_exists)
                     error.message?.contains("400") == true ->
-                        "Datos inválidos. Verifica que todos los campos sean correctos."
+                        context.getString(R.string.new_user_error_invalid_data)
                     error.message?.contains("500") == true ->
-                        "Error en el servidor. Intenta de nuevo más tarde."
-                    else -> "Error al registrar: ${error.message ?: "Desconocido"}"
+                        context.getString(R.string.new_user_error_server)
+                    else -> context.getString(R.string.new_user_error_register, error.message ?: context.getString(R.string.common_error))
                 }
             }
             else -> Unit
@@ -105,7 +108,7 @@ fun NewUserScreen(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = stringResource(R.string.new_user_back),
                     tint = White
                 )
             }
@@ -127,7 +130,7 @@ fun NewUserScreen(
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.logo_hci),
-                        contentDescription = "BagIt Logo",
+                        contentDescription = stringResource(R.string.new_user_logo),
                         modifier = Modifier
                             .size(120.dp)
                             .clip(CircleShape)
@@ -137,7 +140,7 @@ fun NewUserScreen(
                     Spacer(Modifier.height(20.dp))
 
                     Text(
-                        text = "Welcome to BagIt",
+                        text = stringResource(R.string.new_user_welcome),
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = White
@@ -148,7 +151,7 @@ fun NewUserScreen(
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
-                        placeholder = { Text("Nombre") },
+                        placeholder = { Text(stringResource(R.string.new_user_name_placeholder)) },
                         singleLine = true,
                         shape = RoundedCornerShape(8.dp),
                         colors = tfColors,
@@ -160,7 +163,7 @@ fun NewUserScreen(
                     OutlinedTextField(
                         value = surname,
                         onValueChange = { surname = it },
-                        placeholder = { Text("Apellido") },
+                        placeholder = { Text(stringResource(R.string.new_user_surname_placeholder)) },
                         singleLine = true,
                         shape = RoundedCornerShape(8.dp),
                         colors = tfColors,
@@ -172,7 +175,7 @@ fun NewUserScreen(
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
-                        placeholder = { Text("Email") },
+                        placeholder = { Text(stringResource(R.string.new_user_email_placeholder)) },
                         singleLine = true,
                         shape = RoundedCornerShape(8.dp),
                         colors = tfColors,
@@ -185,14 +188,14 @@ fun NewUserScreen(
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
-                        placeholder = { Text("Contraseña") },
+                        placeholder = { Text(stringResource(R.string.new_user_password_placeholder)) },
                         singleLine = true,
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                 Icon(
                                     imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                                    contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                                    contentDescription = if (passwordVisible) stringResource(R.string.new_user_hide_password) else stringResource(R.string.new_user_show_password),
                                     tint = Gray
                                 )
                             }
@@ -208,14 +211,14 @@ fun NewUserScreen(
                     OutlinedTextField(
                         value = confirmPassword,
                         onValueChange = { confirmPassword = it },
-                        placeholder = { Text("Repetir contraseña") },
+                        placeholder = { Text(stringResource(R.string.new_user_repeat_password_placeholder)) },
                         singleLine = true,
                         visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
                             IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
                                 Icon(
                                     imageVector = if (confirmPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                                    contentDescription = if (confirmPasswordVisible) "Hide password" else "Show password",
+                                    contentDescription = if (confirmPasswordVisible) stringResource(R.string.new_user_hide_password) else stringResource(R.string.new_user_show_password),
                                     tint = Gray
                                 )
                             }
@@ -242,11 +245,11 @@ fun NewUserScreen(
                         onClick = {
                             errorMessage = ""
                             when {
-                                name.isBlank() -> errorMessage = "El nombre es requerido"
-                                surname.isBlank() -> errorMessage = "El apellido es requerido"
-                                !email.contains("@") -> errorMessage = "Email inválido"
-                                password.length < 6 -> errorMessage = "La contraseña debe tener al menos 6 caracteres"
-                                confirmPassword != password -> errorMessage = "Las contraseñas no coinciden"
+                                name.isBlank() -> errorMessage = context.getString(R.string.new_user_error_name_required)
+                                surname.isBlank() -> errorMessage = context.getString(R.string.new_user_error_surname_required)
+                                !email.contains("@") -> errorMessage = context.getString(R.string.new_user_error_invalid_email)
+                                password.length < 6 -> errorMessage = context.getString(R.string.new_user_error_password_length)
+                                confirmPassword != password -> errorMessage = context.getString(R.string.new_user_error_passwords_dont_match)
                                 else -> viewModel.register(name, surname, email, password)
                             }
                         },
@@ -266,7 +269,7 @@ fun NewUserScreen(
                                 modifier = Modifier.size(24.dp)
                             )
                         } else {
-                            Text(text = "Registrarse", fontWeight = FontWeight.Bold)
+                            Text(text = stringResource(R.string.new_user_register_button), fontWeight = FontWeight.Bold)
                         }
                     }
                 }

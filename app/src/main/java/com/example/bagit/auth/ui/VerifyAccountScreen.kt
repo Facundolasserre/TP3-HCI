@@ -25,6 +25,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.bagit.R
 import com.example.bagit.data.repository.Result
@@ -46,6 +48,7 @@ fun VerifyAccountScreen(
     var isVerified by rememberSaveable { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     val verifyState by viewModel.userState
     val loginState by viewModel.loginState
@@ -60,14 +63,14 @@ fun VerifyAccountScreen(
                 if (!isVerified) {
                     Log.d(TAG, "Verificación exitosa, iniciando login automático")
                     isVerified = true
-                    snackbarHostState.showSnackbar("¡Cuenta verificada! Iniciando sesión...")
+                    snackbarHostState.showSnackbar(context.getString(R.string.verify_account_success))
                     kotlinx.coroutines.delay(800)
                     // Hacer login automáticamente después de verificar
                     viewModel.login(email, password)
                 }
             }
             is Result.Error -> {
-                val errorMsg = (verifyState as Result.Error).message ?: "Código incorrecto. Verifica el código enviado a tu email."
+                val errorMsg = (verifyState as Result.Error).message ?: context.getString(R.string.verify_account_error_code)
                 Log.e(TAG, "Error en verificación: $errorMsg")
                 snackbarHostState.showSnackbar(errorMsg)
                 isVerified = false
@@ -86,7 +89,7 @@ fun VerifyAccountScreen(
                     onVerifySuccess()
                 }
                 is Result.Error -> {
-                    val errorMsg = "Cuenta verificada pero error al iniciar sesión. Por favor inicia sesión manualmente."
+                    val errorMsg = context.getString(R.string.verify_account_error_login)
                     Log.e(TAG, "Error en login automático: $errorMsg")
                     snackbarHostState.showSnackbar(errorMsg)
                     kotlinx.coroutines.delay(2000)
@@ -102,12 +105,12 @@ fun VerifyAccountScreen(
         when (resendCodeState) {
             is Result.Success -> {
                 Log.d(TAG, "Código reenviado exitosamente")
-                snackbarHostState.showSnackbar("✓ Código reenviado correctamente a $email")
+                snackbarHostState.showSnackbar(context.getString(R.string.verify_account_resend_success, email))
             }
             is Result.Error -> {
-                val errorMsg = (resendCodeState as Result.Error).message ?: "Error al reenviar código"
+                val errorMsg = (resendCodeState as Result.Error).message ?: context.getString(R.string.verify_account_resend_error_default)
                 Log.e(TAG, "Error en resend: $errorMsg")
-                snackbarHostState.showSnackbar("Error: $errorMsg")
+                snackbarHostState.showSnackbar(context.getString(R.string.verify_account_resend_error, errorMsg))
             }
             else -> {}
         }
@@ -175,7 +178,7 @@ fun VerifyAccountScreen(
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.logo_hci),
-                            contentDescription = "App icon",
+                            contentDescription = stringResource(R.string.verify_account_app_icon),
                             modifier = Modifier.fillMaxSize(0.7f)
                         )
                     }
@@ -183,7 +186,7 @@ fun VerifyAccountScreen(
                     Spacer(Modifier.height(14.dp))
 
                     Text(
-                        text = "Verificar Cuenta",
+                        text = stringResource(R.string.verify_account_title),
                         color = White,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
@@ -192,7 +195,7 @@ fun VerifyAccountScreen(
 
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        text = "Ingresa el código de verificación enviado a $emailMasked",
+                        text = stringResource(R.string.verify_account_subtitle, emailMasked),
                         color = White.copy(alpha = 0.8f),
                         fontSize = 12.sp,
                         lineHeight = 16.sp,
@@ -205,7 +208,7 @@ fun VerifyAccountScreen(
                     OutlinedTextField(
                         value = code,
                         onValueChange = { code = normalize(it) },
-                        placeholder = { Text("Ingresa el código de 16 caracteres", color = Gray) },
+                        placeholder = { Text(stringResource(R.string.verify_account_code_placeholder), color = Gray) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Ascii,
@@ -270,7 +273,7 @@ fun VerifyAccountScreen(
                                 modifier = Modifier.size(24.dp)
                             )
                         } else {
-                            Text("Verificar", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.verify_account_button), fontSize = 16.sp, fontWeight = FontWeight.Bold)
                         }
                     }
 
@@ -296,7 +299,7 @@ fun VerifyAccountScreen(
                                 Spacer(Modifier.width(8.dp))
                             }
                             Text(
-                                "Reenviar código",
+                                stringResource(R.string.verify_account_resend_code),
                                 color = White,
                                 fontSize = 12.sp,
                                 textDecoration = TextDecoration.Underline
@@ -307,7 +310,7 @@ fun VerifyAccountScreen(
                             onBackToLogin()
                         }) {
                             Text(
-                                "Volver al login",
+                                stringResource(R.string.verify_account_back_to_login),
                                 color = White,
                                 fontSize = 12.sp,
                                 textDecoration = TextDecoration.Underline

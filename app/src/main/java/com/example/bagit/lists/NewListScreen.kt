@@ -22,7 +22,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.bagit.R
 import com.example.bagit.ui.components.*
 import com.example.bagit.ui.theme.BagItTheme
 import com.example.bagit.ui.theme.DarkNavy
@@ -60,7 +62,7 @@ fun NewListScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "New List",
+                        text = stringResource(R.string.new_list_title),
                         fontWeight = FontWeight.SemiBold,
                         color = OnDark
                     )
@@ -69,7 +71,7 @@ fun NewListScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.new_list_back),
                             tint = OnDark
                         )
                     }
@@ -130,7 +132,7 @@ fun NewListScreen(
 
             // Name Input
             Text(
-                text = "List Name",
+                text = stringResource(R.string.new_list_name_label),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = OnDark.copy(alpha = 0.9f)
@@ -139,7 +141,7 @@ fun NewListScreen(
             OutlinedTextField(
                 value = uiState.name,
                 onValueChange = { viewModel.updateName(it) },
-                placeholder = { Text("e.g., Supermarket") },
+                placeholder = { Text(stringResource(R.string.new_list_name_placeholder)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -167,7 +169,7 @@ fun NewListScreen(
 
             // Category Chips
             Text(
-                text = "Category",
+                text = stringResource(R.string.new_list_category_label),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = OnDark.copy(alpha = 0.9f)
@@ -269,7 +271,7 @@ fun NewListScreen(
 
             // Notes
             Text(
-                text = "Notes (optional)",
+                text = stringResource(R.string.new_list_notes_label),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = OnDark.copy(alpha = 0.9f)
@@ -278,7 +280,7 @@ fun NewListScreen(
             OutlinedTextField(
                 value = uiState.notes,
                 onValueChange = { viewModel.updateNotes(it) },
-                placeholder = { Text("Add any notes about this list...") },
+                placeholder = { Text(stringResource(R.string.new_list_notes_placeholder)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(100.dp),
@@ -432,7 +434,7 @@ private fun BottomActionBar(
                 ),
                 enabled = !isCreating
             ) {
-                Text("Cancel", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.new_list_cancel), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
             }
 
             Button(
@@ -456,7 +458,7 @@ private fun BottomActionBar(
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text("Create List", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.new_list_create), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         }

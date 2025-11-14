@@ -7,6 +7,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.bagit.R
 import com.example.bagit.data.model.Category
 import com.example.bagit.data.model.Product
 
@@ -33,8 +35,8 @@ fun CreateEditProductDialog(
     var nameError by remember { mutableStateOf(false) }
 
     val isEdit = product != null
-    val title = if (isEdit) "Editar producto" else "Crear producto"
-    val confirmText = if (isEdit) "Guardar" else "Crear"
+    val title = if (isEdit) stringResource(R.string.product_dialog_edit_title) else stringResource(R.string.product_dialog_create_title)
+    val confirmText = if (isEdit) stringResource(R.string.product_dialog_save_button) else stringResource(R.string.product_dialog_create_button)
 
     AlertDialog(
         onDismissRequest = { if (!isSubmitting) onDismiss() },
@@ -55,11 +57,11 @@ fun CreateEditProductDialog(
                         name = it
                         nameError = it.isBlank()
                     },
-                    label = { Text("Nombre del producto") },
+                    label = { Text(stringResource(R.string.product_dialog_name_label)) },
                     isError = nameError,
                     supportingText = {
                         if (nameError) {
-                            Text("El nombre es requerido")
+                            Text(stringResource(R.string.product_dialog_name_error))
                         }
                     },
                     enabled = !isSubmitting,
@@ -69,7 +71,7 @@ fun CreateEditProductDialog(
 
                 // Selector de categorías con búsqueda y creación
                 Text(
-                    text = "Categoría",
+                    text = stringResource(R.string.product_dialog_category_label),
                     fontSize = 12.sp,
                     color = Color(0xFFB0B0B0)
                 )
@@ -108,7 +110,7 @@ fun CreateEditProductDialog(
                 onClick = onDismiss,
                 enabled = !isSubmitting
             ) {
-                Text("Cancelar")
+                Text(stringResource(R.string.product_dialog_cancel_button))
             }
         }
     )

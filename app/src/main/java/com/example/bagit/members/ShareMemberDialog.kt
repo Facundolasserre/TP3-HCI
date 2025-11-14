@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.res.stringResource
+import com.example.bagit.R
 import com.example.bagit.data.model.MemberRole
 import com.example.bagit.ui.theme.*
 
@@ -91,7 +93,7 @@ fun ShareMemberDialog(
                 ) {
                     // Título: Share List
                     Text(
-                        text = "Share List",
+                        text = stringResource(R.string.share_list_title),
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = OnDark,
@@ -106,7 +108,7 @@ fun ShareMemberDialog(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = "Email Address",
+                            text = stringResource(R.string.share_list_email_label),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             color = OnDark
@@ -118,14 +120,14 @@ fun ShareMemberDialog(
                             modifier = Modifier.fillMaxWidth(),
                             placeholder = { 
                                 Text(
-                                    "Email address", 
+                                    stringResource(R.string.share_list_email_placeholder), 
                                     color = OnDark.copy(alpha = 0.6f)
                                 ) 
                             },
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.Email,
-                                    contentDescription = "Email",
+                                    contentDescription = stringResource(R.string.share_list_email_icon),
                                     tint = OnDark.copy(alpha = 0.7f),
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -150,7 +152,7 @@ fun ShareMemberDialog(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = "Role",
+                            text = stringResource(R.string.share_list_role_label),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             color = OnDark
@@ -215,7 +217,7 @@ fun ShareMemberDialog(
                         
                         // Leyenda descriptiva del rol
                         Text(
-                            text = "Members can view and edit the list.",
+                            text = stringResource(R.string.share_list_role_description),
                             fontSize = 12.sp,
                             color = OnDark.copy(alpha = 0.7f),
                             modifier = Modifier.padding(start = 4.dp)
@@ -228,7 +230,7 @@ fun ShareMemberDialog(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = "Message",
+                            text = stringResource(R.string.share_list_message_label),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             color = OnDark
@@ -242,7 +244,7 @@ fun ShareMemberDialog(
                                 .heightIn(min = 100.dp),
                             placeholder = { 
                                 Text(
-                                    "Add a message (optional)", 
+                                    stringResource(R.string.share_list_message_placeholder), 
                                     color = OnDark.copy(alpha = 0.6f)
                                 ) 
                             },
@@ -297,7 +299,7 @@ fun ShareMemberDialog(
                             )
                         ) {
                             Text(
-                                text = "Cancel",
+                                text = stringResource(R.string.share_list_cancel_button),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium
                             )
@@ -330,14 +332,14 @@ fun ShareMemberDialog(
                             } else {
                                 Icon(
                                     imageVector = Icons.Default.Send,
-                                    contentDescription = "Send",
+                                    contentDescription = stringResource(R.string.share_list_send_icon),
                                     modifier = Modifier.size(18.dp),
                                     tint = OnDark
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                             }
                             Text(
-                                text = if (isLoading) "Enviando..." else "Send",
+                                text = if (isLoading) stringResource(R.string.share_list_sending) else stringResource(R.string.share_list_send_button),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium
                             )

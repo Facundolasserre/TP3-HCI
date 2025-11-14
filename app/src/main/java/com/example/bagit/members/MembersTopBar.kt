@@ -8,6 +8,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.example.bagit.R
 import com.example.bagit.ui.theme.DarkNavy
 import com.example.bagit.ui.theme.OnDark
 
@@ -34,7 +36,7 @@ fun MembersTopBar(
             IconButton(onClick = onBack) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = stringResource(R.string.share_members_back),
                     tint = OnDark
                 )
             }
@@ -44,7 +46,7 @@ fun MembersTopBar(
             IconButton(onClick = onAddMember) {
                 Icon(
                     imageVector = Icons.Default.PersonAdd,
-                    contentDescription = "Add member",
+                    contentDescription = stringResource(R.string.share_members_add_member),
                     tint = OnDark,
                     modifier = Modifier.size(24.dp)
                 )
@@ -55,7 +57,7 @@ fun MembersTopBar(
                 IconButton(onClick = { showMenuState.value = true }) {
                     Icon(
                         imageVector = Icons.Default.MoreVert,
-                        contentDescription = "More options",
+                        contentDescription = stringResource(R.string.share_members_more_options),
                         tint = OnDark
                     )
                 }
@@ -64,14 +66,14 @@ fun MembersTopBar(
                     onDismissRequest = { showMenuState.value = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Renombrar lista") },
+                        text = { Text(stringResource(R.string.share_members_rename_list)) },
                         onClick = {
                             onRenameList()
                             showMenuState.value = false
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("Compartir lista") },
+                        text = { Text(stringResource(R.string.share_members_share_list)) },
                         onClick = {
                             onShareList()
                             showMenuState.value = false
