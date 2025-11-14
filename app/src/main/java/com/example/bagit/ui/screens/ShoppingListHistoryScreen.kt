@@ -7,7 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -116,12 +116,23 @@ fun ShoppingListHistoryScreen(
                     }
                 }
                 is com.example.bagit.data.repository.Result.Error -> {
-                    ErrorState(
+                    Column(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(contentPadding),
-                        onRetry = { viewModel.getShoppingLists() }
-                    )
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "Error loading shopping lists",
+                            color = Color.Red,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(onClick = { viewModel.getShoppingLists() }) {
+                            Text("Retry")
+                        }
+                    }
                 }
                 null -> Unit
             }
