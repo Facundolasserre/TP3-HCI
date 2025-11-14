@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,8 +49,9 @@ fun HomeScreen(
     onOpenDrawer: () -> Unit = {},
     viewModel: com.example.bagit.ui.viewmodel.ShoppingListViewModel = androidx.hilt.navigation.compose.hiltViewModel()
 ) {
-    // Estado de búsqueda
-    var searchQuery by remember { mutableStateOf("") }
+    // Estado de búsqueda - preservar al rotar
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var selectedListId by rememberSaveable { mutableStateOf<Long?>(null) }
 
     // Load shopping lists
     val listsState by viewModel.listsState
@@ -78,6 +81,7 @@ fun HomeScreen(
     val isLandscape = isLandscape()
     val isTablet = isTablet()
     val contentPadding = getContentPadding()
+    val useTwoPane = shouldUseTwoPaneLayout()
 
     // Tamaños responsivos
     val illustrationSize = when {
@@ -145,17 +149,98 @@ fun HomeScreen(
                         }
                     } else {
                         val viewMode by viewModel.preferencesRepository.productViewMode.collectAsState(initial = "list")
-                        ShoppingListsContent(
-                            lists = activeLists,
-                            viewMode = viewMode,
-                            onListClick = onNavigateToList,
-                            onAddList = onNavigateToNewList,
-                            onToggleFavorite = { listId, isFavorite ->
-                                viewModel.toggleFavorite(listId, isFavorite)
-                            },
-                            isFavorite = { list -> viewModel.isFavorite(list) },
-                            modifier = Modifier.fillMaxSize()
-                        )
+                        if (useTwoPane) {
+                            // Layout de dos paneles en landscape
+                            Row(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                // Panel izquierdo: Lista de listas
+                                Column(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxHeight()
+                                ) {
+                                    ShoppingListsContent(
+                                        lists = activeLists,
+                                        viewMode = viewMode,
+                                        onListClick = { listId ->
+                                            selectedListId = listId
+                                        },
+                                        onAddList = onNavigateToNewList,
+                                        onToggleFavorite = { listId, isFavorite ->
+                                            viewModel.toggleFavorite(listId, isFavorite)
+                                        },
+                                        isFavorite = { list -> viewModel.isFavorite(list) },
+                                        modifier = Modifier.fillMaxSize(),
+                                        selectedListId = selectedListId
+                                    )
+                                }
+                                
+                                // Panel derecho: Detalles o estado vacío
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxHeight()
+                                        .background(Color(0xFF1A1D28))
+                                ) {
+                                    selectedListId?.let { listId ->
+                                        val selectedList = activeLists.find { it.id == listId }
+                                        selectedList?.let { list ->
+                                            ListDetailsPanel(
+                                                list = list,
+                                                onNavigateToList = { onNavigateToList(listId) },
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+                                        }
+                                    } ?: run {
+                                        // Estado vacío cuando no hay lista seleccionada
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .padding(32.dp),
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Outlined.ShoppingCart,
+                                                contentDescription = null,
+                                                tint = OnDark.copy(alpha = 0.3f),
+                                                modifier = Modifier.size(120.dp)
+                                            )
+                                            Spacer(modifier = Modifier.height(24.dp))
+                                            Text(
+                                                text = "Select a list",
+                                                fontSize = 18.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                color = OnDark.copy(alpha = 0.7f),
+                                                textAlign = TextAlign.Center
+                                            )
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            Text(
+                                                text = "Select a list to view details",
+                                                fontSize = 14.sp,
+                                                color = OnDark.copy(alpha = 0.5f),
+                                                textAlign = TextAlign.Center
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            // Layout de una columna en portrait
+                            ShoppingListsContent(
+                                lists = activeLists,
+                                viewMode = viewMode,
+                                onListClick = onNavigateToList,
+                                onAddList = onNavigateToNewList,
+                                onToggleFavorite = { listId, isFavorite ->
+                                    viewModel.toggleFavorite(listId, isFavorite)
+                                },
+                                isFavorite = { list -> viewModel.isFavorite(list) },
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
                     }
                 }
                 is com.example.bagit.data.repository.Result.Error -> {
@@ -361,30 +446,63 @@ fun ShoppingListsContent(
     onAddList: () -> Unit,
     onToggleFavorite: (Long, Boolean) -> Unit,
     isFavorite: (com.example.bagit.data.model.ShoppingList) -> Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    selectedListId: Long? = null
 ) {
+    val isTablet = isTablet()
+    val useTwoPane = shouldUseTwoPaneLayout()
+    val navBarHeight = if (isTablet) 72.dp else 64.dp
+    val fabSize = 56.dp
+    val fabPadding = 16.dp
+    // Bottom padding: FAB size + padding + nav bar height + extra spacing
+    // In two-pane layout, we don't need to account for nav bar as it's handled by the parent
+    val bottomPadding = if (useTwoPane) {
+        fabSize + fabPadding + 16.dp
+    } else {
+        fabSize + fabPadding + navBarHeight + 16.dp
+    }
+    
+    // Calculate responsive grid columns
+    val screenWidth = getScreenWidthDp()
+    val gridColumns = when {
+        screenWidth >= 840 -> 3  // Large screens: 3 columns
+        screenWidth >= 600 -> 2  // Medium screens: 2 columns
+        else -> 2  // Small screens: 2 columns
+    }
+    
     Box(modifier = modifier) {
         if (viewMode == "grid") {
             LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
+                columns = GridCells.Fixed(gridColumns),
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                contentPadding = PaddingValues(
+                    start = getContentPadding(),
+                    top = 16.dp,
+                    end = getContentPadding(),
+                    bottom = bottomPadding
+                ),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(lists, key = { it.id }) { list ->
                     ShoppingListGridCard(
                         list = list,
                         onClick = { onListClick(list.id) },
                         onToggleFavorite = onToggleFavorite,
-                        isFavorite = isFavorite(list)
+                        isFavorite = isFavorite(list),
+                        isSelected = selectedListId == list.id
                     )
                 }
             }
         } else {
             androidx.compose.foundation.lazy.LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+                contentPadding = PaddingValues(
+                    start = getContentPadding(),
+                    top = 16.dp,
+                    end = getContentPadding(),
+                    bottom = bottomPadding
+                ),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(lists, key = { it.id }) { list ->
@@ -392,7 +510,8 @@ fun ShoppingListsContent(
                         list = list,
                         onClick = { onListClick(list.id) },
                         onToggleFavorite = onToggleFavorite,
-                        isFavorite = isFavorite(list)
+                        isFavorite = isFavorite(list),
+                        isSelected = selectedListId == list.id
                     )
                 }
             }
@@ -404,9 +523,16 @@ fun ShoppingListsContent(
             contentColor = DarkNavy,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(16.dp)
+                .padding(
+                    end = fabPadding,
+                    bottom = if (useTwoPane) fabPadding else navBarHeight + fabPadding
+                )
         ) {
-            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.home_add_list_icon))
+            Icon(
+                Icons.Filled.Add,
+                contentDescription = stringResource(R.string.home_add_list_icon),
+                modifier = Modifier.size(24.dp)
+            )
         }
     }
 }
@@ -417,7 +543,8 @@ fun ShoppingListCard(
     onClick: () -> Unit,
     onToggleFavorite: (Long, Boolean) -> Unit,
     isFavorite: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isSelected: Boolean = false
 ) {
     val metadata = list.metadata
     val colorHex = metadata?.get("color") as? String ?: "#5249B6"
@@ -428,7 +555,7 @@ fun ShoppingListCard(
         modifier = modifier.fillMaxWidth(),
         shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF2A2D3E)
+            containerColor = if (isSelected) Color(0xFF5249B6).copy(alpha = 0.3f) else Color(0xFF2A2D3E)
         )
     ) {
         Row(
@@ -509,7 +636,7 @@ fun ShoppingListCard(
                     // Prevenir que el click en la estrella dispare la navegación
                     onToggleFavorite(list.id, isFavorite)
                 },
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(48.dp)
             ) {
                 Icon(
                     imageVector = if (isFavorite) Icons.Filled.Star else Icons.Outlined.StarBorder,
@@ -519,11 +646,14 @@ fun ShoppingListCard(
                 )
             }
 
+            Spacer(modifier = Modifier.width(8.dp))
+
             // Arrow icon
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = stringResource(R.string.home_open_list),
-                tint = OnDark.copy(alpha = 0.5f)
+                tint = OnDark.copy(alpha = 0.5f),
+                modifier = Modifier.size(24.dp)
             )
         }
     }
@@ -535,7 +665,8 @@ fun ShoppingListGridCard(
     onClick: () -> Unit,
     onToggleFavorite: (Long, Boolean) -> Unit,
     isFavorite: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isSelected: Boolean = false
 ) {
     val metadata = list.metadata
     val colorHex = metadata?.get("color") as? String ?: "#5249B6"
@@ -546,7 +677,7 @@ fun ShoppingListGridCard(
         modifier = modifier.fillMaxWidth(),
         shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF2A2D3E)
+            containerColor = if (isSelected) Color(0xFF5249B6).copy(alpha = 0.3f) else Color(0xFF2A2D3E)
         )
     ) {
         Column(
@@ -622,14 +753,14 @@ fun ShoppingListGridCard(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Star icon (favorite toggle)
             IconButton(
                 onClick = {
                     onToggleFavorite(list.id, isFavorite)
                 },
-                modifier = Modifier.size(36.dp)
+                modifier = Modifier.size(40.dp)
             ) {
                 Icon(
                     imageVector = if (isFavorite) Icons.Filled.Star else Icons.Outlined.StarBorder,
@@ -638,6 +769,122 @@ fun ShoppingListGridCard(
                     modifier = Modifier.size(20.dp)
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun ListDetailsPanel(
+    list: com.example.bagit.data.model.ShoppingList,
+    onNavigateToList: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val metadata = list.metadata
+    val colorHex = metadata?.get("color") as? String ?: "#5249B6"
+    val category = metadata?.get("category") as? String ?: "General"
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Header con color
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .background(
+                        color = try {
+                            Color(colorHex.toColorInt())
+                        } catch (_: Exception) {
+                            Color(0xFF5249B6)
+                        },
+                        shape = CircleShape
+                    )
+            )
+            
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = list.name,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = OnDark
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = category,
+                    fontSize = 14.sp,
+                    color = OnDark.copy(alpha = 0.6f)
+                )
+            }
+        }
+
+        Divider(color = OnDark.copy(alpha = 0.2f))
+
+        // Descripción
+        if (list.description?.isNotBlank() == true) {
+            Column {
+                Text(
+                    text = "Description",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = OnDark.copy(alpha = 0.6f),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Text(
+                    text = list.description,
+                    fontSize = 14.sp,
+                    color = OnDark.copy(alpha = 0.8f)
+                )
+            }
+        }
+
+        // Información de compartido
+        Column {
+            Text(
+                text = "Sharing",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = OnDark.copy(alpha = 0.6f),
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Text(
+                text = if (list.sharedWith?.isNotEmpty() == true) {
+                    stringResource(R.string.home_list_shared_by, list.owner.name, list.owner.surname)
+                } else {
+                    stringResource(R.string.home_list_not_shared)
+                },
+                fontSize = 14.sp,
+                color = OnDark.copy(alpha = 0.8f)
+            )
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        // Botón para abrir lista
+        Button(
+            onClick = onNavigateToList,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF5249B6),
+                contentColor = Color.White
+            ),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text(
+                text = "Open List",
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null
+            )
         }
     }
 }

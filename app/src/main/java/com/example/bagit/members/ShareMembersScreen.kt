@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import android.util.Log
+import com.example.bagit.ui.utils.shouldUseTwoPaneLayout
 import com.example.bagit.R
 import com.example.bagit.ui.theme.BagItTheme
 import com.example.bagit.ui.theme.DarkNavy
@@ -47,8 +49,9 @@ fun ShareMembersScreen(
     }
 
     val uiState by viewModel.uiState
-    var showShareDialog by remember { mutableStateOf(false) }
+    var showShareDialog by rememberSaveable { mutableStateOf(false) }
     var previousIsLoading by remember { mutableStateOf(false) }
+    val useTwoPane = shouldUseTwoPaneLayout()
 
     // Cerrar el diálogo automáticamente cuando addMember tiene éxito
     LaunchedEffect(uiState.isLoading, uiState.error) {
@@ -72,92 +75,218 @@ fun ShareMembersScreen(
         },
         containerColor = DarkNavy
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(DarkNavy)
-                .padding(paddingValues)
-                .padding(vertical = 16.dp)
-        ) {
-            // Search Bar
-            SearchBar(
-                searchQuery = uiState.searchQuery,
-                onSearchChange = { viewModel.updateSearchQuery(it) },
+        if (useTwoPane) {
+            // Layout de dos paneles en landscape: búsqueda/tabs a la izquierda, miembros a la derecha
+            Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            )
+                    .fillMaxSize()
+                    .background(DarkNavy)
+                    .padding(paddingValues),
+                horizontalArrangement = Arrangement.spacedBy(1.dp)
+            ) {
+                // Panel izquierdo: Búsqueda y tabs
+                Column(
+                    modifier = Modifier
+                        .weight(0.35f)
+                        .fillMaxHeight()
+                        .background(Color(0xFF1A1D28))
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = "Filter Members",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    
+                    Divider(color = OnDark.copy(alpha = 0.2f))
+                    
+                    // Search Bar
+                    SearchBar(
+                        searchQuery = uiState.searchQuery,
+                        onSearchChange = { viewModel.updateSearchQuery(it) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-            Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-            // Tabs
-            TabsSegmented(
-                selectedTab = uiState.selectedTab,
-                onTabSelected = { viewModel.selectTab(it) },
+                    // Tabs
+                    Column {
+                        Text(
+                            text = "Status",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = OnDark.copy(alpha = 0.7f),
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                        TabsSegmented(
+                            selectedTab = uiState.selectedTab,
+                            onTabSelected = { viewModel.selectTab(it) },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+                
+                // Panel derecho: Lista de miembros
+                Column(
+                    modifier = Modifier
+                        .weight(0.65f)
+                        .fillMaxHeight()
+                        .background(DarkNavy)
+                        .padding(vertical = 16.dp)
+                ) {
+                    // Error message if any
+                    if (uiState.error != null) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color(0xFF5F2C2C)
+                            )
+                        ) {
+                            Text(
+                                text = uiState.error!!,
+                                fontSize = 14.sp,
+                                color = Color(0xFFFFB3B3),
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
+                    // Members List
+                    val displayedMembers = uiState.getDisplayedMembers()
+
+                    if (uiState.isLoading && displayedMembers.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = Color(0xFF7B68EE))
+                        }
+                    } else if (displayedMembers.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No members found",
+                                fontSize = 16.sp,
+                                color = OnDark.copy(alpha = 0.5f)
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(displayedMembers, key = { it.id }) { member ->
+                                MemberRow(
+                                    member = member,
+                                    isCurrentUserOwner = uiState.isCurrentUserOwner,
+                                    onEdit = { /* TODO */ },
+                                    onRemove = { viewModel.removeMember(member) },
+                                    onChangeRole = { member, newRole ->
+                                        viewModel.updateMemberRole(member, newRole)
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            // Layout de una columna en portrait
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Error message if any
-            if (uiState.error != null) {
-                Card(
+                    .fillMaxSize()
+                    .background(DarkNavy)
+                    .padding(paddingValues)
+                    .padding(vertical = 16.dp)
+            ) {
+                // Search Bar
+                SearchBar(
+                    searchQuery = uiState.searchQuery,
+                    onSearchChange = { viewModel.updateSearchQuery(it) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFF5F2C2C)
-                    )
-                ) {
-                    Text(
-                        text = uiState.error!!,
-                        fontSize = 14.sp,
-                        color = Color(0xFFFFB3B3),
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-            }
+                        .padding(horizontal = 16.dp)
+                )
 
-            // Members List
-            val displayedMembers = uiState.getDisplayedMembers()
+                Spacer(modifier = Modifier.height(20.dp))
 
-            if (uiState.isLoading && displayedMembers.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = Color(0xFF7B68EE))
-                }
-            } else if (displayedMembers.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "No members found",
-                        fontSize = 16.sp,
-                        color = OnDark.copy(alpha = 0.5f)
-                    )
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(displayedMembers, key = { it.id }) { member ->
-                        MemberRow(
-                            member = member,
-                            isCurrentUserOwner = uiState.isCurrentUserOwner,
-                            onEdit = { /* TODO */ },
-                            onRemove = { viewModel.removeMember(member) },
-                            onChangeRole = { member, newRole ->
-                                viewModel.updateMemberRole(member, newRole)
-                            }
+                // Tabs
+                TabsSegmented(
+                    selectedTab = uiState.selectedTab,
+                    onTabSelected = { viewModel.selectTab(it) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Error message if any
+                if (uiState.error != null) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFF5F2C2C)
                         )
+                    ) {
+                        Text(
+                            text = uiState.error!!,
+                            fontSize = 14.sp,
+                            color = Color(0xFFFFB3B3),
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                // Members List
+                val displayedMembers = uiState.getDisplayedMembers()
+
+                if (uiState.isLoading && displayedMembers.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = Color(0xFF7B68EE))
+                    }
+                } else if (displayedMembers.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No members found",
+                            fontSize = 16.sp,
+                            color = OnDark.copy(alpha = 0.5f)
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(displayedMembers, key = { it.id }) { member ->
+                            MemberRow(
+                                member = member,
+                                isCurrentUserOwner = uiState.isCurrentUserOwner,
+                                onEdit = { /* TODO */ },
+                                onRemove = { viewModel.removeMember(member) },
+                                onChangeRole = { member, newRole ->
+                                    viewModel.updateMemberRole(member, newRole)
+                                }
+                            )
+                        }
                     }
                 }
             }

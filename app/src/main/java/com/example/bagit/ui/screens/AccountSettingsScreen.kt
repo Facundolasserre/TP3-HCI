@@ -3,6 +3,7 @@ package com.example.bagit.ui.screens
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -79,6 +80,7 @@ import com.example.bagit.ui.utils.getContentPadding
 import com.example.bagit.ui.utils.getMaxContentWidth
 import com.example.bagit.ui.utils.getResponsiveButtonHeight
 import com.example.bagit.ui.utils.isTablet
+import com.example.bagit.ui.utils.shouldUseTwoPaneLayout
 import com.example.bagit.ui.viewmodel.AccountSettingsEvent
 import com.example.bagit.ui.viewmodel.AccountSettingsUiState
 import com.example.bagit.ui.viewmodel.AccountSettingsViewModel
@@ -212,6 +214,7 @@ private fun AccountSettingsScreen(
 ) {
     val contentPadding = getContentPadding()
     val maxContentWidth = getMaxContentWidth()
+    val useTwoPane = shouldUseTwoPaneLayout()
 
     Scaffold(
         topBar = {
@@ -250,19 +253,130 @@ private fun AccountSettingsScreen(
                 .padding(paddingValues)
                 .navigationBarsPadding()
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .then(
-                        if (maxContentWidth != Dp.Unspecified) {
-                            Modifier.widthIn(max = maxContentWidth)
-                        } else {
-                            Modifier
+            if (useTwoPane) {
+                // Layout de dos columnas en landscape: secciones distribuidas horizontalmente
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = contentPadding, vertical = contentPadding),
+                    horizontalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
+                    // Columna izquierda
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(24.dp)
+                    ) {
+                        AnimatedVisibility(visible = !uiState.errorMessage.isNullOrBlank()) {
+                            Column {
+                                ErrorBanner(message = uiState.errorMessage.orEmpty())
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
                         }
-                    )
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = contentPadding, vertical = contentPadding)
-            ) {
+
+                        ProfileHeaderCard(
+                            name = uiState.name,
+                            username = uiState.username,
+                            email = uiState.email
+                        )
+
+                        SectionTitle(text = stringResource(R.string.account_settings_profile_section))
+                        Spacer(modifier = Modifier.height(8.dp))
+                        ProfileSettingsCard(
+                            name = name,
+                            username = username,
+                            onNameChange = onNameChange,
+                            onUsernameChange = onUsernameChange,
+                            onSaveProfile = onSaveProfile,
+                            isSaving = uiState.isSavingProfile,
+                            errorMessage = uiState.profileError
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        SectionTitle(text = stringResource(R.string.account_settings_security_section))
+                        Spacer(modifier = Modifier.height(8.dp))
+                        SecuritySettingsCard(
+                            email = uiState.email,
+                            currentPassword = currentPassword,
+                            newPassword = newPassword,
+                            repeatPassword = repeatPassword,
+                            onCurrentPasswordChange = onCurrentPasswordChange,
+                            onNewPasswordChange = onNewPasswordChange,
+                            onRepeatPasswordChange = onRepeatPasswordChange,
+                            onChangePassword = onChangePassword,
+                            isChangingPassword = uiState.isChangingPassword,
+                            errorMessage = uiState.passwordError
+                        )
+                    }
+
+                    // Columna derecha
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(24.dp)
+                    ) {
+                        SectionTitle(text = stringResource(R.string.account_settings_display_section))
+                        Spacer(modifier = Modifier.height(8.dp))
+                        DisplaySettingsCard(
+                            currentViewMode = productViewMode,
+                            onViewModeChange = onViewModeChange
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        SectionTitle(text = stringResource(R.string.account_settings_privacy_section))
+                        Spacer(modifier = Modifier.height(8.dp))
+                        DangerZoneCard(
+                            isDeleting = uiState.isDeletingAccount,
+                            errorMessage = uiState.deleteError,
+                            onDeleteAccountClick = onDeleteAccountClick
+                        )
+
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        OutlinedButton(
+                            onClick = onSignOut,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(getResponsiveButtonHeight()),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = OnDark
+                            ),
+                            border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                                contentDescription = stringResource(R.string.account_settings_sign_out),
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(R.string.account_settings_sign_out),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+                }
+            } else {
+                // Layout de una columna en portrait
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .then(
+                            if (maxContentWidth != Dp.Unspecified) {
+                                Modifier.widthIn(max = maxContentWidth)
+                            } else {
+                                Modifier
+                            }
+                        )
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = contentPadding, vertical = contentPadding)
+                ) {
                 AnimatedVisibility(visible = !uiState.errorMessage.isNullOrBlank()) {
                     Column {
                         ErrorBanner(message = uiState.errorMessage.orEmpty())
@@ -350,6 +464,7 @@ private fun AccountSettingsScreen(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold
                     )
+                }
                 }
             }
 

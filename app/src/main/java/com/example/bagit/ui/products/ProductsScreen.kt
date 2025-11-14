@@ -32,6 +32,7 @@ import com.example.bagit.ui.components.ProductCard
 import com.example.bagit.ui.components.ProductGridCard
 import com.example.bagit.ui.theme.DarkNavy
 import com.example.bagit.ui.theme.OnDark
+import com.example.bagit.ui.utils.shouldUseTwoPaneLayout
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -236,19 +237,192 @@ private fun SuccessState(
 ) {
     var showCategoryDropdown by remember { mutableStateOf(false) }
     var showPageSizeDropdown by remember { mutableStateOf(false) }
+    val useTwoPane = shouldUseTwoPaneLayout()
 
     val selectedCategoryName = state.categories.find { it.id == state.selectedCategoryId }?.name
         ?: stringResource(R.string.products_all_categories)
 
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        // Filtros
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+    if (useTwoPane) {
+        // Layout de dos paneles en landscape: filtros a la izquierda, productos a la derecha
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.spacedBy(1.dp)
         ) {
+            // Panel izquierdo: Filtros
+            Column(
+                modifier = Modifier
+                    .weight(0.35f)
+                    .fillMaxHeight()
+                    .background(Color(0xFF1A1D28))
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = "Filters",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                
+                Divider(color = OnDark.copy(alpha = 0.2f))
+                
+                // Chips de categorías
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Categories",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = OnDark.copy(alpha = 0.7f),
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                    
+                    // Chip "Todas"
+                    FilterChip(
+                        selected = state.selectedCategoryId == null,
+                        onClick = { onCategorySelect(null) },
+                        label = {
+                            Text(
+                                text = stringResource(R.string.products_all_categories_chip),
+                                fontSize = 14.sp
+                            )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = Color(0xFFA594FF),
+                            selectedLabelColor = Color.White,
+                            containerColor = Color(0xFF2A2D3A),
+                            labelColor = Color(0xFF9E9E9E)
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    
+                    // Chips de categorías
+                    state.categories.forEach { category ->
+                        FilterChip(
+                            selected = state.selectedCategoryId == category.id,
+                            onClick = { onCategorySelect(category.id) },
+                            label = {
+                                Text(
+                                    text = category.name,
+                                    fontSize = 14.sp
+                                )
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = Color(0xFFA594FF),
+                                selectedLabelColor = Color.White,
+                                containerColor = Color(0xFF2A2D3A),
+                                labelColor = Color(0xFF9E9E9E)
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+                
+                Divider(color = OnDark.copy(alpha = 0.2f))
+                
+                // Dropdown de tamaño de página
+                Column {
+                    Text(
+                        text = "Page Size",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = OnDark.copy(alpha = 0.7f),
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Box {
+                        OutlinedButton(
+                            onClick = { showPageSizeDropdown = true },
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = Color(0xFF2A2D3A),
+                                contentColor = OnDark
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(stringResource(R.string.products_show_per_page, state.pageSize) + " ▾", fontSize = 12.sp)
+                        }
+
+                        DropdownMenu(
+                            expanded = showPageSizeDropdown,
+                            onDismissRequest = { showPageSizeDropdown = false }
+                        ) {
+                            listOf(10, 20, 50).forEach { size ->
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.products_per_page_dropdown, size)) },
+                                    onClick = {
+                                        onPageSizeChange(size)
+                                        showPageSizeDropdown = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Panel derecho: Productos
+            Column(
+                modifier = Modifier
+                    .weight(0.65f)
+                    .fillMaxHeight()
+            ) {
+                // Lista o cuadrícula de productos
+                if (viewMode == "grid") {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(state.products, key = { it.id }) { product ->
+                            ProductGridCard(
+                                product = product,
+                                onEdit = { onEditProduct(product) },
+                                onDelete = { onDeleteProduct(product) }
+                            )
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                    ) {
+                        items(state.products, key = { it.id }) { product ->
+                            ProductCard(
+                                product = product,
+                                onEdit = { onEditProduct(product) },
+                                onDelete = { onDeleteProduct(product) }
+                            )
+                        }
+                    }
+                }
+
+                // Paginación
+                PaginationBar(
+                    currentPage = state.currentPage,
+                    totalPages = state.pagination.totalPages,
+                    hasNext = state.pagination.hasNext,
+                    hasPrev = state.pagination.hasPrev,
+                    onPageChange = onPageChange
+                )
+            }
+        }
+    } else {
+        // Layout de una columna en portrait
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // Filtros
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
             // Chips de categorías
             Row(
                 modifier = Modifier
@@ -368,7 +542,7 @@ private fun SuccessState(
                     }
                 }
             }
-        }
+            }
 
         // Lista o cuadrícula de productos
         if (viewMode == "grid") {
@@ -413,6 +587,7 @@ private fun SuccessState(
             hasPrev = state.pagination.hasPrev,
             onPageChange = onPageChange
         )
+        }
     }
 }
 

@@ -15,6 +15,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
@@ -35,6 +37,7 @@ import com.example.bagit.data.repository.Result
 import com.example.bagit.ui.theme.DarkNavy
 import com.example.bagit.ui.theme.OnDark
 import com.example.bagit.ui.utils.*
+import com.example.bagit.ui.utils.shouldUseTwoPaneLayout
 import com.example.bagit.ui.viewmodel.ListDetailViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,10 +50,10 @@ fun ListDetailScreen(
 ) {
     val listState by viewModel.currentListState
     val listItemsState by viewModel.listItemsState
-    var showAddItemDialog by remember { mutableStateOf(false) }
-    var showEditItemDialog by remember { mutableStateOf<ListItem?>(null) }
+    var showAddItemDialog by rememberSaveable { mutableStateOf(false) }
+    var showEditItemDialog by rememberSaveable { mutableStateOf<ListItem?>(null) }
     val showMenuState = remember { mutableStateOf(false) }
-    var searchQuery by remember { mutableStateOf("") }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
 
     // Load list info only once
     LaunchedEffect(listId) {
@@ -60,6 +63,7 @@ fun ListDetailScreen(
 
     val contentPadding = getContentPadding()
     val maxContentWidth = getMaxContentWidth()
+    val useTwoPane = shouldUseTwoPaneLayout()
 
     Scaffold(
         topBar = {
@@ -151,14 +155,107 @@ fun ListDetailScreen(
         },
         containerColor = DarkNavy
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(DarkNavy)
-                .padding(paddingValues)
-        ) {
-            // Barra de búsqueda
-            OutlinedTextField(
+        if (useTwoPane) {
+            // Layout de dos paneles en landscape: búsqueda/filtros a la izquierda, items a la derecha
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(DarkNavy)
+                    .padding(paddingValues),
+                horizontalArrangement = Arrangement.spacedBy(1.dp)
+            ) {
+                // Panel izquierdo: Búsqueda y filtros
+                Column(
+                    modifier = Modifier
+                        .weight(0.35f)
+                        .fillMaxHeight()
+                        .background(Color(0xFF1A1D28))
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = "Search & Filter",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    
+                    Divider(color = OnDark.copy(alpha = 0.2f))
+                    
+                    // Barra de búsqueda
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = {
+                            Text(
+                                "Search products...",
+                                color = OnDark.copy(alpha = 0.5f),
+                                fontSize = 16.sp
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "Search",
+                                tint = OnDark.copy(alpha = 0.6f)
+                            )
+                        },
+                        trailingIcon = {
+                            if (searchQuery.isNotBlank()) {
+                                IconButton(onClick = { searchQuery = "" }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Clear,
+                                        contentDescription = "Clear",
+                                        tint = OnDark.copy(alpha = 0.6f)
+                                    )
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = Color(0xFF2A2D3E),
+                            unfocusedContainerColor = Color(0xFF2A2D3E),
+                            focusedTextColor = OnDark,
+                            unfocusedTextColor = OnDark,
+                            focusedBorderColor = Color(0xFF5249B6),
+                            unfocusedBorderColor = Color(0xFF3D3F54),
+                            cursorColor = Color(0xFF5249B6)
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        singleLine = true
+                    )
+                }
+                
+                // Panel derecho: Items de la lista
+                Box(
+                    modifier = Modifier
+                        .weight(0.65f)
+                        .fillMaxHeight()
+                ) {
+                    ListItemsPanel(
+                        listItemsState = listItemsState,
+                        searchQuery = searchQuery,
+                        listId = listId,
+                        onTogglePurchased = { item ->
+                            viewModel.toggleItemPurchased(listId, item.id, !item.purchased)
+                        },
+                        onEditItem = { item -> showEditItemDialog = item },
+                        onDeleteItem = { item -> viewModel.deleteListItem(listId, item.id) },
+                        onAddItem = { showAddItemDialog = true },
+                        contentPadding = contentPadding
+                    )
+                }
+            }
+        } else {
+            // Layout de una columna en portrait
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(DarkNavy)
+                    .padding(paddingValues)
+            ) {
+                // Barra de búsqueda
+                OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 placeholder = {
@@ -202,106 +299,19 @@ fun ListDetailScreen(
                 singleLine = true
             )
 
-            // Contenido de la lista
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(1f)
-            ) {
-                when (val itemsState = listItemsState) {
-                    is Result.Loading -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(color = Color(0xFF5249B6))
-                        }
-                    }
-                    is Result.Success -> {
-                        val allItems = itemsState.data.data
-                        val effectiveQuery = searchQuery.trim()
-                        val shownItems = if (effectiveQuery.length >= 2) {
-                            allItems.filter { it.product.name.contains(effectiveQuery, ignoreCase = true) }
-                        } else allItems
-
-                        if (shownItems.isEmpty()) {
-                            if (effectiveQuery.isBlank()) {
-                                EmptyListContent(
-                                    onAddItem = { showAddItemDialog = true },
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(contentPadding)
-                                )
-                            } else {
-                                // No results for search
-                                Box(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Search,
-                                            contentDescription = null,
-                                            tint = OnDark.copy(alpha = 0.3f),
-                                            modifier = Modifier.size(80.dp)
-                                        )
-                                        Spacer(modifier = Modifier.height(16.dp))
-                                        Text(
-                                            text = "No products found",
-                                            fontSize = 18.sp,
-                                            fontWeight = FontWeight.Medium,
-                                            color = OnDark.copy(alpha = 0.6f)
-                                        )
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Text(
-                                            text = "Try a different search term",
-                                            fontSize = 14.sp,
-                                            color = OnDark.copy(alpha = 0.4f)
-                                        )
-                                    }
-                                }
-                            }
-                        } else {
-                            ListItemsContent(
-                                items = shownItems,
-                                onTogglePurchased = { item ->
-                                    viewModel.toggleItemPurchased(listId, item.id, !item.purchased)
-                                },
-                                onEditItem = { item -> showEditItemDialog = item },
-                                onDeleteItem = { item -> viewModel.deleteListItem(listId, item.id) },
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(horizontal = contentPadding)
-                            )
-                        }
-                    }
-                    is Result.Error -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = itemsState.message ?: "Error loading items",
-                                    color = Color.Red,
-                                    modifier = Modifier.padding(16.dp)
-                                )
-                                if (searchQuery.isNotBlank()) {
-                                    Text(
-                                        text = "Probá borrar o cambiar el término de búsqueda.",
-                                        color = OnDark.copy(alpha = 0.6f),
-                                        fontSize = 12.sp
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    null -> {
-                        // Initial state
-                    }
-                }
+                // Contenido de la lista
+                ListItemsPanel(
+                    listItemsState = listItemsState,
+                    searchQuery = searchQuery,
+                    listId = listId,
+                    onTogglePurchased = { item ->
+                        viewModel.toggleItemPurchased(listId, item.id, !item.purchased)
+                    },
+                    onEditItem = { item -> showEditItemDialog = item },
+                    onDeleteItem = { item -> viewModel.deleteListItem(listId, item.id) },
+                    onAddItem = { showAddItemDialog = true },
+                    contentPadding = contentPadding
+                )
             }
         }
     }
@@ -370,6 +380,114 @@ fun EmptyListContent(
             Icon(Icons.Default.Add, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
             Text(stringResource(R.string.list_add_item))
+        }
+    }
+}
+
+@Composable
+private fun ListItemsPanel(
+    listItemsState: Result<com.example.bagit.data.model.PaginatedResponse<ListItem>>?,
+    searchQuery: String,
+    listId: Long,
+    onTogglePurchased: (ListItem) -> Unit,
+    onEditItem: (ListItem) -> Unit,
+    onDeleteItem: (ListItem) -> Unit,
+    onAddItem: () -> Unit,
+    contentPadding: Dp
+) {
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        when (val itemsState = listItemsState) {
+            is Result.Loading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color(0xFF5249B6))
+                }
+            }
+            is Result.Success -> {
+                val allItems = itemsState.data.data
+                val effectiveQuery = searchQuery.trim()
+                val shownItems = if (effectiveQuery.length >= 2) {
+                    allItems.filter { it.product.name.contains(effectiveQuery, ignoreCase = true) }
+                } else allItems
+
+                if (shownItems.isEmpty()) {
+                    if (effectiveQuery.isBlank()) {
+                        EmptyListContent(
+                            onAddItem = onAddItem,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(contentPadding)
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = null,
+                                    tint = OnDark.copy(alpha = 0.3f),
+                                    modifier = Modifier.size(80.dp)
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = "No products found",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = OnDark.copy(alpha = 0.6f)
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "Try a different search term",
+                                    fontSize = 14.sp,
+                                    color = OnDark.copy(alpha = 0.4f)
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    ListItemsContent(
+                        items = shownItems,
+                        onTogglePurchased = onTogglePurchased,
+                        onEditItem = onEditItem,
+                        onDeleteItem = onDeleteItem,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = contentPadding)
+                    )
+                }
+            }
+            is Result.Error -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = itemsState.message ?: "Error loading items",
+                            color = Color.Red,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                        if (searchQuery.isNotBlank()) {
+                            Text(
+                                text = "Probá borrar o cambiar el término de búsqueda.",
+                                color = OnDark.copy(alpha = 0.6f),
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+                }
+            }
+            null -> {
+                // Initial state
+            }
         }
     }
 }

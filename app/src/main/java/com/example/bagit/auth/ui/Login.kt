@@ -16,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -69,19 +70,26 @@ fun LoginScreen(
     val maxContentWidth = getMaxContentWidth()
 
     val logoSize = when {
-        isTablet && isLandscape -> 100.dp
+        isTablet && isLandscape -> 120.dp
         isTablet -> 120.dp
         else -> 100.dp
     }
 
     val cardPadding = when {
-        isTablet && isLandscape -> 32.dp
+        isTablet && isLandscape -> 40.dp
         isTablet -> 32.dp
         else -> 24.dp
     }
 
     val verticalSpacing = when {
-        isTablet && isLandscape -> 16.dp
+        isTablet && isLandscape -> 20.dp
+        isTablet -> 24.dp
+        else -> 20.dp
+    }
+
+    val sectionSpacing = when {
+        isTablet && isLandscape -> 48.dp
+        isTablet -> 32.dp
         else -> 24.dp
     }
 
@@ -96,14 +104,16 @@ fun LoginScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = contentPadding),
-                horizontalArrangement = Arrangement.Center
+                    .fillMaxHeight()
+                    .padding(horizontal = contentPadding, vertical = contentPadding),
+                horizontalArrangement = Arrangement.spacedBy(sectionSpacing),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 // Lado izquierdo: logo
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .padding(end = 32.dp),
+                        .fillMaxHeight(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
@@ -112,12 +122,13 @@ fun LoginScreen(
                         contentDescription = stringResource(R.string.login_logo_description),
                         modifier = Modifier.size(logoSize)
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
                     Text(
                         text = "BagIt",
                         color = White,
                         fontSize = 48.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
                     )
                 }
 
@@ -153,9 +164,10 @@ fun LoginScreen(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = contentPadding, vertical = contentPadding)
+                    .fillMaxSize()
+                    .padding(horizontal = contentPadding)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.Center
             ) {
                 Card(
                     shape = RoundedCornerShape(16.dp),
@@ -180,13 +192,14 @@ fun LoginScreen(
                             modifier = Modifier.size(logoSize)
                         )
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
 
                         Text(
                             text = "BagIt",
                             color = White,
                             fontSize = if (isTablet) 40.sp else 32.sp,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
                         )
 
                         Spacer(modifier = Modifier.height(verticalSpacing))
@@ -207,7 +220,9 @@ fun LoginScreen(
                             onClick = { viewModel.login(username, password) },
                             shape = RoundedCornerShape(8.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = White),
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(if (isTablet) 52.dp else 48.dp),
                             enabled = loginState !is Result.Loading
                         ) {
                             if (loginState is Result.Loading) {
@@ -229,14 +244,18 @@ fun LoginScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(sectionSpacing))
 
-                Row {
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(bottom = contentPadding)
+                ) {
                     Text(
                         text = stringResource(R.string.login_no_account),
                         color = White,
                         fontSize = if (isTablet) 16.sp else 14.sp
                     )
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = stringResource(R.string.login_sign_up),
                         color = AccentPurple,
@@ -272,19 +291,22 @@ private fun LoginFormContent(
     val isLandscape = isLandscape()
 
     val verticalSpacing = when {
-        isTablet && isLandscape -> 16.dp
+        isTablet && isLandscape -> 20.dp
         else -> 24.dp
     }
 
     Column(
-        modifier = Modifier.padding(cardPadding),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(cardPadding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = stringResource(R.string.login_welcome),
             color = White,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold
+            fontSize = if (isTablet && isLandscape) 28.sp else 24.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
         )
 
         Spacer(modifier = Modifier.height(verticalSpacing))
@@ -305,7 +327,9 @@ private fun LoginFormContent(
             onClick = onLoginClick,
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(containerColor = White),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(if (isTablet && isLandscape) 52.dp else 48.dp),
             enabled = !isLoading
         ) {
             if (isLoading) {
@@ -321,23 +345,26 @@ private fun LoginFormContent(
                 text = if (isLoading) stringResource(R.string.login_loading) else stringResource(R.string.login_button),
                 color = Black,
                 fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
+                fontSize = if (isTablet && isLandscape) 20.sp else 18.sp
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        Row {
+        Row(
+            horizontalArrangement = Arrangement.Center
+        ) {
             Text(
                 text = stringResource(R.string.login_no_account),
                 color = White,
-                fontSize = 14.sp
+                fontSize = if (isTablet && isLandscape) 16.sp else 14.sp
             )
+            Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = stringResource(R.string.login_sign_up),
                 color = AccentPurple,
                 textDecoration = TextDecoration.Underline,
-                fontSize = 14.sp,
+                fontSize = if (isTablet && isLandscape) 16.sp else 14.sp,
                 modifier = Modifier.clickable(onClick = onCreateAccount)
             )
         }
@@ -364,10 +391,10 @@ private fun LoginFormFields(
         singleLine = true,
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Email,
-            imeAction = ImeAction.Done
+            imeAction = ImeAction.Next
         ),
         keyboardActions = KeyboardActions(
-            onDone = { onLoginAction() }
+            onNext = { focusManager.moveFocus(FocusDirection.Down) }
         ),
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = AccentPurple,
@@ -381,7 +408,7 @@ private fun LoginFormFields(
         modifier = Modifier.fillMaxWidth()
     )
 
-    Spacer(modifier = Modifier.height(16.dp))
+    Spacer(modifier = Modifier.height(verticalSpacing))
 
     // ===== PASSWORD =====
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
@@ -420,15 +447,15 @@ private fun LoginFormFields(
         modifier = Modifier.fillMaxWidth()
     )
 
-    Spacer(modifier = Modifier.height(8.dp))
+    Spacer(modifier = Modifier.height(12.dp))
 
     Text(
         text = stringResource(R.string.login_forgot_password),
         color = Gray,
         textAlign = TextAlign.End,
+        fontSize = 14.sp,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(end = 8.dp)
             .clickable(onClick = onForgotPassword)
     )
 }
