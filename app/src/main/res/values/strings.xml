@@ -104,6 +104,7 @@
     <string name="home_error_loading">Error loading lists</string>
     <string name="home_retry_button">Retry</string>
     <string name="home_list_shared_by">%1$s %2$s shared this list with you</string>
+    <string name="home_list_not_shared">No shared</string>
     <string name="home_open_list">Open list</string>
     <string name="home_add_to_favorites">Add to favorites</string>
     <string name="home_remove_from_favorites">Remove from favorites</string>
@@ -159,6 +160,10 @@
     <string name="account_settings_delete_dialog_confirm">Delete</string>
     <string name="account_settings_delete_dialog_cancel">Cancel</string>
     <string name="account_settings_account_deleted">Account deleted successfully</string>
+    <string name="account_settings_display_section">Display</string>
+    <string name="account_settings_view_mode_title">Product View</string>
+    <string name="account_settings_view_mode_list">List View</string>
+    <string name="account_settings_view_mode_grid">Grid View</string>
 
     <!-- Drawer -->
     <string name="drawer_toggle_language">Toggle Language</string>

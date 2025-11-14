@@ -6,6 +6,7 @@ import com.example.bagit.data.model.ChangePasswordRequest
 import com.example.bagit.data.model.UpdateUserProfileRequest
 import com.example.bagit.data.model.User
 import com.example.bagit.data.repository.AuthRepository
+import com.example.bagit.data.repository.PreferencesRepository
 import com.example.bagit.data.repository.Result
 import com.example.bagit.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -25,7 +27,8 @@ private const val USERNAME_METADATA_KEY = "username"
 @HiltViewModel
 class AccountSettingsViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AccountSettingsUiState())
@@ -33,6 +36,13 @@ class AccountSettingsViewModel @Inject constructor(
 
     private val _events = MutableSharedFlow<AccountSettingsEvent>()
     val events: SharedFlow<AccountSettingsEvent> = _events.asSharedFlow()
+
+    val productViewMode: StateFlow<String> = preferencesRepository.productViewMode
+        .stateIn(
+            scope = viewModelScope,
+            started = kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
+            initialValue = "list"
+        )
 
     private var cachedUser: User? = null
 
@@ -234,6 +244,12 @@ class AccountSettingsViewModel @Inject constructor(
 
     fun clearPasswordError() {
         _uiState.update { it.copy(passwordError = null) }
+    }
+
+    fun setProductViewMode(mode: String) {
+        viewModelScope.launch {
+            preferencesRepository.setProductViewMode(mode)
+        }
     }
 
     private fun handleUserLoaded(user: User) {

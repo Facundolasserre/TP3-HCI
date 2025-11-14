@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -103,8 +104,10 @@ fun ShoppingListHistoryScreen(
                             isTablet = isTablet
                         )
                     } else {
+                        val viewMode by viewModel.preferencesRepository.productViewMode.collectAsState(initial = "list")
                         ShoppingListsContent(
                             lists = completedLists,
+                            viewMode = viewMode,
                             onListClick = onNavigateToList,
                             onAddList = {},
                             onToggleFavorite = { listId, isFavorite ->

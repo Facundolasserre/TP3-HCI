@@ -4,6 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,6 +16,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,6 +29,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.bagit.R
 import com.example.bagit.ui.components.BagItTopBar
 import com.example.bagit.ui.components.ProductCard
+import com.example.bagit.ui.components.ProductGridCard
 import com.example.bagit.ui.theme.DarkNavy
 import com.example.bagit.ui.theme.OnDark
 
@@ -37,6 +42,7 @@ fun ProductsRoute(
 ) {
     val uiState = viewModel.uiState
     val dialogState = viewModel.dialogState
+    val viewMode by viewModel.preferencesRepository.productViewMode.collectAsState(initial = "list")
 
     Scaffold(
         topBar = {
@@ -73,6 +79,7 @@ fun ProductsRoute(
                 is ProductsUiState.Success -> {
                     SuccessState(
                         state = uiState,
+                        viewMode = viewMode,
                         onCategorySelect = viewModel::onCategorySelect,
                         onPageSizeChange = viewModel::onPageSizeChange,
                         onPageChange = viewModel::onPageChange,
@@ -220,6 +227,7 @@ private fun EmptyState() {
 @Composable
 private fun SuccessState(
     state: ProductsUiState.Success,
+    viewMode: String,
     onCategorySelect: (Long?) -> Unit,
     onPageSizeChange: (Int) -> Unit,
     onPageChange: (Int) -> Unit,
@@ -362,18 +370,38 @@ private fun SuccessState(
             }
         }
 
-        // Lista de productos
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-        ) {
-            items(state.products, key = { it.id }) { product ->
-                ProductCard(
-                    product = product,
-                    onEdit = { onEditProduct(product) },
-                    onDelete = { onDeleteProduct(product) }
-                )
+        // Lista o cuadrícula de productos
+        if (viewMode == "grid") {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(state.products, key = { it.id }) { product ->
+                    ProductGridCard(
+                        product = product,
+                        onEdit = { onEditProduct(product) },
+                        onDelete = { onDeleteProduct(product) }
+                    )
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            ) {
+                items(state.products, key = { it.id }) { product ->
+                    ProductCard(
+                        product = product,
+                        onEdit = { onEditProduct(product) },
+                        onDelete = { onDeleteProduct(product) }
+                    )
+                }
             }
         }
 

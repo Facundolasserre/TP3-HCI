@@ -2,8 +2,10 @@ package com.example.bagit.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,8 +27,12 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ViewList
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -88,6 +94,7 @@ fun AccountSettingsRoute(
     viewModel: AccountSettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val productViewMode by viewModel.productViewMode.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
 
@@ -171,7 +178,9 @@ fun AccountSettingsRoute(
         onBack = onBack,
         onSignOut = onSignOut,
         snackbarHostState = snackbarHostState,
-        showDeleteDialog = showDeleteDialog
+        showDeleteDialog = showDeleteDialog,
+        productViewMode = productViewMode,
+        onViewModeChange = viewModel::setProductViewMode
     )
 }
 
@@ -197,7 +206,9 @@ private fun AccountSettingsScreen(
     onBack: () -> Unit,
     onSignOut: () -> Unit,
     snackbarHostState: SnackbarHostState,
-    showDeleteDialog: Boolean
+    showDeleteDialog: Boolean,
+    productViewMode: String,
+    onViewModeChange: (String) -> Unit
 ) {
     val contentPadding = getContentPadding()
     val maxContentWidth = getMaxContentWidth()
@@ -294,6 +305,15 @@ private fun AccountSettingsScreen(
                     onChangePassword = onChangePassword,
                     isChangingPassword = uiState.isChangingPassword,
                     errorMessage = uiState.passwordError
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                SectionTitle(text = stringResource(R.string.account_settings_display_section))
+                Spacer(modifier = Modifier.height(8.dp))
+                DisplaySettingsCard(
+                    currentViewMode = productViewMode,
+                    onViewModeChange = onViewModeChange
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -627,6 +647,110 @@ private fun PasswordField(
 }
 
 @Composable
+private fun DisplaySettingsCard(
+    currentViewMode: String,
+    onViewModeChange: (String) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFD5D0E8)
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.account_settings_view_mode_title),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF2E2A3A)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Choose how products are displayed",
+                fontSize = 13.sp,
+                color = Color(0xFF2E2A3A).copy(alpha = 0.7f)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // List View Option
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onViewModeChange("list") }
+                    .padding(vertical = 12.dp, horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ViewList,
+                    contentDescription = null,
+                    tint = if (currentViewMode == "list") Color(0xFF5249B6) else Color(0xFF2E2A3A).copy(alpha = 0.5f),
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = stringResource(R.string.account_settings_view_mode_list),
+                    fontSize = 15.sp,
+                    fontWeight = if (currentViewMode == "list") FontWeight.Medium else FontWeight.Normal,
+                    color = if (currentViewMode == "list") Color(0xFF2E2A3A) else Color(0xFF2E2A3A).copy(alpha = 0.7f)
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                if (currentViewMode == "list") {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        tint = Color(0xFF5249B6),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+
+            Divider(
+                color = Color(0xFF2E2A3A).copy(alpha = 0.2f),
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+
+            // Grid View Option
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onViewModeChange("grid") }
+                    .padding(vertical = 12.dp, horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.GridView,
+                    contentDescription = null,
+                    tint = if (currentViewMode == "grid") Color(0xFF5249B6) else Color(0xFF2E2A3A).copy(alpha = 0.5f),
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = stringResource(R.string.account_settings_view_mode_grid),
+                    fontSize = 15.sp,
+                    fontWeight = if (currentViewMode == "grid") FontWeight.Medium else FontWeight.Normal,
+                    color = if (currentViewMode == "grid") Color(0xFF2E2A3A) else Color(0xFF2E2A3A).copy(alpha = 0.7f)
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                if (currentViewMode == "grid") {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        tint = Color(0xFF5249B6),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun DangerZoneCard(
     isDeleting: Boolean,
     errorMessage: String?,
@@ -810,7 +934,9 @@ fun AccountSettingsScreenPreview() {
             onBack = {},
             onSignOut = {},
             snackbarHostState = SnackbarHostState(),
-            showDeleteDialog = false
+            showDeleteDialog = false,
+            productViewMode = "list",
+            onViewModeChange = {}
         )
     }
 }

@@ -104,6 +104,7 @@
     <string name="home_error_loading">Error al cargar listas</string>
     <string name="home_retry_button">Reintentar</string>
     <string name="home_list_shared_by">%1$s %2$s te compartió esta lista</string>
+    <string name="home_list_not_shared">No compartida</string>
     <string name="home_open_list">Abrir lista</string>
     <string name="home_add_to_favorites">Agregar a favoritos</string>
     <string name="home_remove_from_favorites">Quitar de favoritos</string>

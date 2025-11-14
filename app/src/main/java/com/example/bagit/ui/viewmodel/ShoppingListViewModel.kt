@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bagit.data.model.*
+import com.example.bagit.data.repository.PreferencesRepository
 import com.example.bagit.data.repository.Result
 import com.example.bagit.data.repository.ShoppingListRepository
 import com.example.bagit.data.repository.ListItemRepository
@@ -15,7 +16,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ShoppingListViewModel @Inject constructor(
     private val shoppingListRepository: ShoppingListRepository,
-    private val listItemRepository: ListItemRepository
+    private val listItemRepository: ListItemRepository,
+    val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
 
     private val _listsState = mutableStateOf<Result<PaginatedResponse<ShoppingList>>?>(null)

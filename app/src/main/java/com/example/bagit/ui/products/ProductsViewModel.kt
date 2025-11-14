@@ -9,6 +9,7 @@ import com.example.bagit.data.model.CategoryId
 import com.example.bagit.data.model.Product
 import com.example.bagit.data.model.ProductRequest
 import com.example.bagit.data.repository.CategoryRepository
+import com.example.bagit.data.repository.PreferencesRepository
 import com.example.bagit.data.repository.ProductRepository
 import com.example.bagit.data.repository.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,7 +31,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ProductsViewModel @Inject constructor(
     private val productRepository: ProductRepository,
-    private val categoryRepository: CategoryRepository
+    private val categoryRepository: CategoryRepository,
+    val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
 
     var uiState by mutableStateOf<ProductsUiState>(ProductsUiState.Loading)
