@@ -97,6 +97,17 @@ fun HomeScreen(
         else -> 140.dp
     }
 
+    // Determinar si hay listas activas para mostrar/ocultar el FAB
+    val hasActiveLists = when (val state = listsState) {
+        is com.example.bagit.data.repository.Result.Success -> {
+            val activeLists = state.data.data.filter { list ->
+                !viewModel.isListCompleted(list.id)
+            }
+            activeLists.isNotEmpty()
+        }
+        else -> false
+    }
+
     Scaffold(
         topBar = {
             BagItTopBar(
@@ -108,16 +119,19 @@ fun HomeScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = onNavigateToNewList,
-                containerColor = Color(0xFF5249B6),
-                contentColor = Color.White
-            ) {
-                Icon(
-                    Icons.Filled.Add,
-                    contentDescription = stringResource(R.string.home_add_list_icon),
-                    modifier = Modifier.size(24.dp)
-                )
+            // Solo mostrar el FAB cuando hay listas activas
+            if (hasActiveLists) {
+                FloatingActionButton(
+                    onClick = onNavigateToNewList,
+                    containerColor = Color(0xFF5249B6),
+                    contentColor = Color.White
+                ) {
+                    Icon(
+                        Icons.Filled.Add,
+                        contentDescription = stringResource(R.string.home_add_list_icon),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
         },
         containerColor = DarkNavy

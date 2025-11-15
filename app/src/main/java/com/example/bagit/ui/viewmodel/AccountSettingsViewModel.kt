@@ -87,7 +87,7 @@ class AccountSettingsViewModel @Inject constructor(
 
         if (trimmedName.isEmpty() || trimmedUsername.isEmpty()) {
             _uiState.update {
-                it.copy(profileError = "Completá nombre y usuario antes de guardar")
+                it.copy(profileError = "Please enter name and username before saving")
             }
             return
         }

@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -53,8 +54,18 @@ fun ListDetailScreen(
     var showAddItemDialog by rememberSaveable { mutableStateOf(false) }
     var showEditItemDialog by rememberSaveable { mutableStateOf<ListItem?>(null) }
     var showRenameDialog by rememberSaveable { mutableStateOf(false) }
+    var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
     val showMenuState = remember { mutableStateOf(false) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
+
+    // Get ShoppingListViewModel for delete operation
+    val shoppingListViewModel: com.example.bagit.ui.viewmodel.ShoppingListViewModel = hiltViewModel()
+
+    // Determine if there are items to show/hide the FAB
+    val hasItems = when (val state = listItemsState) {
+        is Result.Success -> state.data.data.isNotEmpty()
+        else -> false
+    }
 
     // Load list info only once
     LaunchedEffect(listId) {
@@ -128,6 +139,13 @@ fun ListDetailScreen(
                                     showMenuState.value = false
                                 }
                             )
+                            DropdownMenuItem(
+                                text = { Text("Delete List", color = Color(0xFFE57373)) },
+                                onClick = {
+                                    showDeleteDialog = true
+                                    showMenuState.value = false
+                                }
+                            )
                         }
                     }
                 },
@@ -140,13 +158,16 @@ fun ListDetailScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showAddItemDialog = true },
-                containerColor = Color(0xFF5249B6),
-                contentColor = Color.White,
-                modifier = Modifier.navigationBarsPadding()
-            ) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.list_add_item_icon))
+            // Solo mostrar el FAB cuando hay items
+            if (hasItems) {
+                FloatingActionButton(
+                    onClick = { showAddItemDialog = true },
+                    containerColor = Color(0xFF5249B6),
+                    contentColor = Color.White,
+                    modifier = Modifier.navigationBarsPadding()
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.list_add_item_icon))
+                }
             }
         },
         containerColor = DarkNavy
@@ -170,7 +191,7 @@ fun ListDetailScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Text(
-                        text = "Search & Filter",
+                        text = "Buscar y filtrar",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
@@ -184,7 +205,7 @@ fun ListDetailScreen(
                         onValueChange = { searchQuery = it },
                         placeholder = {
                             Text(
-                                "Search products...",
+                                "Buscar productos…",
                                 color = OnDark.copy(alpha = 0.5f),
                                 fontSize = 16.sp
                             )
@@ -192,7 +213,7 @@ fun ListDetailScreen(
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Search,
-                                contentDescription = "Search",
+                                contentDescription = "Buscar",
                                 tint = OnDark.copy(alpha = 0.6f)
                             )
                         },
@@ -201,7 +222,7 @@ fun ListDetailScreen(
                                 IconButton(onClick = { searchQuery = "" }) {
                                     Icon(
                                         imageVector = Icons.Default.Clear,
-                                        contentDescription = "Clear",
+                                        contentDescription = "Limpiar",
                                         tint = OnDark.copy(alpha = 0.6f)
                                     )
                                 }
@@ -256,7 +277,7 @@ fun ListDetailScreen(
                 onValueChange = { searchQuery = it },
                 placeholder = {
                     Text(
-                        "Search products...",
+                        "Buscar productos…",
                         color = OnDark.copy(alpha = 0.5f),
                         fontSize = 16.sp
                     )
@@ -264,7 +285,7 @@ fun ListDetailScreen(
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,
-                        contentDescription = "Search",
+                        contentDescription = "Buscar",
                         tint = OnDark.copy(alpha = 0.6f)
                     )
                 },
@@ -273,7 +294,7 @@ fun ListDetailScreen(
                         IconButton(onClick = { searchQuery = "" }) {
                             Icon(
                                 imageVector = Icons.Default.Clear,
-                                contentDescription = "Clear",
+                                contentDescription = "Limpiar",
                                 tint = OnDark.copy(alpha = 0.6f)
                             )
                         }
@@ -351,6 +372,24 @@ fun ListDetailScreen(
                             metadata = state.data.metadata
                         )
                         showRenameDialog = false
+                    }
+                )
+            }
+            else -> {}
+        }
+    }
+
+    if (showDeleteDialog) {
+        when (val state = listState) {
+            is Result.Success -> {
+                DeleteListDialog(
+                    listName = state.data.name,
+                    onDismiss = { showDeleteDialog = false },
+                    onConfirm = {
+                        shoppingListViewModel.deleteShoppingList(listId)
+                        showDeleteDialog = false
+                        // Navigate back after deletion
+                        onBack()
                     }
                 )
             }
@@ -457,14 +496,14 @@ private fun ListItemsPanel(
                                 )
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Text(
-                                    text = "No products found",
+                                    text = "No se encontraron productos",
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = OnDark.copy(alpha = 0.6f)
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "Try a different search term",
+                                    text = "Intenta con un término de búsqueda diferente",
                                     fontSize = 14.sp,
                                     color = OnDark.copy(alpha = 0.4f)
                                 )
@@ -1046,7 +1085,7 @@ fun RenameListDialog(
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Name", color = OnDark.copy(alpha = 0.6f)) },
+                    label = { Text("Nombre", color = OnDark.copy(alpha = 0.6f)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = Color(0xFF1E1F2E),
@@ -1066,7 +1105,7 @@ fun RenameListDialog(
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("Description", color = OnDark.copy(alpha = 0.6f)) },
+                    label = { Text("Descripción", color = OnDark.copy(alpha = 0.6f)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = Color(0xFF1E1F2E),
@@ -1228,7 +1267,7 @@ fun EditItemDialog(
                     .padding(24.dp)
             ) {
                 Text(
-                    text = "Edit Item",
+                    text = "Editar artículo",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
 
@@ -1239,7 +1278,7 @@ fun EditItemDialog(
 
                 // Product name (read-only)
                 Text(
-                    text = "Product",
+                    text = "Producto",
                     fontSize = 12.sp,
                     color = OnDark.copy(alpha = 0.6f)
                 )
@@ -1315,6 +1354,90 @@ fun EditItemDialog(
                         )
                     ) {
                         Text(stringResource(R.string.list_save))
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Diálogo de confirmación para borrar una lista.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DeleteListDialog(
+    listName: String,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    Dialog(
+        onDismissRequest = onDismiss
+    ) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color(0xFF2A2D3E)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+            ) {
+                // Icon
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = "Warning",
+                    tint = Color(0xFFE57373),
+                    modifier = Modifier
+                        .size(48.dp)
+                        .align(Alignment.CenterHorizontally)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "¿Borrar lista?",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = OnDark,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "¿Estás seguro de que deseas borrar \"$listName\"? Esta acción no se puede deshacer.",
+                    fontSize = 14.sp,
+                    color = OnDark.copy(alpha = 0.8f),
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = OnDark
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, OnDark.copy(alpha = 0.3f))
+                    ) {
+                        Text("Cancelar")
+                    }
+                    Button(
+                        onClick = onConfirm,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFE57373),
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text("Borrar")
                     }
                 }
             }
