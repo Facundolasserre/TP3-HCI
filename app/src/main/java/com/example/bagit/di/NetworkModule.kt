@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.bagit.BuildConfig
 import com.example.bagit.data.remote.*
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -28,8 +29,10 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    // 10.0.2.2 es la IP especial del emulador de Android para acceder al localhost de la máquina host
-    private const val BASE_URL = "http://10.0.2.2:8080/"
+    // URL base configurada por build variant (emulator o physical)
+    // emulator: http://10.0.2.2:8080/
+    // physical: http://192.168.0.178:8080/
+    private val BASE_URL = BuildConfig.BASE_URL
 
     @Provides
     @Singleton

@@ -22,6 +22,18 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    flavorDimensions += "device"
+    productFlavors {
+        create("emulator") {
+            dimension = "device"
+            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8080/\"")
+        }
+        create("physical") {
+            dimension = "device"
+            buildConfigField("String", "BASE_URL", "\"http://192.168.0.178:8080/\"")
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -40,6 +52,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 

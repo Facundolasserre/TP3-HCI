@@ -231,12 +231,12 @@ fun LoginScreen(
                                         .size(20.dp)
                                         .padding(end = 8.dp),
                                     strokeWidth = 2.dp,
-                                    color = Black
+                                    color = White
                                 )
                             }
                             Text(
                                 text = if (loginState is Result.Loading) stringResource(R.string.login_loading) else stringResource(R.string.login_button),
-                                color = Black,
+                                color = if (loginState is Result.Loading) White else Black,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = if (isTablet) 20.sp else 18.sp
                             )
@@ -338,12 +338,12 @@ private fun LoginFormContent(
                         .size(20.dp)
                         .padding(end = 8.dp),
                     strokeWidth = 2.dp,
-                    color = Black
+                    color = White
                 )
             }
             Text(
                 text = if (isLoading) stringResource(R.string.login_loading) else stringResource(R.string.login_button),
-                color = Black,
+                color = if (isLoading) White else Black,
                 fontWeight = FontWeight.Bold,
                 fontSize = if (isTablet && isLandscape) 20.sp else 18.sp
             )
