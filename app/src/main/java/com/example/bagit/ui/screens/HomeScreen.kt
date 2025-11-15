@@ -107,6 +107,19 @@ fun HomeScreen(
                 onSearchSubmit = { /* Búsqueda en tiempo real */ }
             )
         },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onNavigateToNewList,
+                containerColor = Color(0xFF5249B6),
+                contentColor = Color.White
+            ) {
+                Icon(
+                    Icons.Filled.Add,
+                    contentDescription = stringResource(R.string.home_add_list_icon),
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        },
         containerColor = DarkNavy
     ) { paddingValues ->
         Box(
@@ -443,19 +456,6 @@ fun ShoppingListsContent(
     modifier: Modifier = Modifier,
     selectedListId: Long? = null
 ) {
-    val isTablet = isTablet()
-    val useTwoPane = shouldUseTwoPaneLayout()
-    val navBarHeight = if (isTablet) 72.dp else 64.dp
-    val fabSize = 56.dp
-    val fabPadding = 16.dp
-    // Bottom padding: FAB size + padding + nav bar height + extra spacing
-    // In two-pane layout, we don't need to account for nav bar as it's handled by the parent
-    val bottomPadding = if (useTwoPane) {
-        fabSize + fabPadding + 16.dp
-    } else {
-        fabSize + fabPadding + navBarHeight + 16.dp
-    }
-    
     // Calculate responsive grid columns
     val screenWidth = getScreenWidthDp()
     val gridColumns = when {
@@ -464,69 +464,49 @@ fun ShoppingListsContent(
         else -> 2  // Small screens: 2 columns
     }
     
-    Box(modifier = modifier) {
-        if (viewMode == "grid") {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(gridColumns),
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    start = getContentPadding(),
-                    top = 16.dp,
-                    end = getContentPadding(),
-                    bottom = bottomPadding
-                ),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(lists, key = { it.id }) { list ->
-                    ShoppingListGridCard(
-                        list = list,
-                        onClick = { onListClick(list.id) },
-                        onToggleFavorite = onToggleFavorite,
-                        isFavorite = isFavorite(list),
-                        isSelected = selectedListId == list.id
-                    )
-                }
-            }
-        } else {
-            androidx.compose.foundation.lazy.LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    start = getContentPadding(),
-                    top = 16.dp,
-                    end = getContentPadding(),
-                    bottom = bottomPadding
-                ),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(lists, key = { it.id }) { list ->
-                    ShoppingListCard(
-                        list = list,
-                        onClick = { onListClick(list.id) },
-                        onToggleFavorite = onToggleFavorite,
-                        isFavorite = isFavorite(list),
-                        isSelected = selectedListId == list.id
-                    )
-                }
+    if (viewMode == "grid") {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(gridColumns),
+            modifier = modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = getContentPadding(),
+                top = 16.dp,
+                end = getContentPadding(),
+                bottom = 16.dp
+            ),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(lists, key = { it.id }) { list ->
+                ShoppingListGridCard(
+                    list = list,
+                    onClick = { onListClick(list.id) },
+                    onToggleFavorite = onToggleFavorite,
+                    isFavorite = isFavorite(list),
+                    isSelected = selectedListId == list.id
+                )
             }
         }
-
-        FloatingActionButton(
-            onClick = onAddList,
-            containerColor = Color(0xFF5249B6),
-            contentColor = Color.White,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(
-                    end = fabPadding,
-                    bottom = if (useTwoPane) fabPadding else navBarHeight + fabPadding
-                )
+    } else {
+        androidx.compose.foundation.lazy.LazyColumn(
+            modifier = modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = getContentPadding(),
+                top = 16.dp,
+                end = getContentPadding(),
+                bottom = 16.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Icon(
-                Icons.Filled.Add,
-                contentDescription = stringResource(R.string.home_add_list_icon),
-                modifier = Modifier.size(24.dp)
-            )
+            items(lists, key = { it.id }) { list ->
+                ShoppingListCard(
+                    list = list,
+                    onClick = { onListClick(list.id) },
+                    onToggleFavorite = onToggleFavorite,
+                    isFavorite = isFavorite(list),
+                    isSelected = selectedListId == list.id
+                )
+            }
         }
     }
 }
