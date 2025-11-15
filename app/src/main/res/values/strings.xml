@@ -199,6 +199,10 @@
     <!-- New List Screen -->
     <string name="new_list_title">Nueva lista</string>
     <string name="new_list_back">Atrás</string>
+
+    <!-- Search -->
+    <string name="search_placeholder">Buscar</string>
+    <string name="search_icon">Buscar</string>
     <string name="new_list_name_label">Nombre de la lista</string>
     <string name="new_list_name_placeholder">Ej: Supermercado</string>
     <string name="new_list_category_label">Categoría</string>

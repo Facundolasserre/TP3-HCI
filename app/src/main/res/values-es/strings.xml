@@ -199,6 +199,10 @@
     <string name="new_list_name_placeholder">ej., Supermercado</string>
     <string name="new_list_category_label">Categoría</string>
     <string name="new_list_notes_label">Notas (opcional)</string>
+
+    <!-- Search -->
+    <string name="search_placeholder">Buscar</string>
+    <string name="search_icon">Buscar</string>
     <string name="new_list_notes_placeholder">Agregar notas sobre esta lista…</string>
     <string name="new_list_cancel">Cancelar</string>
     <string name="new_list_create">Crear Lista</string>

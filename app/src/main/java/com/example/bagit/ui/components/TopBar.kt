@@ -10,10 +10,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.bagit.R
 import com.example.bagit.ui.theme.DarkNavy
 import com.example.bagit.ui.theme.OnDark
 
@@ -67,7 +69,7 @@ fun BagItTopBar(
                         singleLine = true,
                         placeholder = {
                             Text(
-                                text = "Search",
+                                text = stringResource(R.string.search_placeholder),
                                 color = OnDark.copy(alpha = 0.6f),
                                 fontSize = 16.sp
                             )
@@ -76,7 +78,7 @@ fun BagItTopBar(
                             IconButton(onClick = onSearchSubmit) {
                                 Icon(
                                     Icons.Default.Search,
-                                    contentDescription = "Search",
+                                    contentDescription = stringResource(R.string.search_icon),
                                     tint = OnDark.copy(alpha = 0.75f)
                                 )
                             }
