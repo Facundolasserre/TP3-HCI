@@ -183,6 +183,7 @@
     <string name="list_share">Share list</string>
     <string name="list_add_item">Add Item</string>
     <string name="list_add_item_icon">Add Item</string>
+    <string name="list_empty_state">No items in this list yet</string>
     <string name="list_empty_hint">Tap the + button to add items</string>
     <string name="list_search_product">Search product</string>
     <string name="list_create_product">Create new product</string>

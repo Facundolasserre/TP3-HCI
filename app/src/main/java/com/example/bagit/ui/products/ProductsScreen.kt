@@ -401,15 +401,6 @@ private fun SuccessState(
                         }
                     }
                 }
-
-                // Paginación
-                PaginationBar(
-                    currentPage = state.currentPage,
-                    totalPages = state.pagination.totalPages,
-                    hasNext = state.pagination.hasNext,
-                    hasPrev = state.pagination.hasPrev,
-                    onPageChange = onPageChange
-                )
             }
         }
     } else {
@@ -578,15 +569,6 @@ private fun SuccessState(
                 }
             }
         }
-
-        // Paginación
-        PaginationBar(
-            currentPage = state.currentPage,
-            totalPages = state.pagination.totalPages,
-            hasNext = state.pagination.hasNext,
-            hasPrev = state.pagination.hasPrev,
-            onPageChange = onPageChange
-        )
         }
     }
 }

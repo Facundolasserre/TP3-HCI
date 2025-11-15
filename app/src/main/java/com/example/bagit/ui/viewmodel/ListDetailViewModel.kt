@@ -494,4 +494,40 @@ class ListDetailViewModel @Inject constructor(
         _isCreatingProduct.value = false
         _errorMessage.value = null
     }
+
+    /**
+     * Actualiza el nombre y otros datos de la lista.
+     */
+    fun updateList(
+        listId: Long,
+        name: String,
+        description: String? = null,
+        recurring: Boolean = false,
+        metadata: Map<String, Any>? = null
+    ) {
+        viewModelScope.launch {
+            shoppingListRepository.updateShoppingList(
+                listId,
+                ShoppingListRequest(
+                    name = name,
+                    description = description ?: "",
+                    recurring = recurring,
+                    metadata = metadata
+                )
+            ).collect { result ->
+                when (result) {
+                    is Result.Success -> {
+                        // Recargar la lista actualizada
+                        loadList(listId)
+                    }
+                    is Result.Error -> {
+                        // El error se puede manejar si es necesario
+                    }
+                    is Result.Loading -> {
+                        // Estado de carga
+                    }
+                }
+            }
+        }
+    }
 }

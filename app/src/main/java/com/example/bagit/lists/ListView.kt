@@ -52,6 +52,7 @@ fun ListDetailScreen(
     val listItemsState by viewModel.listItemsState
     var showAddItemDialog by rememberSaveable { mutableStateOf(false) }
     var showEditItemDialog by rememberSaveable { mutableStateOf<ListItem?>(null) }
+    var showRenameDialog by rememberSaveable { mutableStateOf(false) }
     val showMenuState = remember { mutableStateOf(false) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
 
@@ -111,12 +112,7 @@ fun ListDetailScreen(
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.list_rename)) },
                                 onClick = {
-                                    when (val state = listState) {
-                                        is Result.Success -> {
-                                            onRenameClick(listId, state.data.name)
-                                        }
-                                        else -> {}
-                                    }
+                                    showRenameDialog = true
                                     showMenuState.value = false
                                 }
                             )
@@ -338,6 +334,29 @@ fun ListDetailScreen(
             }
         )
     }
+
+    if (showRenameDialog) {
+        when (val state = listState) {
+            is Result.Success -> {
+                RenameListDialog(
+                    currentName = state.data.name,
+                    currentDescription = state.data.description,
+                    onDismiss = { showRenameDialog = false },
+                    onSave = { newName, newDescription ->
+                        viewModel.updateList(
+                            listId = listId,
+                            name = newName,
+                            description = newDescription,
+                            recurring = state.data.recurring,
+                            metadata = state.data.metadata
+                        )
+                        showRenameDialog = false
+                    }
+                )
+            }
+            else -> {}
+        }
+    }
 }
 
 @Composable
@@ -358,7 +377,7 @@ fun EmptyListContent(
         )
         Spacer(modifier = Modifier.height(24.dp))
         Text(
-            text = "No items in this list yet",
+            text = stringResource(R.string.list_empty_state),
             fontSize = 20.sp,
             fontWeight = FontWeight.Medium,
             color = OnDark.copy(alpha = 0.7f)
@@ -991,10 +1010,109 @@ fun AddItemDialog(
     }
 }
 
-private fun onRenameClick(listId: Long, listName: String) {
-    // Implementar lógica para renombrar la lista
-    // Aquí irá la navegación a un diálogo de renombre o pantalla de edición
-    println("Renombrar lista: $listId - $listName")
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RenameListDialog(
+    currentName: String,
+    currentDescription: String?,
+    onDismiss: () -> Unit,
+    onSave: (name: String, description: String?) -> Unit
+) {
+    var name by remember { mutableStateOf(currentName) }
+    var description by remember { mutableStateOf(currentDescription ?: "") }
+
+    Dialog(
+        onDismissRequest = onDismiss
+    ) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color(0xFF2A2D3E)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.list_rename),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = OnDark
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Name field
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Name", color = OnDark.copy(alpha = 0.6f)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color(0xFF1E1F2E),
+                        unfocusedContainerColor = Color(0xFF1E1F2E),
+                        focusedTextColor = OnDark,
+                        unfocusedTextColor = OnDark,
+                        focusedBorderColor = Color(0xFF5249B6),
+                        unfocusedBorderColor = Color(0xFF3D3F54),
+                        cursorColor = Color(0xFF5249B6)
+                    ),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Description field
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Description", color = OnDark.copy(alpha = 0.6f)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color(0xFF1E1F2E),
+                        unfocusedContainerColor = Color(0xFF1E1F2E),
+                        focusedTextColor = OnDark,
+                        unfocusedTextColor = OnDark,
+                        focusedBorderColor = Color(0xFF5249B6),
+                        unfocusedBorderColor = Color(0xFF3D3F54),
+                        cursorColor = Color(0xFF5249B6)
+                    ),
+                    maxLines = 3
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text(stringResource(R.string.list_cancel), color = OnDark.copy(alpha = 0.7f))
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(
+                        onClick = {
+                            val trimmedName = name.trim()
+                            val trimmedDescription = description.trim().takeIf { it.isNotBlank() }
+                            if (trimmedName.isNotBlank()) {
+                                onSave(trimmedName, trimmedDescription)
+                            }
+                        },
+                        enabled = name.trim().isNotBlank(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF5249B6),
+                            contentColor = Color.White,
+                            disabledContainerColor = Color(0xFF5249B6),
+                            disabledContentColor = Color.White.copy(alpha = 0.6f)
+                        )
+                    ) {
+                        Text(stringResource(R.string.list_save))
+                    }
+                }
+            }
+        }
+    }
 }
 
 /**

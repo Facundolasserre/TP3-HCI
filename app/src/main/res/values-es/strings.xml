@@ -179,6 +179,7 @@
     <string name="list_share">Compartir lista</string>
     <string name="list_add_item">Agregar Item</string>
     <string name="list_add_item_icon">Agregar Item</string>
+    <string name="list_empty_state">Aún no hay items en esta lista</string>
     <string name="list_empty_hint">Toca el botón + para agregar items</string>
     <string name="list_search_product">Buscar producto</string>
     <string name="list_create_product">Crear nuevo producto</string>

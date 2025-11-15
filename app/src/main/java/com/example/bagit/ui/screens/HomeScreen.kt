@@ -35,6 +35,7 @@ import androidx.core.graphics.toColorInt
 import com.example.bagit.R
 import com.example.bagit.ui.components.BagItTopBar
 import com.example.bagit.ui.components.DrawerContent
+import com.example.bagit.ui.theme.AccentPurple
 import com.example.bagit.ui.theme.BagItTheme
 import com.example.bagit.ui.theme.Cream
 import com.example.bagit.ui.theme.DarkNavy
@@ -202,13 +203,6 @@ fun HomeScreen(
                                             horizontalAlignment = Alignment.CenterHorizontally,
                                             verticalArrangement = Arrangement.Center
                                         ) {
-                                            Icon(
-                                                imageVector = Icons.Outlined.ShoppingCart,
-                                                contentDescription = null,
-                                                tint = OnDark.copy(alpha = 0.3f),
-                                                modifier = Modifier.size(120.dp)
-                                            )
-                                            Spacer(modifier = Modifier.height(24.dp))
                                             Text(
                                                 text = "Select a list",
                                                 fontSize = 18.sp,
@@ -519,8 +513,8 @@ fun ShoppingListsContent(
 
         FloatingActionButton(
             onClick = onAddList,
-            containerColor = Color.White,
-            contentColor = DarkNavy,
+            containerColor = Color(0xFF5249B6),
+            contentColor = Color.White,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(
