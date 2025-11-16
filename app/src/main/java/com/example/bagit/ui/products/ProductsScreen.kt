@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -234,21 +235,9 @@ private fun SuccessState(
     var showCategoryDropdown by remember { mutableStateOf(false) }
     val useTwoPane = shouldUseTwoPaneLayout()
 
-    // Obtener categorías que tienen productos (del cache del ViewModel)
-    // Si el cache está vacío (primera carga), mostrar todas las categorías
-    // Incluir también la categoría seleccionada si existe, aunque no esté en el cache aún
-    val availableCategories = remember(state.availableCategoryIds, state.selectedCategoryId, state.categories) {
-        val categoriesToShow = if (state.availableCategoryIds.isEmpty()) {
-            // Primera carga: mostrar todas las categorías
-            state.categories
-        } else {
-            // Mostrar solo categorías que tienen productos + la seleccionada
-            state.categories.filter { category -> 
-                state.availableCategoryIds.contains(category.id) || 
-                category.id == state.selectedCategoryId
-            }
-        }
-        categoriesToShow.sortedBy { it.name }
+    // Mostrar TODAS las categorías del usuario, ordenadas por nombre
+    val availableCategories = remember(state.categories) {
+        state.categories.sortedBy { it.name }
     }
 
     val selectedCategoryName = if (state.selectedCategoryId == null) {
@@ -257,6 +246,10 @@ private fun SuccessState(
         availableCategories.find { it.id == state.selectedCategoryId }?.name
             ?: stringResource(R.string.products_all_categories)
     }
+
+    // Colores del tema oscuro para el dropdown
+    val dropdownContainerColor = Color(0xFF2A2D3A)
+    val dropdownContentColor = OnDark
 
     if (useTwoPane) {
         // Layout de dos paneles en landscape: filtros a la izquierda, productos a la derecha
@@ -293,7 +286,7 @@ private fun SuccessState(
                     )
                     Box {
                         OutlinedButton(
-                            onClick = { showCategoryDropdown = true },
+                            onClick = { showCategoryDropdown = !showCategoryDropdown },
                             shape = RoundedCornerShape(8.dp),
                             colors = ButtonDefaults.outlinedButtonColors(
                                 containerColor = Color(0xFF2A2D3A),
@@ -306,22 +299,41 @@ private fun SuccessState(
 
                         DropdownMenu(
                             expanded = showCategoryDropdown,
-                            onDismissRequest = { showCategoryDropdown = false }
+                            onDismissRequest = { showCategoryDropdown = false },
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp)),
+                            containerColor = dropdownContainerColor
                         ) {
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.products_all_categories)) },
+                                text = { 
+                                    Text(
+                                        stringResource(R.string.products_all_categories),
+                                        color = dropdownContentColor
+                                    ) 
+                                },
                                 onClick = {
                                     onCategorySelect(null)
                                     showCategoryDropdown = false
-                                }
+                                },
+                                colors = MenuDefaults.itemColors(
+                                    textColor = dropdownContentColor
+                                )
                             )
                             availableCategories.forEach { category ->
                                 DropdownMenuItem(
-                                    text = { Text(category.name) },
+                                    text = { 
+                                        Text(
+                                            category.name,
+                                            color = dropdownContentColor
+                                        ) 
+                                    },
                                     onClick = {
                                         onCategorySelect(category.id)
                                         showCategoryDropdown = false
-                                    }
+                                    },
+                                    colors = MenuDefaults.itemColors(
+                                        textColor = dropdownContentColor
+                                    )
                                 )
                             }
                         }
@@ -385,7 +397,7 @@ private fun SuccessState(
                 // Dropdown de categorías
                 Box(modifier = Modifier.fillMaxWidth()) {
                     OutlinedButton(
-                        onClick = { showCategoryDropdown = true },
+                        onClick = { showCategoryDropdown = !showCategoryDropdown },
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.outlinedButtonColors(
                             containerColor = Color(0xFF2A2D3A),
@@ -398,22 +410,41 @@ private fun SuccessState(
 
                     DropdownMenu(
                         expanded = showCategoryDropdown,
-                        onDismissRequest = { showCategoryDropdown = false }
+                        onDismissRequest = { showCategoryDropdown = false },
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp)),
+                        containerColor = dropdownContainerColor
                     ) {
                         DropdownMenuItem(
-                            text = { Text(stringResource(R.string.products_all_categories)) },
+                            text = { 
+                                Text(
+                                    stringResource(R.string.products_all_categories),
+                                    color = dropdownContentColor
+                                ) 
+                            },
                             onClick = {
                                 onCategorySelect(null)
                                 showCategoryDropdown = false
-                            }
+                            },
+                            colors = MenuDefaults.itemColors(
+                                textColor = dropdownContentColor
+                            )
                         )
                         availableCategories.forEach { category ->
                             DropdownMenuItem(
-                                text = { Text(category.name) },
+                                text = { 
+                                    Text(
+                                        category.name,
+                                        color = dropdownContentColor
+                                    ) 
+                                },
                                 onClick = {
                                     onCategorySelect(category.id)
                                     showCategoryDropdown = false
-                                }
+                                },
+                                colors = MenuDefaults.itemColors(
+                                    textColor = dropdownContentColor
+                                )
                             )
                         }
                     }
