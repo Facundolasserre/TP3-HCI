@@ -1,14 +1,12 @@
 package com.example.bagit.ui.products
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -82,7 +80,6 @@ fun ProductsRoute(
                         state = uiState,
                         viewMode = viewMode,
                         onCategorySelect = viewModel::onCategorySelect,
-                        onPageSizeChange = viewModel::onPageSizeChange,
                         onPageChange = viewModel::onPageChange,
                         onEditProduct = viewModel::showEditDialog,
                         onDeleteProduct = viewModel::showDeleteDialog
@@ -230,17 +227,35 @@ private fun SuccessState(
     state: ProductsUiState.Success,
     viewMode: String,
     onCategorySelect: (Long?) -> Unit,
-    onPageSizeChange: (Int) -> Unit,
     onPageChange: (Int) -> Unit,
     onEditProduct: (com.example.bagit.data.model.Product) -> Unit,
     onDeleteProduct: (com.example.bagit.data.model.Product) -> Unit
 ) {
     var showCategoryDropdown by remember { mutableStateOf(false) }
-    var showPageSizeDropdown by remember { mutableStateOf(false) }
     val useTwoPane = shouldUseTwoPaneLayout()
 
-    val selectedCategoryName = state.categories.find { it.id == state.selectedCategoryId }?.name
-        ?: stringResource(R.string.products_all_categories)
+    // Obtener categorías únicas de los productos actuales
+    // Incluir también la categoría seleccionada si existe, aunque no esté en los productos visibles
+    val availableCategories = remember(state.products, state.selectedCategoryId, state.categories) {
+        val categoriesFromProducts = state.products
+            .mapNotNull { it.category }
+            .distinctBy { it.id }
+        
+        val selectedCategory = state.selectedCategoryId?.let { selectedId ->
+            state.categories.find { it.id == selectedId }
+        }
+        
+        (categoriesFromProducts + listOfNotNull(selectedCategory))
+            .distinctBy { it.id }
+            .sortedBy { it.name }
+    }
+
+    val selectedCategoryName = if (state.selectedCategoryId == null) {
+        stringResource(R.string.products_all_categories)
+    } else {
+        availableCategories.find { it.id == state.selectedCategoryId }?.name
+            ?: stringResource(R.string.products_all_categories)
+    }
 
     if (useTwoPane) {
         // Layout de dos paneles en landscape: filtros a la izquierda, productos a la derecha
@@ -266,65 +281,10 @@ private fun SuccessState(
                 
                 Divider(color = OnDark.copy(alpha = 0.2f))
                 
-                // Chips de categorías
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.products_categories),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = OnDark.copy(alpha = 0.7f),
-                        modifier = Modifier.padding(bottom = 4.dp)
-                    )
-                    
-                    // Chip "Todas"
-                    FilterChip(
-                        selected = state.selectedCategoryId == null,
-                        onClick = { onCategorySelect(null) },
-                        label = {
-                            Text(
-                                text = stringResource(R.string.products_all_categories_chip),
-                                fontSize = 14.sp
-                            )
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = Color(0xFFA594FF),
-                            selectedLabelColor = Color.White,
-                            containerColor = Color(0xFF2A2D3A),
-                            labelColor = Color(0xFF9E9E9E)
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    
-                    // Chips de categorías
-                    state.categories.forEach { category ->
-                        FilterChip(
-                            selected = state.selectedCategoryId == category.id,
-                            onClick = { onCategorySelect(category.id) },
-                            label = {
-                                Text(
-                                    text = category.name,
-                                    fontSize = 14.sp
-                                )
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = Color(0xFFA594FF),
-                                selectedLabelColor = Color.White,
-                                containerColor = Color(0xFF2A2D3A),
-                                labelColor = Color(0xFF9E9E9E)
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                }
-                
-                Divider(color = OnDark.copy(alpha = 0.2f))
-                
-                // Dropdown de tamaño de página
+                // Dropdown de categorías
                 Column {
                     Text(
-                        text = stringResource(R.string.products_page_size),
+                        text = stringResource(R.string.products_categories),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = OnDark.copy(alpha = 0.7f),
@@ -332,7 +292,7 @@ private fun SuccessState(
                     )
                     Box {
                         OutlinedButton(
-                            onClick = { showPageSizeDropdown = true },
+                            onClick = { showCategoryDropdown = true },
                             shape = RoundedCornerShape(8.dp),
                             colors = ButtonDefaults.outlinedButtonColors(
                                 containerColor = Color(0xFF2A2D3A),
@@ -340,19 +300,26 @@ private fun SuccessState(
                             ),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(stringResource(R.string.products_show_per_page, state.pageSize) + " ▾", fontSize = 12.sp)
+                            Text("${selectedCategoryName} ▾", fontSize = 12.sp)
                         }
 
                         DropdownMenu(
-                            expanded = showPageSizeDropdown,
-                            onDismissRequest = { showPageSizeDropdown = false }
+                            expanded = showCategoryDropdown,
+                            onDismissRequest = { showCategoryDropdown = false }
                         ) {
-                            listOf(10, 20, 50).forEach { size ->
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.products_all_categories)) },
+                                onClick = {
+                                    onCategorySelect(null)
+                                    showCategoryDropdown = false
+                                }
+                            )
+                            availableCategories.forEach { category ->
                                 DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.products_per_page_dropdown, size)) },
+                                    text = { Text(category.name) },
                                     onClick = {
-                                        onPageSizeChange(size)
-                                        showPageSizeDropdown = false
+                                        onCategorySelect(category.id)
+                                        showCategoryDropdown = false
                                     }
                                 )
                             }
@@ -414,61 +381,8 @@ private fun SuccessState(
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-            // Chips de categorías
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                // Chip "Todas"
-                FilterChip(
-                    selected = state.selectedCategoryId == null,
-                    onClick = { onCategorySelect(null) },
-                    label = {
-                        Text(
-                            text = stringResource(R.string.products_all_categories_chip),
-                            fontSize = 14.sp
-                        )
-                    },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = Color(0xFFA594FF),
-                        selectedLabelColor = Color.White,
-                        containerColor = Color(0xFF2A2D3A),
-                        labelColor = Color(0xFF9E9E9E)
-                    )
-                )
-
-                // Chips de categorías
-                state.categories.forEach { category ->
-                    FilterChip(
-                        selected = state.selectedCategoryId == category.id,
-                        onClick = { onCategorySelect(category.id) },
-                        label = {
-                            Text(
-                                text = category.name,
-                                fontSize = 14.sp
-                            )
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = Color(0xFFA594FF),
-                            selectedLabelColor = Color.White,
-                            containerColor = Color(0xFF2A2D3A),
-                            labelColor = Color(0xFF9E9E9E)
-                        )
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Row de dropdowns
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Dropdown de categorías (alternativo)
-                Box(modifier = Modifier.weight(1f)) {
+                // Dropdown de categorías
+                Box(modifier = Modifier.fillMaxWidth()) {
                     OutlinedButton(
                         onClick = { showCategoryDropdown = true },
                         shape = RoundedCornerShape(8.dp),
@@ -492,7 +406,7 @@ private fun SuccessState(
                                 showCategoryDropdown = false
                             }
                         )
-                        state.categories.forEach { category ->
+                        availableCategories.forEach { category ->
                             DropdownMenuItem(
                                 text = { Text(category.name) },
                                 onClick = {
@@ -503,36 +417,6 @@ private fun SuccessState(
                         }
                     }
                 }
-
-                // Dropdown de tamaño de página
-                Box {
-                    OutlinedButton(
-                        onClick = { showPageSizeDropdown = true },
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = Color(0xFF2A2D3A),
-                            contentColor = OnDark
-                        )
-                    ) {
-                        Text(stringResource(R.string.products_show_per_page, state.pageSize) + " ▾", fontSize = 12.sp)
-                    }
-
-                    DropdownMenu(
-                        expanded = showPageSizeDropdown,
-                        onDismissRequest = { showPageSizeDropdown = false }
-                    ) {
-                        listOf(10, 20, 50).forEach { size ->
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.products_per_page_dropdown, size)) },
-                                onClick = {
-                                    onPageSizeChange(size)
-                                    showPageSizeDropdown = false
-                                }
-                            )
-                        }
-                    }
-                }
-            }
             }
 
         // Lista o cuadrícula de productos
