@@ -341,8 +341,16 @@ fun SearchBar(
         onValueChange = onSearchChange,
         modifier = modifier
             .fillMaxWidth()
-            .height(48.dp),
-        placeholder = { Text(stringResource(R.string.share_members_search_placeholder), color = OnDark.copy(alpha = 0.5f)) },
+            .heightIn(min = 48.dp),
+        placeholder = { 
+            Text(
+                text = stringResource(R.string.share_members_search_placeholder),
+                color = OnDark.copy(alpha = 0.65f),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Normal,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
         shape = RoundedCornerShape(12.dp),
         trailingIcon = {
             Icon(
@@ -361,7 +369,11 @@ fun SearchBar(
             unfocusedBorderColor = Color(0xFF3D3F54),
             cursorColor = Color(0xFF5249B6)
         ),
-        singleLine = true
+        singleLine = true,
+        textStyle = MaterialTheme.typography.bodyMedium.copy(
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Normal
+        )
     )
 }
 
