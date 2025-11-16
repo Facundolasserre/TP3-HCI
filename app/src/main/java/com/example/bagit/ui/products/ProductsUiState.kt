@@ -15,6 +15,7 @@ sealed class ProductsUiState {
         val products: List<Product>,
         val pagination: Pagination,
         val categories: List<Category> = emptyList(),
+        val availableCategoryIds: Set<Long> = emptySet(), // IDs de categorías que tienen productos
         val searchQuery: String = "",
         val selectedCategoryId: Long? = null,
         val pageSize: Int = 10,

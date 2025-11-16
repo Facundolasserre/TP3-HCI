@@ -234,20 +234,21 @@ private fun SuccessState(
     var showCategoryDropdown by remember { mutableStateOf(false) }
     val useTwoPane = shouldUseTwoPaneLayout()
 
-    // Obtener categorías únicas de los productos actuales
-    // Incluir también la categoría seleccionada si existe, aunque no esté en los productos visibles
-    val availableCategories = remember(state.products, state.selectedCategoryId, state.categories) {
-        val categoriesFromProducts = state.products
-            .mapNotNull { it.category }
-            .distinctBy { it.id }
-        
-        val selectedCategory = state.selectedCategoryId?.let { selectedId ->
-            state.categories.find { it.id == selectedId }
+    // Obtener categorías que tienen productos (del cache del ViewModel)
+    // Si el cache está vacío (primera carga), mostrar todas las categorías
+    // Incluir también la categoría seleccionada si existe, aunque no esté en el cache aún
+    val availableCategories = remember(state.availableCategoryIds, state.selectedCategoryId, state.categories) {
+        val categoriesToShow = if (state.availableCategoryIds.isEmpty()) {
+            // Primera carga: mostrar todas las categorías
+            state.categories
+        } else {
+            // Mostrar solo categorías que tienen productos + la seleccionada
+            state.categories.filter { category -> 
+                state.availableCategoryIds.contains(category.id) || 
+                category.id == state.selectedCategoryId
+            }
         }
-        
-        (categoriesFromProducts + listOfNotNull(selectedCategory))
-            .distinctBy { it.id }
-            .sortedBy { it.name }
+        categoriesToShow.sortedBy { it.name }
     }
 
     val selectedCategoryName = if (state.selectedCategoryId == null) {

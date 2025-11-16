@@ -43,11 +43,49 @@ class ProductsViewModel @Inject constructor(
 
     private val searchQueryFlow = MutableStateFlow("")
     private var searchJob: Job? = null
+    
+    // Cache de categorías que tienen productos asignados
+    private val categoriesWithProducts = mutableSetOf<Long>()
 
     init {
         loadCategories()
         loadProducts()
         setupSearchDebounce()
+        // Cargar todos los productos inicialmente para construir el cache de categorías
+        buildCategoryCache()
+    }
+    
+    /**
+     * Construye el cache de categorías cargando todos los productos (sin filtros)
+     */
+    private fun buildCategoryCache() {
+        viewModelScope.launch {
+            productRepository.getProducts(
+                name = null,
+                categoryId = null,
+                page = 1,
+                perPage = 100 // Cargar muchos productos para construir el cache
+            ).collect { result ->
+                when (result) {
+                    is Result.Success -> {
+                        // Actualizar cache de categorías
+                        result.data.data.forEach { product ->
+                            product.category?.id?.let { categoryId ->
+                                categoriesWithProducts.add(categoryId)
+                            }
+                        }
+                        // Actualizar el estado si existe
+                        val currentState = uiState
+                        if (currentState is ProductsUiState.Success) {
+                            uiState = currentState.copy(availableCategoryIds = categoriesWithProducts.toSet())
+                        }
+                    }
+                    else -> {
+                        // Ignorar errores en la construcción del cache
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -130,6 +168,13 @@ class ProductsViewModel @Inject constructor(
                     }
                     is Result.Success -> {
                         val categories = (currentState as? ProductsUiState.Success)?.categories ?: emptyList()
+                        
+                        // Actualizar cache de categorías que tienen productos
+                        result.data.data.forEach { product ->
+                            product.category?.id?.let { categoryId ->
+                                categoriesWithProducts.add(categoryId)
+                            }
+                        }
 
                         if (result.data.data.isEmpty() && pg == 1) {
                             uiState = ProductsUiState.Empty
@@ -138,6 +183,7 @@ class ProductsViewModel @Inject constructor(
                                 products = result.data.data,
                                 pagination = result.data.pagination,
                                 categories = categories,
+                                availableCategoryIds = categoriesWithProducts.toSet(),
                                 searchQuery = query,
                                 selectedCategoryId = catId,
                                 pageSize = size,
@@ -257,6 +303,10 @@ class ProductsViewModel @Inject constructor(
             productRepository.createProduct(request).collect { result ->
                 when (result) {
                     is Result.Success -> {
+                        // Actualizar cache si el producto tiene categoría
+                        result.data.category?.id?.let { categoryId ->
+                            categoriesWithProducts.add(categoryId)
+                        }
                         dismissDialogs()
                         refreshProducts()
                     }
@@ -288,6 +338,10 @@ class ProductsViewModel @Inject constructor(
             productRepository.updateProduct(productId, request).collect { result ->
                 when (result) {
                     is Result.Success -> {
+                        // Actualizar cache si el producto tiene categoría
+                        result.data.category?.id?.let { categoryId ->
+                            categoriesWithProducts.add(categoryId)
+                        }
                         dismissDialogs()
                         refreshProducts()
                     }
