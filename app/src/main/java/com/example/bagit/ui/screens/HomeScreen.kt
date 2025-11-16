@@ -24,6 +24,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -325,10 +326,12 @@ private fun EmptyStateLandscape(
         ) {
             Text(
                 text = stringResource(R.string.home_empty_title),
-                style = MaterialTheme.typography.headlineLarge,
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.SansSerif,
                 color = OnDark,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 24.dp)
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -346,8 +349,9 @@ private fun EmptyStateLandscape(
             ) {
                 Text(
                     text = stringResource(R.string.home_add_list_button),
-                    style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
-                    fontWeight = FontWeight.SemiBold
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = FontFamily.SansSerif
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Icon(imageVector = Icons.Filled.Add, contentDescription = stringResource(R.string.home_add_list_icon))
@@ -367,11 +371,12 @@ private fun EmptyStatePortrait(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = contentPadding)
-            .verticalScroll(rememberScrollState()),
+            .padding(horizontal = contentPadding, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        Spacer(modifier = Modifier.weight(1f))
+
         Surface(
             modifier = Modifier.size(illustrationSize),
             shape = CircleShape,
@@ -390,19 +395,18 @@ private fun EmptyStatePortrait(
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
         Text(
             text = stringResource(R.string.home_empty_title),
-            style = MaterialTheme.typography.headlineLarge.copy(
-                fontSize = if (isTablet) 36.sp else 28.sp
-            ),
+            fontSize = if (isTablet) 24.sp else 22.sp,
             fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.SansSerif,
             color = OnDark,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 24.dp)
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
         Spacer(modifier = Modifier.weight(1f))
 
         Button(
@@ -418,16 +422,15 @@ private fun EmptyStatePortrait(
         ) {
             Text(
                 text = stringResource(R.string.home_add_list_button),
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontSize = if (isTablet) 18.sp else 16.sp
-                ),
-                fontWeight = FontWeight.SemiBold
+                fontSize = if (isTablet) 18.sp else 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                fontFamily = FontFamily.SansSerif
             )
             Spacer(modifier = Modifier.width(12.dp))
             Icon(imageVector = Icons.Filled.Add, contentDescription = stringResource(R.string.home_add_list_icon))
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
