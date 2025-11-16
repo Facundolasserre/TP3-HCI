@@ -30,7 +30,7 @@ android {
         }
         create("physical") {
             dimension = "device"
-            buildConfigField("String", "BASE_URL", "\"http://192.168.0.178:8080/\"")
+            buildConfigField("String", "BASE_URL", "\"http://192.168.0.193:8080/\"")
         }
     }
 
