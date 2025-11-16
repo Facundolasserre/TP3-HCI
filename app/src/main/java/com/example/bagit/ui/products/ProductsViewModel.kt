@@ -143,13 +143,19 @@ class ProductsViewModel @Inject constructor(
         page: Int? = null,
         pageSize: Int? = null,
         sortBy: String? = null,
-        order: String? = null
+        order: String? = null,
+        resetCategory: Boolean = false
     ) {
         val currentState = uiState
 
         // Determinar valores a usar
         val query = searchQuery ?: (currentState as? ProductsUiState.Success)?.searchQuery ?: ""
-        val catId = categoryId ?: (currentState as? ProductsUiState.Success)?.selectedCategoryId
+        // IMPORTANTE: Si resetCategory es true, usar null. Si no, usar categoryId o el estado anterior
+        val catId = if (resetCategory) {
+            null
+        } else {
+            categoryId ?: (currentState as? ProductsUiState.Success)?.selectedCategoryId
+        }
         val pg = page ?: (currentState as? ProductsUiState.Success)?.currentPage ?: 1
         val size = pageSize ?: (currentState as? ProductsUiState.Success)?.pageSize ?: 10
         val sort = sortBy ?: (currentState as? ProductsUiState.Success)?.sortBy ?: "name"
@@ -229,7 +235,13 @@ class ProductsViewModel @Inject constructor(
      * Cambia el filtro de categoría
      */
     fun onCategorySelect(categoryId: Long?) {
-        loadProducts(categoryId = categoryId, page = 1)
+        if (categoryId == null) {
+            // Resetear a todas las categorías
+            loadProducts(resetCategory = true, page = 1)
+        } else {
+            // Filtrar por categoría específica
+            loadProducts(categoryId = categoryId, page = 1)
+        }
     }
 
     /**
