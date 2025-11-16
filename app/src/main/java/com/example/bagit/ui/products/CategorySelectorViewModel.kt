@@ -59,6 +59,9 @@ class CategorySelectorViewModel @Inject constructor(
 
     // Cache local de categorías para optimistic updates
     private var cachedCategories = listOf<Category>()
+    
+    // Preservar la categoría seleccionada incluso cuando el estado es Empty
+    private var preservedSelectedCategory: Category? = null
 
     init {
         loadCategories()
@@ -98,7 +101,9 @@ class CategorySelectorViewModel @Inject constructor(
                     is Result.Success -> {
                         cachedCategories = result.data.data
                         val currentState = _uiState.value
+                        // Usar la categoría seleccionada del estado actual o del preservado
                         val selectedCategory = (currentState as? CategorySelectorUiState.Success)?.selectedCategory
+                            ?: preservedSelectedCategory
 
                         if (cachedCategories.isEmpty()) {
                             _uiState.value = CategorySelectorUiState.Empty
@@ -107,6 +112,7 @@ class CategorySelectorViewModel @Inject constructor(
                                 categories = cachedCategories,
                                 selectedCategory = selectedCategory
                             )
+                            preservedSelectedCategory = selectedCategory
                         }
                     }
                     is Result.Error -> {
@@ -137,7 +143,9 @@ class CategorySelectorViewModel @Inject constructor(
      */
     private fun searchCategories(query: String) {
         val currentState = _uiState.value
+        // Obtener la categoría seleccionada del estado actual o del preservado
         val selectedCategory = (currentState as? CategorySelectorUiState.Success)?.selectedCategory
+            ?: preservedSelectedCategory
 
         if (query.isBlank()) {
             _uiState.value = CategorySelectorUiState.Success(
@@ -145,12 +153,15 @@ class CategorySelectorViewModel @Inject constructor(
                 searchQuery = "",
                 selectedCategory = selectedCategory
             )
+            preservedSelectedCategory = selectedCategory
         } else {
             val filtered = cachedCategories.filter {
                 it.name.contains(query, ignoreCase = true)
             }
 
             _uiState.value = if (filtered.isEmpty()) {
+                // Preservar la selección incluso cuando no hay resultados
+                preservedSelectedCategory = selectedCategory
                 CategorySelectorUiState.Empty
             } else {
                 CategorySelectorUiState.Success(
@@ -166,9 +177,26 @@ class CategorySelectorViewModel @Inject constructor(
      * Selecciona una categoría
      */
     fun selectCategory(category: Category) {
+        preservedSelectedCategory = category
         val currentState = _uiState.value
-        if (currentState is CategorySelectorUiState.Success) {
-            _uiState.value = currentState.copy(selectedCategory = category)
+        when (currentState) {
+            is CategorySelectorUiState.Success -> {
+                _uiState.value = currentState.copy(selectedCategory = category)
+            }
+            is CategorySelectorUiState.Empty -> {
+                // Si está vacío pero hay categorías en cache, restaurar estado Success
+                if (cachedCategories.isNotEmpty()) {
+                    _uiState.value = CategorySelectorUiState.Success(
+                        categories = cachedCategories,
+                        searchQuery = "",
+                        selectedCategory = category
+                    )
+                }
+            }
+            else -> {
+                // Para otros estados, esperar a que se carguen las categorías
+                // La selección se aplicará cuando el estado cambie a Success
+            }
         }
     }
 
@@ -176,9 +204,25 @@ class CategorySelectorViewModel @Inject constructor(
      * Limpia la selección
      */
     fun clearSelection() {
+        preservedSelectedCategory = null
         val currentState = _uiState.value
-        if (currentState is CategorySelectorUiState.Success) {
-            _uiState.value = currentState.copy(selectedCategory = null)
+        when (currentState) {
+            is CategorySelectorUiState.Success -> {
+                _uiState.value = currentState.copy(selectedCategory = null)
+            }
+            is CategorySelectorUiState.Empty -> {
+                // Si está vacío pero hay categorías en cache, restaurar estado Success sin selección
+                if (cachedCategories.isNotEmpty()) {
+                    _uiState.value = CategorySelectorUiState.Success(
+                        categories = cachedCategories,
+                        searchQuery = "",
+                        selectedCategory = null
+                    )
+                }
+            }
+            else -> {
+                // Para otros estados, no hacer nada
+            }
         }
     }
 

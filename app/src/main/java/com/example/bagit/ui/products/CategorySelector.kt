@@ -42,20 +42,26 @@ fun CategorySelector(
     val uiState by viewModel.uiState.collectAsState()
     val dialogState by viewModel.dialogState.collectAsState()
 
-    // Sincronizar selección externa con ViewModel
+    // Sincronizar selección externa con ViewModel (solo cuando cambia desde fuera)
     LaunchedEffect(selectedCategory) {
-        if (selectedCategory != null) {
-            viewModel.selectCategory(selectedCategory)
-        } else {
-            viewModel.clearSelection()
+        val currentState = viewModel.uiState.value
+        val currentSelected = (currentState as? CategorySelectorUiState.Success)?.selectedCategory
+        // Solo sincronizar si realmente cambió desde fuera
+        if (selectedCategory?.id != currentSelected?.id) {
+            if (selectedCategory != null) {
+                viewModel.selectCategory(selectedCategory)
+            } else {
+                viewModel.clearSelection()
+            }
         }
     }
 
-    // Notificar cambios de selección al padre
+    // Notificar cambios de selección al padre (evitar loops)
     LaunchedEffect(uiState) {
         if (uiState is CategorySelectorUiState.Success) {
             val selected = (uiState as CategorySelectorUiState.Success).selectedCategory
-            if (selected != selectedCategory) {
+            // Solo notificar si realmente cambió
+            if (selected?.id != selectedCategory?.id) {
                 onCategorySelected(selected)
             }
         }
@@ -131,8 +137,14 @@ fun CategorySelector(
                         categories = state.categories,
                         selectedCategory = state.selectedCategory,
                         onCategoryClick = { category ->
-                            viewModel.selectCategory(category)
-                            onCategorySelected(category)
+                            // Toggle: si la categoría ya está seleccionada, deseleccionarla
+                            if (state.selectedCategory?.id == category.id) {
+                                viewModel.clearSelection()
+                                onCategorySelected(null)
+                            } else {
+                                viewModel.selectCategory(category)
+                                onCategorySelected(category)
+                            }
                         }
                     )
                 }
