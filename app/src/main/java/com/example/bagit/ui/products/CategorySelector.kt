@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.bagit.R
 import com.example.bagit.data.model.Category
+import com.example.bagit.ui.theme.OnDark
 
 /**
  * Componente de selector de categorías con búsqueda y creación.
@@ -273,12 +274,13 @@ fun CreateCategoryDialog(
             Text(
                 text = stringResource(R.string.create_category_title),
                 fontSize = 20.sp,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
+                color = OnDark
             )
         },
         text = {
             Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 OutlinedTextField(
                     value = categoryName,
@@ -291,8 +293,18 @@ fun CreateCategoryDialog(
                             }
                         }
                     },
-                    label = { Text(stringResource(R.string.create_category_name_label)) },
-                    placeholder = { Text(stringResource(R.string.create_category_name_placeholder)) },
+                    label = {
+                        Text(
+                            stringResource(R.string.create_category_name_label),
+                            color = OnDark.copy(alpha = 0.7f)
+                        )
+                    },
+                    placeholder = {
+                        Text(
+                            stringResource(R.string.create_category_name_placeholder),
+                            color = OnDark.copy(alpha = 0.5f)
+                        )
+                    },
                     isError = showError || errorMessage != null,
                     supportingText = {
                         when {
@@ -306,13 +318,25 @@ fun CreateCategoryDialog(
                             )
                             else -> Text(
                                 text = stringResource(R.string.create_category_max_length),
-                                color = Color(0xFF9E9E9E)
+                                color = OnDark.copy(alpha = 0.6f)
                             )
                         }
                     },
                     enabled = !isSubmitting,
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color(0xFF1E1F2E),
+                        unfocusedContainerColor = Color(0xFF1E1F2E),
+                        focusedTextColor = OnDark,
+                        unfocusedTextColor = OnDark,
+                        focusedBorderColor = Color(0xFF5249B6),
+                        unfocusedBorderColor = Color(0xFF3D3F54),
+                        cursorColor = Color(0xFF5249B6),
+                        errorBorderColor = Color(0xFFFF6B6B),
+                        errorContainerColor = Color(0xFF1E1F2E),
+                        errorTextColor = OnDark
+                    )
                 )
 
                 if (isSubmitting) {
@@ -324,7 +348,7 @@ fun CreateCategoryDialog(
             }
         },
         confirmButton = {
-            TextButton(
+            Button(
                 onClick = {
                     if (categoryName.isBlank()) {
                         showError = true
@@ -332,11 +356,18 @@ fun CreateCategoryDialog(
                         onConfirm(categoryName)
                     }
                 },
-                enabled = !isSubmitting
+                enabled = !isSubmitting,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF5249B6),
+                    contentColor = OnDark,
+                    disabledContainerColor = Color(0xFF3D3F54),
+                    disabledContentColor = OnDark.copy(alpha = 0.5f)
+                ),
+                shape = RoundedCornerShape(8.dp)
             ) {
                 Text(
                     text = stringResource(R.string.create_category_button),
-                    color = Color(0xFFA594FF)
+                    fontWeight = FontWeight.Medium
                 )
             }
         },
@@ -345,12 +376,15 @@ fun CreateCategoryDialog(
                 onClick = onDismiss,
                 enabled = !isSubmitting
             ) {
-                Text(stringResource(R.string.create_category_cancel))
+                Text(
+                    stringResource(R.string.create_category_cancel),
+                    color = OnDark.copy(alpha = 0.7f)
+                )
             }
         },
-        containerColor = Color(0xFF2A2D3A),
-        titleContentColor = Color.White,
-        textContentColor = Color.White
+        containerColor = Color(0xFF1E1F2E),
+        titleContentColor = OnDark,
+        textContentColor = OnDark
     )
 }
 

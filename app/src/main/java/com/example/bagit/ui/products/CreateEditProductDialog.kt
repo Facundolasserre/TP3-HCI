@@ -1,16 +1,19 @@
 package com.example.bagit.ui.products
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import com.example.bagit.R
 import com.example.bagit.data.model.Category
 import com.example.bagit.data.model.Product
+import com.example.bagit.ui.theme.OnDark
 
 /**
  * Diálogo reutilizable para crear o editar productos.
@@ -41,7 +44,12 @@ fun CreateEditProductDialog(
     AlertDialog(
         onDismissRequest = { if (!isSubmitting) onDismiss() },
         title = {
-            Text(text = title)
+            Text(
+                text = title,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = OnDark
+            )
         },
         text = {
             Column(
@@ -57,23 +65,44 @@ fun CreateEditProductDialog(
                         name = it
                         nameError = it.isBlank()
                     },
-                    label = { Text(stringResource(R.string.product_dialog_name_label)) },
+                    label = {
+                        Text(
+                            stringResource(R.string.product_dialog_name_label),
+                            color = OnDark.copy(alpha = 0.7f)
+                        )
+                    },
                     isError = nameError,
                     supportingText = {
                         if (nameError) {
-                            Text(stringResource(R.string.product_dialog_name_error))
+                            Text(
+                                stringResource(R.string.product_dialog_name_error),
+                                color = Color(0xFFFF6B6B)
+                            )
                         }
                     },
                     enabled = !isSubmitting,
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color(0xFF1E1F2E),
+                        unfocusedContainerColor = Color(0xFF1E1F2E),
+                        focusedTextColor = OnDark,
+                        unfocusedTextColor = OnDark,
+                        focusedBorderColor = Color(0xFF5249B6),
+                        unfocusedBorderColor = Color(0xFF3D3F54),
+                        cursorColor = Color(0xFF5249B6),
+                        errorBorderColor = Color(0xFFFF6B6B),
+                        errorContainerColor = Color(0xFF1E1F2E),
+                        errorTextColor = OnDark
+                    )
                 )
 
                 // Selector de categorías con búsqueda y creación
                 Text(
                     text = stringResource(R.string.product_dialog_category_label),
-                    fontSize = 12.sp,
-                    color = Color(0xFFB0B0B0)
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = OnDark.copy(alpha = 0.9f)
                 )
 
                 CategorySelector(
@@ -86,23 +115,34 @@ fun CreateEditProductDialog(
 
                 if (isSubmitting) {
                     LinearProgressIndicator(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        color = Color(0xFFA594FF)
                     )
                 }
             }
         },
         confirmButton = {
-            TextButton(
+            Button(
                 onClick = {
                     if (name.isBlank()) {
                         nameError = true
-                        return@TextButton
+                        return@Button
                     }
                     onConfirm(name, selectedCategory?.id, null)
                 },
-                enabled = !isSubmitting
+                enabled = !isSubmitting,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF5249B6),
+                    contentColor = OnDark,
+                    disabledContainerColor = Color(0xFF3D3F54),
+                    disabledContentColor = OnDark.copy(alpha = 0.5f)
+                ),
+                shape = RoundedCornerShape(8.dp)
             ) {
-                Text(confirmText)
+                Text(
+                    text = confirmText,
+                    fontWeight = FontWeight.Medium
+                )
             }
         },
         dismissButton = {
@@ -110,9 +150,15 @@ fun CreateEditProductDialog(
                 onClick = onDismiss,
                 enabled = !isSubmitting
             ) {
-                Text(stringResource(R.string.product_dialog_cancel_button))
+                Text(
+                    stringResource(R.string.product_dialog_cancel_button),
+                    color = OnDark.copy(alpha = 0.7f)
+                )
             }
-        }
+        },
+        containerColor = Color(0xFF1E1F2E),
+        titleContentColor = OnDark,
+        textContentColor = OnDark
     )
 }
 

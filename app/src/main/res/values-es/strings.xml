@@ -267,6 +267,11 @@
 
     <!-- Favorites Screen -->
     <string name="favorites_retry">Reintentar</string>
+    <string name="favorites_empty_title">Aún no hay favoritos</string>
+    <string name="favorites_empty_subtitle">Marque una lista como favorita para verla aquí</string>
+    <string name="favorites_no_results_title">No se encontraron favoritos</string>
+    <string name="favorites_no_results_subtitle">Intente con otro término de búsqueda</string>
+    <string name="favorites_error_loading">Error al cargar favoritos</string>
 
     <!-- Common -->
     <string name="common_error">Error</string>

@@ -146,19 +146,24 @@ private fun EmptyFavoritesState(
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = if (hasSearch) "No favorites found" else "No favorites yet",
+            text = stringResource(
+                if (hasSearch) R.string.favorites_no_results_title
+                else R.string.favorites_empty_title
+            ),
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            color = OnDark
+            color = OnDark,
+            style = MaterialTheme.typography.headlineMedium
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = if (hasSearch) 
-                "Try a different search term" 
-            else 
-                "Mark lists as favorites to see them here",
+            text = stringResource(
+                if (hasSearch) R.string.favorites_no_results_subtitle
+                else R.string.favorites_empty_subtitle
+            ),
             fontSize = 16.sp,
-            color = OnDark.copy(alpha = 0.7f)
+            color = OnDark.copy(alpha = 0.7f),
+            style = MaterialTheme.typography.bodyLarge
         )
     }
 }
@@ -174,9 +179,10 @@ private fun ErrorState(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Error loading favorites",
+            text = stringResource(R.string.favorites_error_loading),
             color = Color.Red,
-            fontWeight = FontWeight.Medium
+            fontWeight = FontWeight.Medium,
+            style = MaterialTheme.typography.bodyLarge
         )
         Spacer(modifier = Modifier.height(16.dp))
         Button(
