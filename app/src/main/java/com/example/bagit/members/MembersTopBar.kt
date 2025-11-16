@@ -22,8 +22,6 @@ fun MembersTopBar(
     onRenameList: () -> Unit = {},
     onShareList: () -> Unit = {}
 ) {
-    val showMenuState = remember { mutableStateOf(false) }
-
     TopAppBar(
         title = {
             Text(
@@ -50,36 +48,6 @@ fun MembersTopBar(
                     tint = OnDark,
                     modifier = Modifier.size(24.dp)
                 )
-            }
-
-            // Menu Button
-            Box {
-                IconButton(onClick = { showMenuState.value = true }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = stringResource(R.string.share_members_more_options),
-                        tint = OnDark
-                    )
-                }
-                DropdownMenu(
-                    expanded = showMenuState.value,
-                    onDismissRequest = { showMenuState.value = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.share_members_rename_list)) },
-                        onClick = {
-                            onRenameList()
-                            showMenuState.value = false
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.share_members_share_list)) },
-                        onClick = {
-                            onShareList()
-                            showMenuState.value = false
-                        }
-                    )
-                }
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
