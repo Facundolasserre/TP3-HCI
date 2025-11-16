@@ -151,8 +151,8 @@ fun MemberRow(
                         )
                         Text(
                             text = when (member.role) {
-                                MemberRole.OWNER -> "Owner"
-                                MemberRole.MEMBER -> "Member"
+                                MemberRole.OWNER -> stringResource(R.string.share_members_owner)
+                                MemberRole.MEMBER -> stringResource(R.string.share_members_member)
                             },
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
@@ -174,7 +174,7 @@ fun MemberRow(
                     ) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
-                            contentDescription = "Member options",
+                            contentDescription = stringResource(R.string.share_members_member_options),
                             tint = OnDark.copy(alpha = 0.7f),
                             modifier = Modifier.size(22.dp)
                         )
@@ -268,7 +268,7 @@ fun MemberRow(
                                             tint = Color(0xFFFF5252)
                                         )
                                         Text(
-                                            "Remove",
+                                            stringResource(R.string.share_members_remove),
                                             color = Color(0xFFFF5252)
                                         )
                                     }

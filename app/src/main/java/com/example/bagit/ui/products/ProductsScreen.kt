@@ -258,7 +258,7 @@ private fun SuccessState(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = "Filters",
+                    text = stringResource(R.string.products_filters),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -271,7 +271,7 @@ private fun SuccessState(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "Categories",
+                        text = stringResource(R.string.products_categories),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = OnDark.copy(alpha = 0.7f),
@@ -324,7 +324,7 @@ private fun SuccessState(
                 // Dropdown de tamaño de página
                 Column {
                     Text(
-                        text = "Page Size",
+                        text = stringResource(R.string.products_page_size),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = OnDark.copy(alpha = 0.7f),

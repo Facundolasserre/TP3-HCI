@@ -26,6 +26,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.bagit.R
 import com.example.bagit.ui.theme.BagItTheme
 import com.example.bagit.ui.theme.DarkNavy
 import com.example.bagit.ui.theme.OnDark
@@ -40,7 +42,7 @@ fun ShoppingHistoryScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Shopping History",
+                        text = stringResource(R.string.shopping_history_title),
                         color = OnDark,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -49,7 +51,7 @@ fun ShoppingHistoryScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.common_back),
                             tint = OnDark
                         )
                     }
@@ -81,7 +83,7 @@ fun ShoppingHistoryScreen(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "Shopping history coming soon",
+                    text = stringResource(R.string.shopping_history_coming_soon),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Medium,
                     color = OnDark,

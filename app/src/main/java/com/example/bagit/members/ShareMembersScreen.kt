@@ -94,7 +94,7 @@ fun ShareMembersScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Text(
-                        text = "Filter Members",
+                        text = stringResource(R.string.share_members_filter),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
@@ -114,7 +114,7 @@ fun ShareMembersScreen(
                     // Tabs
                     Column {
                         Text(
-                            text = "Status",
+                            text = stringResource(R.string.share_members_status),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = OnDark.copy(alpha = 0.7f),
@@ -172,7 +172,7 @@ fun ShareMembersScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "No members found",
+                                text = stringResource(R.string.share_members_no_members_found),
                                 fontSize = 16.sp,
                                 color = OnDark.copy(alpha = 0.5f)
                             )
@@ -362,19 +362,19 @@ fun TabsSegmented(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         TabButton(
-            label = "All",
+            label = stringResource(R.string.share_members_all),
             isSelected = selectedTab == MembersTab.ALL,
             onClick = { onTabSelected(MembersTab.ALL) },
             modifier = Modifier.weight(1f)
         )
         TabButton(
-            label = "Pending",
+            label = stringResource(R.string.share_members_pending),
             isSelected = selectedTab == MembersTab.PENDING,
             onClick = { onTabSelected(MembersTab.PENDING) },
             modifier = Modifier.weight(1f)
         )
         TabButton(
-            label = "Blocked",
+            label = stringResource(R.string.share_members_blocked),
             isSelected = selectedTab == MembersTab.BLOCKED,
             onClick = { onTabSelected(MembersTab.BLOCKED) },
             modifier = Modifier.weight(1f)

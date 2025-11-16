@@ -232,7 +232,7 @@ fun HomeScreen(
                                             verticalArrangement = Arrangement.Center
                                         ) {
                                             Text(
-                                                text = "Select a list",
+                                                text = stringResource(R.string.home_select_list),
                                                 fontSize = 18.sp,
                                                 fontWeight = FontWeight.Medium,
                                                 color = OnDark.copy(alpha = 0.7f),
@@ -240,7 +240,7 @@ fun HomeScreen(
                                             )
                                             Spacer(modifier = Modifier.height(8.dp))
                                             Text(
-                                                text = "Select a list to view details",
+                                                text = stringResource(R.string.home_select_list_details),
                                                 fontSize = 14.sp,
                                                 color = OnDark.copy(alpha = 0.5f),
                                                 textAlign = TextAlign.Center
@@ -539,7 +539,7 @@ fun ShoppingListCard(
 ) {
     val metadata = list.metadata
     val colorHex = metadata?.get("color") as? String ?: "#5249B6"
-    val category = metadata?.get("category") as? String ?: "General"
+    val category = metadata?.get("category") as? String ?: stringResource(R.string.home_category_general)
 
     Card(
         onClick = onClick,
@@ -661,7 +661,7 @@ fun ShoppingListGridCard(
 ) {
     val metadata = list.metadata
     val colorHex = metadata?.get("color") as? String ?: "#5249B6"
-    val category = metadata?.get("category") as? String ?: "General"
+    val category = metadata?.get("category") as? String ?: stringResource(R.string.home_category_general)
 
     Card(
         onClick = onClick,
@@ -772,7 +772,7 @@ private fun ListDetailsPanel(
 ) {
     val metadata = list.metadata
     val colorHex = metadata?.get("color") as? String ?: "#5249B6"
-    val category = metadata?.get("category") as? String ?: "General"
+    val category = metadata?.get("category") as? String ?: stringResource(R.string.home_category_general)
 
     Column(
         modifier = modifier
@@ -821,7 +821,7 @@ private fun ListDetailsPanel(
         if (list.description?.isNotBlank() == true) {
             Column {
                 Text(
-                    text = "Description",
+                    text = stringResource(R.string.home_description),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = OnDark.copy(alpha = 0.6f),
@@ -838,7 +838,7 @@ private fun ListDetailsPanel(
         // Información de compartido
         Column {
             Text(
-                text = "Sharing",
+                text = stringResource(R.string.home_sharing),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = OnDark.copy(alpha = 0.6f),
@@ -868,7 +868,7 @@ private fun ListDetailsPanel(
             shape = RoundedCornerShape(12.dp)
         ) {
             Text(
-                text = "Open List",
+                text = stringResource(R.string.home_open_list_button),
                 fontWeight = FontWeight.SemiBold
             )
             Spacer(modifier = Modifier.width(8.dp))

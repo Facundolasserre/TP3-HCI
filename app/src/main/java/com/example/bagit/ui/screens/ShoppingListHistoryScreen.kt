@@ -16,6 +16,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.bagit.R
 import com.example.bagit.ui.components.BagItTopBar
 import com.example.bagit.ui.theme.DarkNavy
 import com.example.bagit.ui.theme.OnDark
@@ -127,13 +129,13 @@ fun ShoppingListHistoryScreen(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = "Error loading shopping lists",
+                            text = stringResource(R.string.shopping_history_error_loading),
                             color = Color.Red,
                             fontWeight = FontWeight.Medium
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(onClick = { viewModel.getShoppingLists() }) {
-                            Text("Retry")
+                            Text(stringResource(R.string.common_retry))
                         }
                     }
                 }
@@ -180,7 +182,7 @@ private fun EmptyHistoryState(
         Spacer(modifier = Modifier.height(32.dp))
 
         Text(
-            text = "No completed shopping lists",
+            text = stringResource(R.string.shopping_history_no_completed),
             fontSize = if (isTablet) 26.sp else 24.sp,
             fontWeight = FontWeight.Bold,
             color = OnDark,
@@ -190,7 +192,7 @@ private fun EmptyHistoryState(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Shopping lists with all items purchased will appear here",
+            text = stringResource(R.string.shopping_history_empty_hint),
             fontSize = if (isTablet) 18.sp else 16.sp,
             color = OnDark.copy(alpha = 0.7f),
             textAlign = TextAlign.Center,

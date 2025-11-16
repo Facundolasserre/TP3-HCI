@@ -140,7 +140,7 @@ fun ListDetailScreen(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Delete List", color = Color(0xFFE57373)) },
+                                text = { Text(stringResource(R.string.list_delete_list), color = Color(0xFFE57373)) },
                                 onClick = {
                                     showDeleteDialog = true
                                     showMenuState.value = false
@@ -191,7 +191,7 @@ fun ListDetailScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Text(
-                        text = "Buscar y filtrar",
+                        text = stringResource(R.string.list_search_and_filter),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
@@ -205,7 +205,7 @@ fun ListDetailScreen(
                         onValueChange = { searchQuery = it },
                         placeholder = {
                             Text(
-                                "Buscar productos…",
+                                stringResource(R.string.list_search_products_placeholder),
                                 color = OnDark.copy(alpha = 0.5f),
                                 fontSize = 16.sp
                             )
@@ -213,7 +213,7 @@ fun ListDetailScreen(
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Search,
-                                contentDescription = "Buscar",
+                                contentDescription = stringResource(R.string.list_search_icon),
                                 tint = OnDark.copy(alpha = 0.6f)
                             )
                         },
@@ -222,7 +222,7 @@ fun ListDetailScreen(
                                 IconButton(onClick = { searchQuery = "" }) {
                                     Icon(
                                         imageVector = Icons.Default.Clear,
-                                        contentDescription = "Limpiar",
+                                        contentDescription = stringResource(R.string.list_clear_icon),
                                         tint = OnDark.copy(alpha = 0.6f)
                                     )
                                 }
@@ -496,14 +496,14 @@ private fun ListItemsPanel(
                                 )
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Text(
-                                    text = "No se encontraron productos",
+                                    text = stringResource(R.string.list_no_products_found),
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = OnDark.copy(alpha = 0.6f)
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "Intenta con un término de búsqueda diferente",
+                                    text = stringResource(R.string.list_try_different_search),
                                     fontSize = 14.sp,
                                     color = OnDark.copy(alpha = 0.4f)
                                 )
@@ -529,13 +529,13 @@ private fun ListItemsPanel(
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = itemsState.message ?: "Error loading items",
+                            text = itemsState.message ?: stringResource(R.string.list_error_loading_items),
                             color = Color.Red,
                             modifier = Modifier.padding(16.dp)
                         )
                         if (searchQuery.isNotBlank()) {
                             Text(
-                                text = "Probá borrar o cambiar el término de búsqueda.",
+                                text = stringResource(R.string.list_try_clear_search),
                                 color = OnDark.copy(alpha = 0.6f),
                                 fontSize = 12.sp
                             )
@@ -660,7 +660,7 @@ fun ListItemCard(
             ) {
                 Icon(
                     imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit",
+                    contentDescription = stringResource(R.string.list_edit_icon),
                     tint = Color(0xFF64B5F6),
                     modifier = Modifier.size(20.dp)
                 )
@@ -673,7 +673,7 @@ fun ListItemCard(
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete",
+                    contentDescription = stringResource(R.string.list_delete_icon),
                     tint = Color(0xFFE57373),
                     modifier = Modifier.size(20.dp)
                 )
@@ -700,6 +700,10 @@ fun AddItemDialog(
     val categoriesState by viewModel.categoriesState
     val isCreatingProduct by viewModel.isCreatingProduct
     val errorMessage by viewModel.errorMessage
+    
+    // Obtener strings localizados para usar en callbacks
+    val unitSingular = stringResource(R.string.list_unit_singular)
+    val unitPlural = stringResource(R.string.list_unit_plural)
 
     // Cargar categorías cuando se abre el diálogo de crear producto
     LaunchedEffect(showCreateProductDialog) {
@@ -888,7 +892,7 @@ fun AddItemDialog(
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.Add,
-                                                contentDescription = "Create new product",
+                                                contentDescription = stringResource(R.string.list_create_new_product),
                                                 tint = Color(0xFF5249B6),
                                                 modifier = Modifier.size(20.dp)
                                             )
@@ -993,7 +997,7 @@ fun AddItemDialog(
                     onClick = {
                         selectedProduct?.let { product ->
                             val qty = quantity.toDoubleOrNull() ?: 1.0
-                            val formattedUnit = formatUnit(unit, qty)
+                            val formattedUnit = formatUnitWithStrings(unit, qty, unitSingular, unitPlural)
                             onAddItem(product.id, qty, formattedUnit)
                         }
                     },
@@ -1157,10 +1161,30 @@ fun RenameListDialog(
 /**
  * Formatea la unidad según la cantidad.
  * Si la unidad base es "unit", cambia a "Unit" o "Units" según la cantidad.
+ * Esta función debe usarse dentro de un composable para acceder a stringResource.
  */
+@Composable
 fun formatUnit(baseUnit: String, quantity: Double): String {
+    return formatUnitWithStrings(
+        baseUnit = baseUnit,
+        quantity = quantity,
+        unitSingular = stringResource(R.string.list_unit_singular),
+        unitPlural = stringResource(R.string.list_unit_plural)
+    )
+}
+
+/**
+ * Formatea la unidad según la cantidad usando strings localizados proporcionados.
+ * Versión no composable para usar en callbacks.
+ */
+private fun formatUnitWithStrings(
+    baseUnit: String,
+    quantity: Double,
+    unitSingular: String,
+    unitPlural: String
+): String {
     return when (baseUnit.lowercase()) {
-        "unit" -> if (quantity == 1.0) "Unit" else "Units"
+        "unit" -> if (quantity == 1.0) unitSingular else unitPlural
         else -> baseUnit
     }
 }
@@ -1168,6 +1192,7 @@ fun formatUnit(baseUnit: String, quantity: Double): String {
 /**
  * Obtiene el nombre para mostrar de la unidad en el selector.
  */
+@Composable
 fun getUnitDisplayName(baseUnit: String, quantity: Double): String {
     return formatUnit(baseUnit, quantity)
 }
@@ -1253,6 +1278,10 @@ fun EditItemDialog(
 ) {
     var quantity by remember { mutableStateOf(item.quantity.toString()) }
     var unit by remember { mutableStateOf(item.unit.lowercase()) }
+    
+    // Obtener strings localizados para usar en callbacks
+    val unitSingular = stringResource(R.string.list_unit_singular)
+    val unitPlural = stringResource(R.string.list_unit_plural)
 
     Dialog(
         onDismissRequest = onDismiss
@@ -1267,7 +1296,7 @@ fun EditItemDialog(
                     .padding(24.dp)
             ) {
                 Text(
-                    text = "Editar artículo",
+                    text = stringResource(R.string.list_edit_item),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
 
@@ -1278,7 +1307,7 @@ fun EditItemDialog(
 
                 // Product name (read-only)
                 Text(
-                    text = "Producto",
+                    text = stringResource(R.string.list_product_label),
                     fontSize = 12.sp,
                     color = OnDark.copy(alpha = 0.6f)
                 )
@@ -1345,7 +1374,7 @@ fun EditItemDialog(
                     Button(
                         onClick = {
                             val qty = quantity.toDoubleOrNull() ?: item.quantity
-                            val formattedUnit = formatUnit(unit, qty)
+                            val formattedUnit = formatUnitWithStrings(unit, qty, unitSingular, unitPlural)
                             onSave(qty, formattedUnit)
                         },
                         enabled = quantity.toDoubleOrNull() != null,

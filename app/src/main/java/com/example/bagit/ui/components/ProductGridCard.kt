@@ -18,6 +18,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.bagit.R
 import com.example.bagit.data.model.Category
 import com.example.bagit.data.model.Product
 import java.text.SimpleDateFormat
@@ -57,7 +59,7 @@ fun ProductGridCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.ShoppingCart,
-                        contentDescription = "Product icon",
+                        contentDescription = stringResource(R.string.product_card_icon),
                         tint = Color(0xFFA594FF),
                         modifier = Modifier.size(28.dp)
                     )
@@ -109,7 +111,7 @@ fun ProductGridCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
-                        contentDescription = "Editar producto",
+                        contentDescription = stringResource(R.string.product_card_edit),
                         tint = Color(0xFFB0B0B0),
                         modifier = Modifier.size(18.dp)
                     )
@@ -121,7 +123,7 @@ fun ProductGridCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Borrar producto",
+                        contentDescription = stringResource(R.string.product_card_delete),
                         tint = Color(0xFFFF6B6B),
                         modifier = Modifier.size(18.dp)
                     )

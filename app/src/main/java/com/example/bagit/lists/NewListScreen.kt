@@ -208,13 +208,13 @@ fun NewListScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.Star,
-                        contentDescription = "Favorite",
+                        contentDescription = stringResource(R.string.new_list_favorite_icon),
                         tint = if (uiState.isFavorite) Color(0xFFFFC107) else OnDark.copy(alpha = 0.7f),
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "Mark as favorite",
+                        text = stringResource(R.string.new_list_mark_favorite),
                         fontSize = 16.sp,
                         color = OnDark
                     )
@@ -248,20 +248,20 @@ fun NewListScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.Share,
-                        contentDescription = "Compartir lista",
+                        contentDescription = stringResource(R.string.new_list_share_list),
                         tint = OnDark.copy(alpha = 0.7f),
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "Compartir lista",
+                        text = stringResource(R.string.new_list_share_list),
                         fontSize = 16.sp,
                         color = OnDark
                     )
                 }
                 Icon(
                     imageVector = Icons.Default.ChevronRight,
-                    contentDescription = "Navigate",
+                    contentDescription = stringResource(R.string.new_list_navigate),
                     tint = OnDark.copy(alpha = 0.5f),
                     modifier = Modifier.size(20.dp)
                 )
@@ -371,7 +371,7 @@ private fun PreviewCard(
             if (isFavorite) {
                 Icon(
                     imageVector = Icons.Default.Star,
-                    contentDescription = "Favorite",
+                    contentDescription = stringResource(R.string.new_list_favorite_icon),
                     tint = Color(0xFFFFC107),
                     modifier = Modifier.size(24.dp)
                 )
@@ -385,7 +385,14 @@ private fun CategoryChips(
     selectedCategory: String,
     onCategorySelected: (String) -> Unit
 ) {
-    val categories = listOf("Groceries", "Family", "Personal", "Work", "Health", "Other")
+    val categories = listOf(
+        stringResource(R.string.new_list_category_groceries),
+        stringResource(R.string.new_list_category_family),
+        stringResource(R.string.new_list_category_personal),
+        stringResource(R.string.new_list_category_work),
+        stringResource(R.string.new_list_category_health),
+        stringResource(R.string.new_list_category_other)
+    )
 
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp)

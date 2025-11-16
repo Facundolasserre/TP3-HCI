@@ -277,6 +277,79 @@
     <string name="favorites_no_results_subtitle">Try a different search term</string>
     <string name="favorites_error_loading">Error loading favorites</string>
 
+    <!-- Home Screen Additional -->
+    <string name="home_select_list">Select a list</string>
+    <string name="home_select_list_details">Select a list to view details</string>
+    <string name="home_description">Description</string>
+    <string name="home_sharing">Sharing</string>
+    <string name="home_open_list_button">Open List</string>
+    <string name="home_category_general">General</string>
+
+    <!-- List View Additional -->
+    <string name="list_search_and_filter">Search and filter</string>
+    <string name="list_search_products_placeholder">Search products…</string>
+    <string name="list_search_icon">Search</string>
+    <string name="list_clear_icon">Clear</string>
+    <string name="list_try_different_search">Try a different search term</string>
+    <string name="list_try_clear_search">Try clearing or changing the search term.</string>
+    <string name="list_error_loading_items">Error loading items</string>
+    <string name="list_edit_icon">Edit</string>
+    <string name="list_delete_icon">Delete</string>
+    <string name="list_delete_list">Delete List</string>
+    <string name="list_create_new_product">Create new product</string>
+    <string name="list_edit_item">Edit item</string>
+    <string name="list_product_label">Product</string>
+    <string name="list_unit_singular">Unit</string>
+    <string name="list_unit_plural">Units</string>
+
+    <!-- Products Screen Additional -->
+    <string name="products_filters">Filters</string>
+    <string name="products_categories">Categories</string>
+    <string name="products_page_size">Page Size</string>
+
+    <!-- Share Members Screen Additional -->
+    <string name="share_members_filter">Filter Members</string>
+    <string name="share_members_status">Status</string>
+    <string name="share_members_no_members_found">No members found</string>
+    <string name="share_members_all">All</string>
+    <string name="share_members_pending">Pending</string>
+    <string name="share_members_blocked">Blocked</string>
+    <string name="share_members_remove">Remove</string>
+    <string name="share_members_owner">Owner</string>
+    <string name="share_members_member">Member</string>
+    <string name="share_members_member_options">Member options</string>
+
+    <!-- Account Settings Additional -->
+    <string name="account_settings_view_mode_description">Choose how products are displayed</string>
+
+    <!-- Shopping History Additional -->
+    <string name="shopping_history_error_loading">Error loading shopping lists</string>
+    <string name="shopping_history_no_completed">No completed shopping lists</string>
+    <string name="shopping_history_empty_hint">Shopping lists with all items purchased will appear here</string>
+    <string name="shopping_history_title">Shopping History</string>
+    <string name="shopping_history_coming_soon">Shopping history coming soon</string>
+
+    <!-- TopBar Additional -->
+    <string name="topbar_menu">Menu</string>
+
+    <!-- New List Screen Additional -->
+    <string name="new_list_mark_favorite">Mark as favorite</string>
+    <string name="new_list_share_list">Share list</string>
+    <string name="new_list_navigate">Navigate</string>
+    <string name="new_list_favorite_icon">Favorite</string>
+    <string name="new_list_category_groceries">Groceries</string>
+    <string name="new_list_category_family">Family</string>
+    <string name="new_list_category_personal">Personal</string>
+    <string name="new_list_category_work">Work</string>
+    <string name="new_list_category_health">Health</string>
+    <string name="new_list_category_other">Other</string>
+
+    <!-- Product Card Additional -->
+    <string name="product_card_icon">Product icon</string>
+    <string name="product_card_edit">Edit product</string>
+    <string name="product_card_delete">Delete product</string>
+    <string name="product_card_updated">Updated: %s</string>
+
     <!-- Common -->
     <string name="common_error">Error</string>
     <string name="common_retry">Retry</string>
@@ -287,4 +360,6 @@
     <string name="common_add">Add</string>
     <string name="common_loading">Loading…</string>
     <string name="common_back">Back</string>
+    <string name="common_user">User</string>
+    <string name="common_warning">Warning</string>
 </resources>

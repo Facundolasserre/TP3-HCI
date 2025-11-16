@@ -49,6 +49,7 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
+    val defaultError = stringResource(R.string.common_error)
 
     val loginState by viewModel.loginState
 
@@ -57,7 +58,7 @@ fun LoginScreen(
         when (loginState) {
             is Result.Success -> onLoginSuccess()
             is Result.Error -> {
-                errorMessage = (loginState as Result.Error).message ?: "Error desconocido"
+                errorMessage = (loginState as Result.Error).message ?: defaultError
                 snackbarHostState.showSnackbar(errorMessage)
             }
             else -> Unit

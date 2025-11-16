@@ -786,7 +786,7 @@ private fun DisplaySettingsCard(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Choose how products are displayed",
+                text = stringResource(R.string.account_settings_view_mode_description),
                 fontSize = 13.sp,
                 color = Color(0xFF2E2A3A).copy(alpha = 0.7f)
             )

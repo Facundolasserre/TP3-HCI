@@ -110,7 +110,7 @@ fun DrawerContent(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = userName.ifEmpty { "User" },
+                    text = userName.ifEmpty { stringResource(R.string.common_user) },
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = OnDrawer

@@ -43,7 +43,7 @@ fun BagItTopBar(
         navigationIcon = {
             if (showMenu) {
                 IconButton(onClick = onMenuClick) {
-                    Icon(Icons.Default.Menu, contentDescription = "Menu")
+                    Icon(Icons.Default.Menu, contentDescription = stringResource(R.string.topbar_menu))
                 }
             }
         },

@@ -271,12 +271,85 @@
     <string name="share_members_share_list">Compartir lista</string>
 
     <!-- Favorites Screen -->
-    <string name="favorites_retry">Retry</string>
-    <string name="favorites_empty_title">No favorites yet</string>
-    <string name="favorites_empty_subtitle">Mark lists as favorites to see them here</string>
-    <string name="favorites_no_results_title">No favorites found</string>
-    <string name="favorites_no_results_subtitle">Try a different search term</string>
-    <string name="favorites_error_loading">Error loading favorites</string>
+    <string name="favorites_retry">Reintentar</string>
+    <string name="favorites_empty_title">Sin favoritos aún</string>
+    <string name="favorites_empty_subtitle">Marca listas como favoritas para verlas aquí</string>
+    <string name="favorites_no_results_title">No se encontraron favoritos</string>
+    <string name="favorites_no_results_subtitle">Intenta con un término de búsqueda diferente</string>
+    <string name="favorites_error_loading">Error al cargar favoritos</string>
+
+    <!-- Home Screen Additional -->
+    <string name="home_select_list">Selecciona una lista</string>
+    <string name="home_select_list_details">Selecciona una lista para ver detalles</string>
+    <string name="home_description">Descripción</string>
+    <string name="home_sharing">Compartir</string>
+    <string name="home_open_list_button">Abrir lista</string>
+    <string name="home_category_general">General</string>
+
+    <!-- List View Additional -->
+    <string name="list_search_and_filter">Buscar y filtrar</string>
+    <string name="list_search_products_placeholder">Buscar productos…</string>
+    <string name="list_search_icon">Buscar</string>
+    <string name="list_clear_icon">Limpiar</string>
+    <string name="list_try_different_search">Intenta con un término de búsqueda diferente</string>
+    <string name="list_try_clear_search">Probá borrar o cambiar el término de búsqueda.</string>
+    <string name="list_error_loading_items">Error al cargar artículos</string>
+    <string name="list_edit_icon">Editar</string>
+    <string name="list_delete_icon">Borrar</string>
+    <string name="list_delete_list">Borrar lista</string>
+    <string name="list_create_new_product">Crear nuevo producto</string>
+    <string name="list_edit_item">Editar artículo</string>
+    <string name="list_product_label">Producto</string>
+    <string name="list_unit_singular">Unidad</string>
+    <string name="list_unit_plural">Unidades</string>
+
+    <!-- Products Screen Additional -->
+    <string name="products_filters">Filtros</string>
+    <string name="products_categories">Categorías</string>
+    <string name="products_page_size">Tamaño de página</string>
+
+    <!-- Share Members Screen Additional -->
+    <string name="share_members_filter">Filtrar miembros</string>
+    <string name="share_members_status">Estado</string>
+    <string name="share_members_no_members_found">No se encontraron miembros</string>
+    <string name="share_members_all">Todos</string>
+    <string name="share_members_pending">Pendientes</string>
+    <string name="share_members_blocked">Bloqueados</string>
+    <string name="share_members_remove">Quitar</string>
+    <string name="share_members_owner">Propietario</string>
+    <string name="share_members_member">Miembro</string>
+    <string name="share_members_member_options">Opciones de miembro</string>
+
+    <!-- Account Settings Additional -->
+    <string name="account_settings_view_mode_description">Elige cómo se muestran los productos</string>
+
+    <!-- Shopping History Additional -->
+    <string name="shopping_history_error_loading">Error al cargar listas de compras</string>
+    <string name="shopping_history_no_completed">Sin listas de compras completadas</string>
+    <string name="shopping_history_empty_hint">Las listas de compras con todos los artículos comprados aparecerán aquí</string>
+    <string name="shopping_history_title">Historial de compras</string>
+    <string name="shopping_history_coming_soon">El historial de compras estará disponible pronto</string>
+
+    <!-- TopBar Additional -->
+    <string name="topbar_menu">Menú</string>
+
+    <!-- New List Screen Additional -->
+    <string name="new_list_mark_favorite">Marcar como favorito</string>
+    <string name="new_list_share_list">Compartir lista</string>
+    <string name="new_list_navigate">Navegar</string>
+    <string name="new_list_favorite_icon">Favorito</string>
+    <string name="new_list_category_groceries">Comestibles</string>
+    <string name="new_list_category_family">Familia</string>
+    <string name="new_list_category_personal">Personal</string>
+    <string name="new_list_category_work">Trabajo</string>
+    <string name="new_list_category_health">Salud</string>
+    <string name="new_list_category_other">Otro</string>
+
+    <!-- Product Card Additional -->
+    <string name="product_card_icon">Ícono de producto</string>
+    <string name="product_card_edit">Editar producto</string>
+    <string name="product_card_delete">Borrar producto</string>
+    <string name="product_card_updated">Actualizado: %s</string>
 
     <!-- Common -->
     <string name="common_error">Error</string>
@@ -288,4 +361,6 @@
     <string name="common_add">Agregar</string>
     <string name="common_loading">Cargando…</string>
     <string name="common_back">Atrás</string>
+    <string name="common_user">Usuario</string>
+    <string name="common_warning">Advertencia</string>
 </resources>
