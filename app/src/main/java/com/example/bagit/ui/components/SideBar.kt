@@ -62,12 +62,12 @@ fun DrawerContent(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Row superior: Settings (der)
+            // Row superior: Settings (izq)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
-                horizontalArrangement = Arrangement.End,
+                horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(

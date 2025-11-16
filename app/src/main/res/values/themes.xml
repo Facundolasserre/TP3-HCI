@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.BagIt" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.BagIt" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowSplashScreenBackground">#221739</item>
+        <item name="android:windowBackground">#221739</item>
+    </style>
 </resources>

@@ -143,7 +143,7 @@
     <string name="account_settings_back">Atrás</string>
     <string name="account_settings_profile_section">Perfil</string>
     <string name="account_settings_name_label">Nombre</string>
-    <string name="account_settings_username_label">Usuario</string>
+    <string name="account_settings_username_label">Apellido</string>
     <string name="account_settings_save_changes">Guardar Cambios</string>
     <string name="account_settings_security_section">Seguridad de la Cuenta</string>
     <string name="account_settings_email_label">Email</string>
