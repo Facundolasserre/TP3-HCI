@@ -46,6 +46,9 @@ class ProductsViewModel @Inject constructor(
     
     // Cache de categorías que tienen productos asignados
     private val categoriesWithProducts = mutableSetOf<Long>()
+    
+    // Almacenar todas las categorías cargadas desde la API
+    private var allCategories: List<com.example.bagit.data.model.Category> = emptyList()
 
     init {
         loadCategories()
@@ -114,10 +117,13 @@ class ProductsViewModel @Inject constructor(
             ).collect { result ->
                 when (result) {
                     is Result.Success -> {
+                        // Almacenar todas las categorías
+                        allCategories = result.data.data
+                        
                         // Actualizar categorías en el estado Success si existe
                         val currentState = uiState
                         if (currentState is ProductsUiState.Success) {
-                            uiState = currentState.copy(categories = result.data.data)
+                            uiState = currentState.copy(categories = allCategories)
                         }
                     }
                     else -> {
@@ -167,7 +173,8 @@ class ProductsViewModel @Inject constructor(
                         }
                     }
                     is Result.Success -> {
-                        val categories = (currentState as? ProductsUiState.Success)?.categories ?: emptyList()
+                        // Usar las categorías cargadas (allCategories) en lugar de las del estado anterior
+                        val categories = allCategories
                         
                         // Actualizar cache de categorías que tienen productos
                         result.data.data.forEach { product ->
@@ -247,6 +254,8 @@ class ProductsViewModel @Inject constructor(
         if (currentState is ProductsUiState.Success) {
             uiState = currentState.copy(isRefreshing = true)
         }
+        // Recargar categorías también
+        loadCategories()
         loadProducts(page = 1)
     }
 

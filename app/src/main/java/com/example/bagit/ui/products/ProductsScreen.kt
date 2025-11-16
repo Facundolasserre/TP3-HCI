@@ -235,6 +235,11 @@ private fun SuccessState(
     var showCategoryDropdown by remember { mutableStateOf(false) }
     val useTwoPane = shouldUseTwoPaneLayout()
 
+    // Cerrar el dropdown cuando cambia la categoría seleccionada
+    LaunchedEffect(state.selectedCategoryId) {
+        showCategoryDropdown = false
+    }
+
     // Mostrar TODAS las categorías del usuario, ordenadas por nombre
     val availableCategories = remember(state.categories) {
         state.categories.sortedBy { it.name }
@@ -301,7 +306,9 @@ private fun SuccessState(
                             expanded = showCategoryDropdown,
                             onDismissRequest = { showCategoryDropdown = false },
                             modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp)),
+                                .clip(RoundedCornerShape(8.dp))
+                                .widthIn(max = 300.dp)
+                                .heightIn(max = 400.dp),
                             containerColor = dropdownContainerColor
                         ) {
                             DropdownMenuItem(
@@ -412,7 +419,9 @@ private fun SuccessState(
                         expanded = showCategoryDropdown,
                         onDismissRequest = { showCategoryDropdown = false },
                         modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp)),
+                            .clip(RoundedCornerShape(8.dp))
+                            .widthIn(max = 300.dp)
+                            .heightIn(max = 400.dp),
                         containerColor = dropdownContainerColor
                     ) {
                         DropdownMenuItem(
