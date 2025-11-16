@@ -38,6 +38,7 @@ import com.example.bagit.ui.viewmodel.ProfileStats
 import com.example.bagit.ui.viewmodel.ProfileUiState
 import com.example.bagit.ui.viewmodel.ProfileViewModel
 import com.example.bagit.data.model.User
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -91,7 +92,34 @@ fun ProfileScreen(
     var showAddFavoriteDialog by rememberSaveable { mutableStateOf(false) }
     var newFavoriteStore by rememberSaveable { mutableStateOf("") }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val comingSoonMessage = stringResource(R.string.profile_notifications_coming_soon)
+
+    // Wrapped handlers to show "coming soon" message and allow toggle
+    val handleEmailNotificationChange: (Boolean) -> Unit = { enabled ->
+        scope.launch {
+            snackbarHostState.showSnackbar(comingSoonMessage)
+        }
+        onEmailNotificationsChanged(enabled)
+    }
+
+    val handlePushNotificationChange: (Boolean) -> Unit = { enabled ->
+        scope.launch {
+            snackbarHostState.showSnackbar(comingSoonMessage)
+        }
+        onPushNotificationsChanged(enabled)
+    }
+
+    val handlePriceAlertsChange: (Boolean) -> Unit = { enabled ->
+        scope.launch {
+            snackbarHostState.showSnackbar(comingSoonMessage)
+        }
+        onPriceAlertsChanged(enabled)
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -100,15 +128,6 @@ fun ProfileScreen(
                         fontWeight = FontWeight.SemiBold,
                         color = OnDark
                     )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.profile_back),
-                            tint = OnDark
-                        )
-                    }
                 },
                 actions = {
                     if (onSettingsAction != null) {
@@ -178,9 +197,9 @@ fun ProfileScreen(
                     emailNotificationsEnabled = uiState.notifications.emailNotificationsEnabled,
                     pushNotificationsEnabled = uiState.notifications.pushNotificationsEnabled,
                     priceAlertsEnabled = uiState.notifications.priceAlertsEnabled,
-                    onEmailNotificationsChanged = onEmailNotificationsChanged,
-                    onPushNotificationsChanged = onPushNotificationsChanged,
-                    onPriceAlertsChanged = onPriceAlertsChanged,
+                    onEmailNotificationsChanged = handleEmailNotificationChange,
+                    onPushNotificationsChanged = handlePushNotificationChange,
+                    onPriceAlertsChanged = handlePriceAlertsChange,
                     updatingPreference = updatingPreference
                 )
 

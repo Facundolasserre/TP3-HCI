@@ -118,9 +118,10 @@
     <string name="profile_pantries">Despensas</string>
     <string name="profile_products">Productos</string>
     <string name="profile_notifications">Notificaciones</string>
-    <string name="profile_email_notifications">Notificaciones por email</string>
-    <string name="profile_push_notifications">Notificaciones push</string>
+    <string name="profile_email_notifications">Email</string>
+    <string name="profile_push_notifications">En el celular</string>
     <string name="profile_price_alerts">Alertas de precio</string>
+    <string name="profile_notifications_coming_soon">Viene pronto</string>
     <string name="profile_dietary_preferences">Preferencias dietéticas</string>
     <string name="profile_dietary_preferences_hint">Configura tus preferencias dietéticas (vegano, sin gluten, etc.)</string>
     <string name="profile_vegan">Vegano</string>
