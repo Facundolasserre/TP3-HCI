@@ -319,6 +319,8 @@
     <string name="share_members_owner">Propietario</string>
     <string name="share_members_member">Miembro</string>
     <string name="share_members_member_options">Opciones de miembro</string>
+    <string name="share_members_error_unexpected">Error inesperado al agregar miembro</string>
+    <string name="share_members_error_only_owner">Solo el creador de la lista puede cambiar roles</string>
 
     <!-- Account Settings Additional -->
     <string name="account_settings_view_mode_description">Elige cómo se muestran los productos</string>
@@ -344,6 +346,8 @@
     <string name="new_list_category_work">Trabajo</string>
     <string name="new_list_category_health">Salud</string>
     <string name="new_list_category_other">Otro</string>
+    <string name="new_list_default_name">Mi Lista</string>
+    <string name="new_list_default_new">Nueva Lista</string>
 
     <!-- Product Card Additional -->
     <string name="product_card_icon">Ícono de producto</string>

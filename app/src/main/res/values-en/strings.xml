@@ -318,6 +318,8 @@
     <string name="share_members_owner">Owner</string>
     <string name="share_members_member">Member</string>
     <string name="share_members_member_options">Member options</string>
+    <string name="share_members_error_unexpected">Unexpected error adding member</string>
+    <string name="share_members_error_only_owner">Only the list creator can change roles</string>
 
     <!-- Account Settings Additional -->
     <string name="account_settings_view_mode_description">Choose how products are displayed</string>
@@ -343,6 +345,8 @@
     <string name="new_list_category_work">Work</string>
     <string name="new_list_category_health">Health</string>
     <string name="new_list_category_other">Other</string>
+    <string name="new_list_default_name">My List</string>
+    <string name="new_list_default_new">New List</string>
 
     <!-- Product Card Additional -->
     <string name="product_card_icon">Product icon</string>

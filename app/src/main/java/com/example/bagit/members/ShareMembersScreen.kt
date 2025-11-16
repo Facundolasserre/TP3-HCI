@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import android.util.Log
 import com.example.bagit.ui.utils.shouldUseTwoPaneLayout
@@ -52,6 +53,19 @@ fun ShareMembersScreen(
     var showShareDialog by rememberSaveable { mutableStateOf(false) }
     var previousIsLoading by remember { mutableStateOf(false) }
     val useTwoPane = shouldUseTwoPaneLayout()
+    val context = LocalContext.current
+    
+    // Helper function to localize error messages
+    fun getLocalizedError(error: String?): String? {
+        if (error == null) return null
+        return when {
+            error.contains("Error inesperado al agregar miembro", ignoreCase = true) -> 
+                context.getString(R.string.share_members_error_unexpected)
+            error.contains("Solo el creador de la lista puede cambiar roles", ignoreCase = true) -> 
+                context.getString(R.string.share_members_error_only_owner)
+            else -> error
+        }
+    }
 
     // Cerrar el diálogo automáticamente cuando addMember tiene éxito
     LaunchedEffect(uiState.isLoading, uiState.error) {
@@ -147,7 +161,7 @@ fun ShareMembersScreen(
                             )
                         ) {
                             Text(
-                                text = uiState.error!!,
+                                text = getLocalizedError(uiState.error) ?: "",
                                 fontSize = 14.sp,
                                 color = Color(0xFFFFB3B3),
                                 modifier = Modifier.padding(16.dp)
@@ -240,7 +254,7 @@ fun ShareMembersScreen(
                         )
                     ) {
                         Text(
-                            text = uiState.error!!,
+                            text = getLocalizedError(uiState.error) ?: "",
                             fontSize = 14.sp,
                             color = Color(0xFFFFB3B3),
                             modifier = Modifier.padding(16.dp)
@@ -259,18 +273,18 @@ fun ShareMembersScreen(
                     ) {
                         CircularProgressIndicator(color = Color(0xFF7B68EE))
                     }
-                } else if (displayedMembers.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "No members found",
-                            fontSize = 16.sp,
-                            color = OnDark.copy(alpha = 0.5f)
-                        )
-                    }
-                } else {
+                    } else if (displayedMembers.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(R.string.share_members_no_members_found),
+                                fontSize = 16.sp,
+                                color = OnDark.copy(alpha = 0.5f)
+                            )
+                        }
+                    } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 16.dp),
@@ -298,7 +312,7 @@ fun ShareMembersScreen(
         listName = listName,
         isVisible = showShareDialog,
         isLoading = uiState.isLoading,
-        error = if (showShareDialog) uiState.error else null,
+        error = if (showShareDialog) getLocalizedError(uiState.error) else null,
         onClose = { 
             showShareDialog = false
             // Limpiar error cuando se cierra el diálogo

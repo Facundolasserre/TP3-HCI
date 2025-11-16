@@ -56,6 +56,10 @@ fun NewListScreen(
     val isTablet = isTablet()
     val contentPadding = getContentPadding()
     val maxContentWidth = getMaxContentWidth()
+    
+    // Get localized strings for default values
+    val defaultListName = stringResource(R.string.new_list_default_name)
+    val defaultNewListName = stringResource(R.string.new_list_default_new)
 
     Scaffold(
         topBar = {
@@ -121,7 +125,7 @@ fun NewListScreen(
             ) {
             // Preview Card
             PreviewCard(
-                name = uiState.name.ifBlank { "My List" },
+                name = uiState.name.ifBlank { defaultListName },
                 category = uiState.category,
                 colorHex = uiState.colorHex,
                 iconKey = uiState.iconKey,
@@ -240,7 +244,7 @@ fun NewListScreen(
                         color = Color(0xFF2A2D3E),
                         shape = RoundedCornerShape(12.dp)
                     )
-                    .clickable { onShareList(uiState.name.ifBlank { "New List" }) }
+                    .clickable { onShareList(uiState.name.ifBlank { defaultNewListName }) }
                     .padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically

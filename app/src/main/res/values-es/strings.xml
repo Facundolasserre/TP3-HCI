@@ -284,5 +284,13 @@
     <string name="common_add">Agregar</string>
     <string name="common_loading">Cargando…</string>
     <string name="common_back">Atrás</string>
+
+    <!-- New List Screen Additional -->
+    <string name="new_list_default_name">Mi Lista</string>
+    <string name="new_list_default_new">Nueva Lista</string>
+    
+    <!-- Share Members Screen Error Messages -->
+    <string name="share_members_error_unexpected">Error inesperado al agregar miembro</string>
+    <string name="share_members_error_only_owner">Solo el creador de la lista puede cambiar roles</string>
 </resources>
 

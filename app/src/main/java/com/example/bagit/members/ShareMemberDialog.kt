@@ -167,7 +167,10 @@ fun ShareMemberDialog(
                                 onExpandedChange = { showRoleDropdown = !showRoleDropdown }
                             ) {
                                 OutlinedTextField(
-                                    value = selectedRole.name,
+                                    value = when (selectedRole) {
+                                        MemberRole.OWNER -> stringResource(R.string.share_members_owner)
+                                        MemberRole.MEMBER -> stringResource(R.string.share_members_member)
+                                    },
                                     onValueChange = {},
                                     readOnly = true,
                                     enabled = !isLoading,
@@ -201,7 +204,10 @@ fun ShareMemberDialog(
                                         DropdownMenuItem(
                                             text = {
                                                 Text(
-                                                    text = role.name,
+                                                    text = when (role) {
+                                                        MemberRole.OWNER -> stringResource(R.string.share_members_owner)
+                                                        MemberRole.MEMBER -> stringResource(R.string.share_members_member)
+                                                    },
                                                     color = OnDark
                                                 )
                                             },
