@@ -83,19 +83,21 @@ fun ProductGridCard(
             Spacer(modifier = Modifier.height(8.dp))
 
             // Category chip
-            Surface(
-                shape = RoundedCornerShape(8.dp),
-                color = Color(0xFF4A4E5E)
-            ) {
-                Text(
-                    text = product.category.name,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color(0xFFA594FF),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+            product.category?.let { category ->
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFF4A4E5E)
+                ) {
+                    Text(
+                        text = category.name,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFFA594FF),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))

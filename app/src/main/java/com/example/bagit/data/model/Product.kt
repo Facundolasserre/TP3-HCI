@@ -6,7 +6,7 @@ data class Product(
     @SerializedName("id") val id: Long,
     @SerializedName("name") val name: String,
     @SerializedName("metadata") val metadata: Map<String, Any>? = null,
-    @SerializedName("category") val category: Category,
+    @SerializedName("category") val category: Category? = null,
     @SerializedName("createdAt") val createdAt: String,
     @SerializedName("updatedAt") val updatedAt: String
 )

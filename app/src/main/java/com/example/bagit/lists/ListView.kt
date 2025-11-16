@@ -630,25 +630,27 @@ fun ListItemCard(
                         fontSize = 14.sp,
                         color = OnDark.copy(alpha = 0.6f)
                     )
-                    if (item.product.category.name.isNotBlank()) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "•",
-                            fontSize = 14.sp,
-                            color = OnDark.copy(alpha = 0.4f)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = item.product.category.name,
-                            fontSize = 12.sp,
-                            color = OnDark.copy(alpha = 0.5f),
-                            modifier = Modifier
-                                .background(
-                                    Color(0xFF3D3F54),
-                                    RoundedCornerShape(8.dp)
-                                )
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
+                    item.product.category?.let { category ->
+                        if (category.name.isNotBlank()) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "•",
+                                fontSize = 14.sp,
+                                color = OnDark.copy(alpha = 0.4f)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = category.name,
+                                fontSize = 12.sp,
+                                color = OnDark.copy(alpha = 0.5f),
+                                modifier = Modifier
+                                    .background(
+                                        Color(0xFF3D3F54),
+                                        RoundedCornerShape(8.dp)
+                                    )
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -869,11 +871,13 @@ fun AddItemDialog(
                                                     color = OnDark,
                                                     fontSize = 14.sp
                                                 )
-                                                Text(
-                                                    text = product.category.name,
-                                                    color = OnDark.copy(alpha = 0.5f),
-                                                    fontSize = 12.sp
-                                                )
+                                                product.category?.let { category ->
+                                                    Text(
+                                                        text = category.name,
+                                                        color = OnDark.copy(alpha = 0.5f),
+                                                        fontSize = 12.sp
+                                                    )
+                                                }
                                             }
                                         }
                                     }

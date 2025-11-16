@@ -88,17 +88,19 @@ fun ProductCard(
             }
 
             // Category chip
-            Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = Color(0xFF4A4E5E)
-            ) {
-                Text(
-                    text = product.category.name,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color(0xFFA594FF)
-                )
+            product.category?.let { category ->
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color(0xFF4A4E5E)
+                ) {
+                    Text(
+                        text = category.name,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFFA594FF)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(8.dp))
