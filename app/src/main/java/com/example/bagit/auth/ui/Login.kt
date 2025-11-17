@@ -242,31 +242,31 @@ fun LoginScreen(
                                 fontSize = if (isTablet) 20.sp else 18.sp
                             )
                         }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Row(
+                            horizontalArrangement = Arrangement.Start,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = stringResource(R.string.login_no_account),
+                                color = White,
+                                fontSize = if (isTablet) 16.sp else 14.sp
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = stringResource(R.string.login_sign_up),
+                                color = AccentPurple,
+                                textDecoration = TextDecoration.Underline,
+                                fontSize = if (isTablet) 16.sp else 14.sp,
+                                modifier = Modifier.clickable(onClick = onCreateAccount)
+                            )
+                        }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(sectionSpacing))
-
-                Row(
-                    horizontalArrangement = Arrangement.Start,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = contentPadding)
-                ) {
-                    Text(
-                        text = stringResource(R.string.login_no_account),
-                        color = White,
-                        fontSize = if (isTablet) 16.sp else 14.sp
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = stringResource(R.string.login_sign_up),
-                        color = AccentPurple,
-                        textDecoration = TextDecoration.Underline,
-                        fontSize = if (isTablet) 16.sp else 14.sp,
-                        modifier = Modifier.clickable(onClick = onCreateAccount)
-                    )
-                }
+                Spacer(modifier = Modifier.height(contentPadding))
             }
         }
 
@@ -352,7 +352,7 @@ private fun LoginFormContent(
             )
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Row(
             horizontalArrangement = Arrangement.Start,
@@ -455,8 +455,9 @@ private fun LoginFormFields(
 
     Text(
         text = stringResource(R.string.login_forgot_password),
-        color = Gray,
+        color = AccentPurple,
         textAlign = TextAlign.End,
+        textDecoration = TextDecoration.Underline,
         fontSize = 14.sp,
         modifier = Modifier
             .fillMaxWidth()
