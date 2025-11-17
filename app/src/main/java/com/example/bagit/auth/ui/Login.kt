@@ -248,8 +248,10 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.height(sectionSpacing))
 
                 Row(
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier.padding(bottom = contentPadding)
+                    horizontalArrangement = Arrangement.Start,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = contentPadding)
                 ) {
                     Text(
                         text = stringResource(R.string.login_no_account),
@@ -353,7 +355,8 @@ private fun LoginFormContent(
         Spacer(modifier = Modifier.height(20.dp))
 
         Row(
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text(
                 text = stringResource(R.string.login_no_account),
