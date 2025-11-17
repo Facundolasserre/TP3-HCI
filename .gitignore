@@ -19,3 +19,5 @@ local.properties
 /api/
 
 /CLAUDE.md
+gradlew
+gradlew.bat
